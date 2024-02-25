@@ -1,12 +1,7 @@
 version: '3.8'
 services:
   ganache:
-    image: trufflesuite/ganache-cli:latest
-    command:
-      - "-d"
-      - "--accounts=10"
-      - "--defaultBalanceEther=1000"
-      - "--mnemonic=brownie"
-      - "--networkId=5777"
+    image: trufflesuite/ganache-cli
+    command: -d -m "your twelve-word mnemonic here" -i 5777
     ports:
       - "8545:8545"
