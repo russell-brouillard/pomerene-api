@@ -1,7 +1,0 @@
-version: '3.8'
-services:
-  ganache:
-    image: trufflesuite/ganache-cli
-    command: -d -m "your twelve-word mnemonic here" -i 5777
-    ports:
-      - "8545:8545"
