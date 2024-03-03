@@ -1,17 +1,26 @@
 {
   "name": "sag-tickets",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/src/mint.js", 
+  "type": "module", 
   "repository": "git@github.com:russell-brouillard/sag-ticket.git",
   "author": "russell-brouillard <rbrouillard@crunchtime.com>",
   "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf dist/", 
+    "build": "yarn clean && tsc", 
+    "start": "node dist/src/mint.js",
+    "dev": "ts-node src/mint.ts"
+  },
   "dependencies": {
     "@solana/spl-token": "^0.4.1",
     "@solana/spl-token-metadata": "^0.1.2",
     "@solana/web3.js": "^1.90.1",
-    "@types/node": "^20.11.24",
     "bs58": "^5.0.0",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
