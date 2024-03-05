@@ -20,8 +20,6 @@ import {
   LENGTH_SIZE,
   getOrCreateAssociatedTokenAccount,
   mintTo,
-  transfer,
-  createAccount,
 } from "@solana/spl-token";
 import {
   createInitializeInstruction,
@@ -37,18 +35,6 @@ import path from "path";
 import fs from "fs";
 
 dotenv.config();
-
-// Decode the Base58 private key
-// const base58PrivateKey = process.env.SOLANA_PRIVATE_KEY;
-
-// if (!base58PrivateKey) {
-//   throw new Error("SOLANA_PRIVATE_KEY is not set");
-// }
-
-// const decodedPrivateKey = bs58.decode(base58PrivateKey);
-
-// // Generate the Keypair from the decoded private key
-// const payer = Keypair.fromSecretKey(decodedPrivateKey);
 
 if (!process.env.HOME) {
   throw new Error("HOME environment variable is not defined.");
@@ -68,11 +54,9 @@ let transaction = new Transaction();
 
 let transactionSignature: string;
 
-(async () => {
-  console.log("My address:", payer.publicKey.toString());
-  const balance = await connection.getBalance(payer.publicKey);
-  console.log(`My balance: ${balance / LAMPORTS_PER_SOL} SOL`);
-})().catch(console.error);
+console.log("My address:", payer.publicKey.toString());
+const balance = await connection.getBalance(payer.publicKey);
+console.log(`My balance: ${balance / LAMPORTS_PER_SOL} SOL`);
 
 // Generate new keypair for Mint Account
 const mintKeypair = Keypair.generate();
@@ -223,7 +207,7 @@ console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
       mint, // Mint Account address
       sourceTokenAccount, // Mint to
       mintAuthority, // Mint Authority address
-      2001_00, // Amount
+      1_00, // Amount
       undefined, // Additional signers
       undefined, // Confirmation options
       TOKEN_2022_PROGRAM_ID // Token Extension Program ID
@@ -234,39 +218,63 @@ console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
       `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`
     );
 
-    const transferAmount = BigInt(1000_00);
+    /////////////////////////
 
-    // Random keypair to use as owner of Token Account
-    // const randomKeypair = new Keypair();
-    // Create Token Account for random keypair
+    console.log("start remove key");
 
-    // console.log("Random Keypair:", randomKeypair.publicKey.toString());
-    // const destinationTokenAccount = await createAccount(
-    //   connection,
-    //   payer, // Payer to create Token Account
-    //   mint, // Mint Account address
-    //   randomKeypair.publicKey, // Token Account owner
-    //   undefined, // Optional keypair, default to Associated Token Account
-    //   undefined, // Confirmation options
-    //   TOKEN_2022_PROGRAM_ID // Token Extension Program ID
-    // );
+    const metaData2: TokenMetadata = {
+      updateAuthority: updateAuthority,
+      mint: mint,
+      name: "OPOS",
+      symbol: "OPOS",
+      uri: "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json",
+      additionalMetadata: [["description", "Only Possible On 5olana"]],
+    };
 
-    // const transferred = await transfer(
-    //   connection,
-    //   payer,
-    //   sourceTokenAccount,
-    //   payer.publicKey,
-    //   payer.publicKey,
-    //   transferAmount,
-    //   [],
-    //   undefined,
-    //   TOKEN_2022_PROGRAM_ID
-    // );
+    const updateFieldInstruction = createUpdateFieldInstruction({
+      programId: TOKEN_2022_PROGRAM_ID, // Token Extension Program as Metadata Program
+      metadata: mint, // Account address that holds the metadata
+      updateAuthority: updateAuthority, // Authority that can update the metadata
+      field: metaData2.additionalMetadata[0][0], // key
+      value: metaData2.additionalMetadata[0][0], // value
+    });
 
-    // console.log("Transferred", transferred);
+    // Add instruction to new transaction
+    transaction = new Transaction().add(updateFieldInstruction);
 
+    // Send transaction
 
+    const transactionSignature2 = await sendAndConfirmTransaction(
+      connection,
+      transaction,
+      [payer] // Signers
+    );
 
+    const balance2 = await connection.getBalance(payer.publicKey);
+
+    const diff = balance - balance2;
+
+    console.log("worst case fee", diff / LAMPORTS_PER_SOL);
+
+    console.log(
+      "\nRemove Additional Metadata Field:",
+      `https://solana.fm/tx/${transactionSignature2}?cluster=devnet-solana`
+    );
+
+    // Retrieve and log the metadata state
+    const updatedMetadata = await getTokenMetadata(
+      connection,
+      mint // Mint Account address
+    );
+    console.log(
+      "\nUpdated Metadata:",
+      JSON.stringify(updatedMetadata, null, 2)
+    );
+
+    console.log(
+      "\nMint Account:",
+      `https://solana.fm/address/${mint}?cluster=devnet-solana`
+    );
   } catch (error) {
     console.error("Error minting tokens:", error);
   }
