@@ -1,13 +1,16 @@
 // src/app.ts
-
-import express, { Request, Response } from "express";
+import express from "express";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc"; // Correctly import swagger-jsdoc
+import routes from "./routes";
 
 dotenv.config();
 
 const app = express();
+
+app.use(express.json());
+
 
 // Options for the swagger docs
 const options = {
@@ -29,11 +32,10 @@ const swaggerSpec = swaggerJSDoc(options);
 // Serve swagger docs the way you like (Recommendation: only in development)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-const PORT = process.env.PORT || 3000;
+// Use the imported routes
+app.use('/api', routes); // Mount the routes at the "/api" base path
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello, TypeScript with Express!");
-});
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);

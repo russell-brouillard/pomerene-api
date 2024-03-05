@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/app.js",
-    "dev": "ts-node src/app.ts"
+    "dev": "nodemon --exec ts-node src/app.ts",
+    "watch": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/app.ts"
   },
   "dependencies": {
     "@metaplex-foundation/mpl-bubblegum": "^3.1.2",
@@ -29,6 +30,7 @@
     "@types/node": "^20.11.24",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
+    "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }

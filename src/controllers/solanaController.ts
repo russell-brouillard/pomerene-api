@@ -1,8 +1,6 @@
 //src/controllers/solanaController.ts
 import { Request, Response } from "express";
-import * as solanaService from "../solana/services/solanaService";
-
-
+import { getBalance } from "../solana/services/solanaService";
 
 /**
  * @swagger
@@ -41,7 +39,9 @@ import * as solanaService from "../solana/services/solanaService";
  */
 export async function getWalletBalance(req: Request, res: Response) {
   try {
-    const balance = await solanaService.getBalance(req.params.publicKey);
+    console.log("test");
+    console.log(req.params.publicKey);
+    const balance = await getBalance(req.params.publicKey);
     res.json({ balance });
   } catch (error: any) {
     res.status(500).send(error.toString());
