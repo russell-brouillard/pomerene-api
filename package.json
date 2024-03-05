@@ -10,6 +10,7 @@
     "clean": "rm -rf dist/", 
     "build": "yarn clean && tsc", 
     "start": "node dist/src/mint.js",
+    "spl": "node dist/src/spl.js",
     "dev": "ts-node src/mint.ts"
   },
   "dependencies": {

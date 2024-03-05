@@ -18,6 +18,11 @@ import {
   getTokenMetadata,
   TYPE_SIZE,
   LENGTH_SIZE,
+  getOrCreateAssociatedTokenAccount,
+  mintTo,
+  getAssociatedTokenAddress,
+  createAccount,
+  getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 import {
   createInitializeInstruction,
@@ -29,20 +34,32 @@ import {
 
 import dotenv from "dotenv";
 import bs58 from "bs58";
+import path from "path";
+import fs from "fs";
 
 dotenv.config();
 
 // Decode the Base58 private key
-const base58PrivateKey = process.env.SOLANA_PRIVATE_KEY;
+// const base58PrivateKey = process.env.SOLANA_PRIVATE_KEY;
 
-if (!base58PrivateKey) {
-  throw new Error("SOLANA_PRIVATE_KEY is not set");
+// if (!base58PrivateKey) {
+//   throw new Error("SOLANA_PRIVATE_KEY is not set");
+// }
+
+// const decodedPrivateKey = bs58.decode(base58PrivateKey);
+
+// // Generate the Keypair from the decoded private key
+// const payer = Keypair.fromSecretKey(decodedPrivateKey);
+
+if (!process.env.HOME) {
+  throw new Error("HOME environment variable is not defined.");
 }
 
-const decodedPrivateKey = bs58.decode(base58PrivateKey);
+const keypairPath = path.resolve(process.env.HOME, ".config/solana/id.json");
+const secretKeyString = fs.readFileSync(keypairPath, { encoding: "utf-8" });
+const secretKeyUint8Array = new Uint8Array(JSON.parse(secretKeyString));
 
-// Generate the Keypair from the decoded private key
-const payer = Keypair.fromSecretKey(decodedPrivateKey);
+const payer = Keypair.fromSecretKey(secretKeyUint8Array);
 
 // Connection to devnet cluster
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
@@ -63,6 +80,7 @@ const mintKeypair = Keypair.generate();
 // Address for Mint Account
 const mint = mintKeypair.publicKey;
 // Decimals for Mint Account
+
 const decimals = 2;
 // Authority that can mint new tokens
 const mintAuthority = payer.publicKey;
@@ -175,8 +193,47 @@ const metadataPointer = getMetadataPointerState(mintInfo);
 console.log("\nMetadata Pointer:", JSON.stringify(metadataPointer, null, 2));
 
 // Retrieve and log the metadata state
+
+console.log("mint = ", mint);
 const metadata = await getTokenMetadata(
   connection,
   mint // Mint Account address
 );
 console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
+
+///////////
+
+(async () => {
+  try {
+    const sourceTokenAccount = await createAccount(
+      connection,
+      payer, // Payer to create Token Account
+      mint, // Mint Account address
+      payer.publicKey, // Token Account owner
+      undefined, // Optional keypair, default to Associated Token Account
+      undefined, // Confirmation options
+      TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+    );
+
+    console.log("Token Account:", sourceTokenAccount);
+
+    transactionSignature = await mintTo(
+      connection,
+      payer, // Transaction fee payer
+      mint, // Mint Account address
+      sourceTokenAccount, // Mint to
+      mintAuthority, // Mint Authority address
+      2000_00, // Amount
+      undefined, // Additional signers
+      undefined, // Confirmation options
+      TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+    );
+
+    console.log(
+      "\nMint Tokens:",
+      `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`
+    );
+  } catch (error) {
+    console.error("Error minting tokens:", error);
+  }
+})();

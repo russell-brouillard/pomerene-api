@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "ES2022", // Changed to CommonJS for Node.js compatibility
+    "module": "ES2022",
     "moduleResolution": "Node",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "." // Specifies the root directory of input files
+    "rootDir": "."
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "**/*.spec.ts", "dist"] // Exclude 'dist' to avoid compiling files in the output directory
+  "exclude": ["node_modules", "**/*.spec.ts", "dist"]
 }
