@@ -20,9 +20,8 @@ import {
   LENGTH_SIZE,
   getOrCreateAssociatedTokenAccount,
   mintTo,
-  getAssociatedTokenAddress,
+  transfer,
   createAccount,
-  getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 import {
   createInitializeInstruction,
@@ -205,15 +204,16 @@ console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
 
 (async () => {
   try {
-    const sourceTokenAccount = await createAccount(
+    const sourceTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       payer, // Payer to create Token Account
       mint, // Mint Account address
       payer.publicKey, // Token Account owner
+      false, // Skip owner check
       undefined, // Optional keypair, default to Associated Token Account
       undefined, // Confirmation options
       TOKEN_2022_PROGRAM_ID // Token Extension Program ID
-    );
+    ).then((ata) => ata.address);
 
     console.log("Token Account:", sourceTokenAccount);
 
@@ -223,7 +223,7 @@ console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
       mint, // Mint Account address
       sourceTokenAccount, // Mint to
       mintAuthority, // Mint Authority address
-      2000_00, // Amount
+      2001_00, // Amount
       undefined, // Additional signers
       undefined, // Confirmation options
       TOKEN_2022_PROGRAM_ID // Token Extension Program ID
@@ -233,6 +233,40 @@ console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
       "\nMint Tokens:",
       `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`
     );
+
+    const transferAmount = BigInt(1000_00);
+
+    // Random keypair to use as owner of Token Account
+    // const randomKeypair = new Keypair();
+    // Create Token Account for random keypair
+
+    // console.log("Random Keypair:", randomKeypair.publicKey.toString());
+    // const destinationTokenAccount = await createAccount(
+    //   connection,
+    //   payer, // Payer to create Token Account
+    //   mint, // Mint Account address
+    //   randomKeypair.publicKey, // Token Account owner
+    //   undefined, // Optional keypair, default to Associated Token Account
+    //   undefined, // Confirmation options
+    //   TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+    // );
+
+    // const transferred = await transfer(
+    //   connection,
+    //   payer,
+    //   sourceTokenAccount,
+    //   payer.publicKey,
+    //   payer.publicKey,
+    //   transferAmount,
+    //   [],
+    //   undefined,
+    //   TOKEN_2022_PROGRAM_ID
+    // );
+
+    // console.log("Transferred", transferred);
+
+
+
   } catch (error) {
     console.error("Error minting tokens:", error);
   }
