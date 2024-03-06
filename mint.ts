@@ -61,6 +61,9 @@ async function main() {
 
   // Generate new keypair for Mint Account
   const mintKeypair = Keypair.generate();
+
+  console.log("Mint Account:", mintKeypair.publicKey.toString());
+  console.log("mint private key", bs58.encode(mintKeypair.secretKey));
   // Address for Mint Account
   const mint = mintKeypair.publicKey;
   // Decimals for Mint Account
