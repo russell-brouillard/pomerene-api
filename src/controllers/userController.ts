@@ -1,6 +1,6 @@
 // src/controllers/userController.ts
 import { Request, Response } from "express";
-import { secretManagerServiceClient } from "../services/google/googleCloud";
+import { secretManagerServiceClient } from "../services/google/secretManager";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { createUserAndStoreSolanaKeypair } from "../services/users/usersServices";
 
@@ -38,9 +38,9 @@ export const getSolanaKeypair = async (req: AuthRequest, res: Response) => {
   }
 
   const userId = req.user.uid; // Assuming `uid` is available from decodedToken attached in authMiddleware
-  const projectId = "your-google-cloud-project-id";
+  
   const secretId = `solana-keypair-${userId}`;
-  const parent = `projects/${projectId}/secrets/${secretId}/versions/latest`;
+  const parent = `projects/${process.env.GCP_PROGECT_ID}/secrets/${secretId}/versions/latest`;
 
   try {
     const [accessResponse] =

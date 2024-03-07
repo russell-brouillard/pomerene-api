@@ -1,19 +1,19 @@
 //src/services/google/users.ts
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { secretManagerServiceClient } from "../google/googleCloud";
+import { secretManagerServiceClient } from "../google/secretManager";
 import { Keypair } from "@solana/web3.js";
-import { auth } from "firebase-admin";
+
 import { CreateUserAndStoreSolanaKeypairResult } from "solanaTypes";
+import { auth } from "../google/firebase";
 
 export async function createUserAndStoreSolanaKeypair(
   email: string,
   password: string
 ): Promise<CreateUserAndStoreSolanaKeypairResult> {
-
-  console.log("Creating user and storing Solana keypair")
+  console.log("Creating user and storing Solana keypair");
   try {
     // Create user in Firebase Auth
-    const userRecord = await auth().createUser({
+    const userRecord = await auth.createUser({
       email: email,
       password: password,
     });
@@ -29,34 +29,34 @@ export async function createUserAndStoreSolanaKeypair(
       throw new Error("Failed to generate Solana keypair");
     }
 
-    await auth().updateUser(userRecord.uid, {
+    await auth.updateUser(userRecord.uid, {
       displayName: publicKey,
     });
 
     // Store the Solana keypair in Google Cloud Secret Manager
-    // const projectId = "your-google-cloud-project-id";
-    // const secretId = `solana-keypair-${userRecord.uid}`;
-    // const parent = `projects/${projectId}`;
-    // const [secret] = await secretManagerServiceClient.createSecret({
-    //   parent,
-    //   secretId,
-    //   secret: {
-    //     replication: {
-    //       automatic: {},
-    //     },
-    //   },
-    // });
 
-    // const [version] = await secretManagerServiceClient.addSecretVersion({
-    //   parent: secret.name,
-    //   payload: {
-    //     data: Buffer.from(secretKeyString, "utf8"),
-    //   },
-    // });
+    const secretId = `solana-keypair-${userRecord.uid}`;
+    const parent = `projects/${process.env.GCP_PROGECT_ID}`;
+    const [secret] = await secretManagerServiceClient.createSecret({
+      parent,
+      secretId,
+      secret: {
+        replication: {
+          automatic: {},
+        },
+      },
+    });
 
-    // console.log(
-    //   `Saved Solana keypair to Secret Manager with version ${version.name}`
-    // );
+    const [version] = await secretManagerServiceClient.addSecretVersion({
+      parent: secret.name,
+      payload: {
+        data: Buffer.from(secretKeyString, "utf8"),
+      },
+    });
+
+    console.log(
+      `Saved Solana keypair to Secret Manager with version ${version.name}`
+    );
 
     return {
       firebaseUserId: userRecord.uid,
@@ -71,9 +71,8 @@ export async function createUserAndStoreSolanaKeypair(
 export async function getSolanaKeypairForUser(
   userId: string
 ): Promise<string[]> {
-  const projectId = "your-google-cloud-project-id"; // Replace with your actual project ID
   const secretId = `solana-keypair-${userId}`;
-  const secretVersionName = `projects/${projectId}/secrets/${secretId}/versions/latest`;
+  const secretVersionName = `projects/${process.env.GCP_PROGECT_ID}/secrets/${secretId}/versions/latest`;
 
   try {
     const [accessResponse] =
