@@ -5,7 +5,7 @@ import { SplTokenAccount } from "solanaTypes";
 
 /**
  * @swagger
- * /wallet/{publicKey}/balance:
+ * /api/v1/wallet/{publicKey}/balance:
  *   get:
  *     summary: Retrieves the balance of a Solana wallet.
  *     tags: [Solana]
@@ -51,10 +51,10 @@ export async function getWalletBalance(req: Request, res: Response) {
 
 /**
  * @swagger
- * /api/spl-tokens/{publicKey}:
+ * /api/v1/spl-tokens/{publicKey}:
  *   get:
  *     summary: Retrieves SPL tokens for a given Solana wallet public key
- *     tags: [SPL Tokens]
+ *     tags: [Solana]
  *     parameters:
  *       - in: path
  *         name: publicKey

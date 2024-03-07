@@ -11,7 +11,6 @@ const app = express();
 
 app.use(express.json());
 
-
 // Options for the swagger docs
 const options = {
   definition: {
@@ -33,7 +32,7 @@ const swaggerSpec = swaggerJSDoc(options);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Use the imported routes
-app.use('/api', routes); // Mount the routes at the "/api" base path
+app.use("/api/v1/", routes); // Mount the routes at the "/api" base path
 
 const PORT = process.env.PORT || 3000;
 
