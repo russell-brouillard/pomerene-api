@@ -16,9 +16,9 @@ const options = {
   definition: {
     openapi: "3.0.0", // Moved openapi, info, etc., under definition
     info: {
-      title: "Express API with Swagger",
+      title: "Pomerene API Docs",
       version: "1.0.0",
-      description: "A simple Express API",
+      description: "pomerene SaaS web API documentation",
     },
   },
   // Paths to files containing OpenAPI definitions
