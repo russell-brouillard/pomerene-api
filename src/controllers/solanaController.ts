@@ -1,6 +1,6 @@
 //src/controllers/solanaController.ts
 import { Request, Response } from "express";
-import { getBalance, getSPLTokens } from "../solana/services/solanaService";
+import { getBalance, getSPLTokens } from "../services/solana/solanaService";
 import { SplTokenAccount } from "solanaTypes";
 
 /**
