@@ -1,0 +1,10 @@
+runtime: nodejs20
+env: standard
+service: api
+
+handlers:
+  - url: /.*
+    script: auto
+
+env_variables:
+  CORS_ORIGIN: "https://www.samakadventureguides.com"
