@@ -7,4 +7,4 @@ handlers:
     script: auto
 
 env_variables:
-  CORS_ORIGIN: "https://www.samakadventureguides.com"
+  CORS_ORIGIN: "https://www.pomerene.xyz"
