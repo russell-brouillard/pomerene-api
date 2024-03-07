@@ -1,0 +1,24 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # Step 1: Install dependencies
+  - name: "node:22" # Use a Node.js image
+    entrypoint: "npm"
+    args: ["install"]
+
+  # Step 2: Build the project
+  - name: "node:22"
+    entrypoint: "npm"
+    args: ["run", "build"]
+    env:
+      - "CORS_ORIGIN=https://www.pomerene.xyz" 
+
+  # Step 3: Deploy to Google App Engine
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "gcloud"
+    args:
+      - app
+      - deploy
+      - "--project=$PROJECT_ID"
+      - "--quiet" # Add this flag to prevent prompts during deployment
