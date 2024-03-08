@@ -4,7 +4,10 @@ import { secretManagerServiceClient } from "../services/google/secretManager";
 import { AuthRequest } from "../middleware/authMiddleware";
 import {
   createUserAndStoreSolanaKeypair,
+  getAllUsers,
   getUser,
+  getUserByEmail,
+  getUserByUID,
 } from "../services/users/usersServices";
 
 /**
@@ -135,7 +138,6 @@ export const createUserWithSolanaKeypair = async (
     return res.status(500).send("Failed to create user and Solana keypair");
   }
 };
-
 
 /**
  * @swagger
@@ -296,5 +298,75 @@ export async function getUserJWTController(
   } catch (error) {
     console.error("Error authenticating user:", error);
     res.status(500).json({ error: "Internal server error." });
+  }
+}
+
+// Controller function to get user by UID
+export async function getUserByUIDController(req: Request, res: Response) {
+  const { uid } = req.params;
+  try {
+    const userRecord = await getUserByUID(uid);
+    if (!userRecord) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json(userRecord.toJSON());
+  } catch (error) {
+    console.error("Error in getUserByUIDController:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+/**
+ * @swagger
+ * /user/{uid}:
+ *   get:
+ *     summary: Get user by UID
+ *     parameters:
+ *       - in: path
+ *         name: uid
+ *         required: true
+ *         description: The UID of the user to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: User details retrieved successfully
+ *       '404':
+ *         description: User not found
+ *       '500':
+ *         description: Internal server error
+ */
+export async function getUserByEmailController(req: Request, res: Response) {
+  const { email } = req.params;
+  try {
+    const userRecord = await getUserByEmail(email);
+    if (!userRecord) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json(userRecord.toJSON());
+  } catch (error) {
+    console.error("Error in getUserByEmailController:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Get all users
+ *     responses:
+ *       '200':
+ *         description: Users retrieved successfully
+ *       '500':
+ *         description: Internal server error
+ */
+export async function getAllUsersController(req: Request, res: Response) {
+  try {
+    const users = await getAllUsers();
+    return res.status(200).json(users.map((user) => user.toJSON()));
+  } catch (error) {
+    console.error("Error in getAllUsersController:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 }

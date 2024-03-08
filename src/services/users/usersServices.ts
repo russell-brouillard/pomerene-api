@@ -3,9 +3,15 @@
 import { secretManagerServiceClient } from "../google/secretManager";
 import { Keypair } from "@solana/web3.js";
 import { authWeb } from "../google/firebaseWeb";
-import { UserCredential, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  User,
+  UserCredential,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { CreateUserAndStoreSolanaKeypairResult } from "solanaTypes";
 import { auth } from "../google/firebase";
+import { UserRecord } from "firebase-admin/lib/auth/user-record";
+import { ListUsersResult } from "firebase-admin/lib/auth/base-auth";
 
 export async function createUserAndStoreSolanaKeypair(
   email: string,
@@ -35,7 +41,6 @@ export async function createUserAndStoreSolanaKeypair(
     });
 
     // Store the Solana keypair in Google Cloud Secret Manager
-
     const secretId = `solana-keypair-${userRecord.uid}`;
     const parent = `projects/${process.env.GCP_PROGECT_ID}`;
     const [secret] = await secretManagerServiceClient.createSecret({
@@ -114,5 +119,44 @@ export async function getUser(
   } catch (error: any) {
     console.error("Error signing in:", error.message);
     return null;
+  }
+}
+
+// Function to get user by UID
+export async function getUserByUID(uid: string): Promise<UserRecord | null> {
+  try {
+    // Retrieve user record from Firebase Auth
+    const userRecord = await auth.getUser(uid);
+    return userRecord;
+  } catch (error: any) {
+    console.error("Error retrieving user by UID:", error.message);
+    return null;
+  }
+}
+
+// Function to get user by Email
+export async function getUserByEmail(
+  email: string
+): Promise<UserRecord | null> {
+  try {
+    // Retrieve user record from Firebase Auth
+    const userRecord = await auth.getUser(email);
+    return userRecord;
+  } catch (error: any) {
+    console.error("Error retrieving user by email:", error.message);
+    return null;
+  }
+}
+
+// Function to get all users
+export async function getAllUsers(): Promise<UserRecord[]> {
+  try {
+    // Fetch all users from Firebase Auth
+    const listUsersResult: ListUsersResult = await auth.listUsers();
+    const users: UserRecord[] = listUsersResult.users;
+    return users;
+  } catch (error: any) {
+    console.error("Error retrieving all users:", error.message);
+    throw error;
   }
 }
