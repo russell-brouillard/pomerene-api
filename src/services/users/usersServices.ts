@@ -1,8 +1,9 @@
 //src/services/google/users.ts
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+
 import { secretManagerServiceClient } from "../google/secretManager";
 import { Keypair } from "@solana/web3.js";
-
+import { authWeb } from "../google/firebaseWeb";
+import { UserCredential, signInWithEmailAndPassword } from "firebase/auth";
 import { CreateUserAndStoreSolanaKeypairResult } from "solanaTypes";
 import { auth } from "../google/firebase";
 
@@ -89,5 +90,29 @@ export async function getSolanaKeypairForUser(
   } catch (error) {
     console.error("Error retrieving Solana keypair for user:", error);
     throw error; // Rethrow the error to handle it in the controller
+  }
+}
+
+export async function getUser(
+  email: string,
+  password: string
+): Promise<UserCredential | null> {
+  try {
+    // Sign in the user with email and password
+    const userCredential: UserCredential = await signInWithEmailAndPassword(
+      authWeb,
+      email,
+      password
+    );
+
+    // Get the user's JWT token
+    const idToken: string = await userCredential.user.getIdToken();
+    console.log("User's JWT token:", idToken);
+
+    // Return the userCredential
+    return userCredential;
+  } catch (error: any) {
+    console.error("Error signing in:", error.message);
+    return null;
   }
 }

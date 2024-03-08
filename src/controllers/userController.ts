@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 import { secretManagerServiceClient } from "../services/google/secretManager";
 import { AuthRequest } from "../middleware/authMiddleware";
-import { createUserAndStoreSolanaKeypair } from "../services/users/usersServices";
+import { createUserAndStoreSolanaKeypair, getUser } from "../services/users/usersServices";
 
 /**
  * @swagger
@@ -132,3 +132,32 @@ export const createUserWithSolanaKeypair = async (
     return res.status(500).send("Failed to create user and Solana keypair");
   }
 };
+
+export async function getUserJWTController(req: Request, res: Response): Promise<void> {
+  try {
+    const email = req.body.email as string;
+    const password = req.body.password as string;
+
+    console.log("email", email);
+    console.log("password", password);
+
+    // Check if email and password are provided
+    if (!email || !password) {
+      res.status(400).json({ error: "Email and password are required." });
+      return;
+    }
+
+    // Authenticate user and get JWT token
+    const token = await getUser(email, password);
+
+    // If authentication is successful, return the token
+    if (token) {
+      res.status(200).json({ token });
+    } else {
+      res.status(401).json({ error: "Authentication failed." });
+    }
+  } catch (error) {
+    console.error("Error authenticating user:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+}

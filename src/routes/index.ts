@@ -10,6 +10,8 @@ import {
   getSolanaKeypair,
 } from "../controllers/userController";
 
+import { getUserJWTController } from "../controllers/testController";
+
 const router = express.Router();
 
 // Define routes
@@ -19,5 +21,6 @@ router.get("/spl-tokens/:publicKey", getSPLTokensController);
 
 router.get("/user/solana-keypair", authMiddleware, getSolanaKeypair);
 router.post("/user/create", createUserWithSolanaKeypair);
+router.post("/user/signIn", getUserJWTController);
 
 export default router;
