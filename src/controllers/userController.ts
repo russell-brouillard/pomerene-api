@@ -301,7 +301,27 @@ export async function getUserJWTController(
   }
 }
 
-// Controller function to get user by UID
+/**
+ * @swagger
+ * /user/{uid}:
+ *   get:
+ *     summary: Get user by UID
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: uid
+ *         required: true
+ *         description: The UID of the user to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: User details retrieved successfully
+ *       '404':
+ *         description: User not found
+ *       '500':
+ *         description: Internal server error
+ */
 export async function getUserByUIDController(req: Request, res: Response) {
   const { uid } = req.params;
   try {
@@ -318,14 +338,15 @@ export async function getUserByUIDController(req: Request, res: Response) {
 
 /**
  * @swagger
- * /user/{uid}:
+ * /user/email/{email}:
  *   get:
- *     summary: Get user by UID
+ *     summary: Get user by email
+ *     tags: [User]
  *     parameters:
  *       - in: path
- *         name: uid
+ *         name: email
  *         required: true
- *         description: The UID of the user to retrieve
+ *         description: The email of the user to retrieve
  *         schema:
  *           type: string
  *     responses:
@@ -355,6 +376,7 @@ export async function getUserByEmailController(req: Request, res: Response) {
  * /users:
  *   get:
  *     summary: Get all users
+ *     tags: [User]
  *     responses:
  *       '200':
  *         description: Users retrieved successfully
