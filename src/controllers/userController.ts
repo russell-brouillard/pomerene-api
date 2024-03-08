@@ -133,6 +133,47 @@ export const createUserWithSolanaKeypair = async (
   }
 };
 
+
+/**
+ * @swagger
+ * /api/v1/user/login:
+ *   post:
+ *     summary: Authenticates a user and returns a JWT token.
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Email address of the user.
+ *               password:
+ *                 type: string
+ *                 description: Password of the user.
+ *     responses:
+ *       200:
+ *         description: Authentication successful. Returns JWT token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT token for authentication.
+ *       400:
+ *         description: Email and password are required.
+ *       401:
+ *         description: Authentication failed. Invalid email or password.
+ *       500:
+ *         description: Internal server error.
+ */
 export async function getUserJWTController(req: Request, res: Response): Promise<void> {
   try {
 
