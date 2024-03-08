@@ -2,7 +2,10 @@
 import { Request, Response } from "express";
 import { secretManagerServiceClient } from "../services/google/secretManager";
 import { AuthRequest } from "../middleware/authMiddleware";
-import { createUserAndStoreSolanaKeypair, getUser } from "../services/users/usersServices";
+import {
+  createUserAndStoreSolanaKeypair,
+  getUser,
+} from "../services/users/usersServices";
 
 /**
  * @swagger
@@ -38,7 +41,7 @@ export const getSolanaKeypair = async (req: AuthRequest, res: Response) => {
   }
 
   const userId = req.user.uid; // Assuming `uid` is available from decodedToken attached in authMiddleware
-  
+
   const secretId = `solana-keypair-${userId}`;
   const parent = `projects/${process.env.GCP_PROGECT_ID}/secrets/${secretId}/versions/latest`;
 
@@ -136,19 +139,16 @@ export const createUserWithSolanaKeypair = async (
 
 /**
  * @swagger
- * /api/v1/user/login:
+ * /api/v1/user/signin:
  *   post:
- *     summary: Authenticates a user and returns a JWT token.
+ *     summary: Authenticates a user and returns user information.
  *     tags: [User]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             type: object
- *             required:
- *               - email
- *               - password
  *             properties:
  *               email:
  *                 type: string
@@ -158,15 +158,110 @@ export const createUserWithSolanaKeypair = async (
  *                 description: Password of the user.
  *     responses:
  *       200:
- *         description: Authentication successful. Returns JWT token.
+ *         description: Authentication successful. Returns user information.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 token:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     uid:
+ *                       type: string
+ *                       description: The unique identifier of the authenticated user.
+ *                     email:
+ *                       type: string
+ *                       description: The email address of the authenticated user.
+ *                     emailVerified:
+ *                       type: boolean
+ *                       description: Indicates whether the email of the authenticated user is verified.
+ *                     displayName:
+ *                       type: string
+ *                       description: The display name of the authenticated user.
+ *                     isAnonymous:
+ *                       type: boolean
+ *                       description: Indicates whether the authenticated user is anonymous.
+ *                     providerData:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           providerId:
+ *                             type: string
+ *                             description: The provider ID of the user.
+ *                           uid:
+ *                             type: string
+ *                             description: The user ID of the provider.
+ *                           displayName:
+ *                             type: string
+ *                             description: The display name of the user.
+ *                           email:
+ *                             type: string
+ *                             description: The email address of the user.
+ *                           phoneNumber:
+ *                             type: string
+ *                             description: The phone number of the user.
+ *                           photoURL:
+ *                             type: string
+ *                             description: The photo URL of the user.
+ *                     stsTokenManager:
+ *                       type: object
+ *                       properties:
+ *                         refreshToken:
+ *                           type: string
+ *                           description: The refresh token of the authenticated user.
+ *                         accessToken:
+ *                           type: string
+ *                           description: The access token of the authenticated user.
+ *                         expirationTime:
+ *                           type: number
+ *                           description: The expiration time of the tokens.
+ *                     createdAt:
+ *                       type: string
+ *                       description: The creation time of the authenticated user.
+ *                     lastLoginAt:
+ *                       type: string
+ *                       description: The last login time of the authenticated user.
+ *                     apiKey:
+ *                       type: string
+ *                       description: The API key of the authenticated user.
+ *                     appName:
+ *                       type: string
+ *                       description: The name of the app associated with the authenticated user.
+ *                 providerId:
  *                   type: string
- *                   description: JWT token for authentication.
+ *                   description: The provider ID of the authentication operation.
+ *                 _tokenResponse:
+ *                   type: object
+ *                   properties:
+ *                     kind:
+ *                       type: string
+ *                       description: The kind of the token response.
+ *                     localId:
+ *                       type: string
+ *                       description: The local ID of the token response.
+ *                     email:
+ *                       type: string
+ *                       description: The email address of the token response.
+ *                     displayName:
+ *                       type: string
+ *                       description: The display name of the token response.
+ *                     idToken:
+ *                       type: string
+ *                       description: The ID token of the token response.
+ *                     registered:
+ *                       type: boolean
+ *                       description: Indicates whether the token response is registered.
+ *                     refreshToken:
+ *                       type: string
+ *                       description: The refresh token of the token response.
+ *                     expiresIn:
+ *                       type: string
+ *                       description: The expiration time of the token response.
+ *                 operationType:
+ *                   type: string
+ *                   description: The type of the authentication operation.
  *       400:
  *         description: Email and password are required.
  *       401:
@@ -174,15 +269,14 @@ export const createUserWithSolanaKeypair = async (
  *       500:
  *         description: Internal server error.
  */
-export async function getUserJWTController(req: Request, res: Response): Promise<void> {
+export async function getUserJWTController(
+  req: Request,
+  res: Response
+): Promise<void> {
   try {
-
     console.log("body", req.body);
     const email = req.body.email as string;
     const password = req.body.password as string;
-
-    console.log("email", email);
-    console.log("password", password);
 
     // Check if email and password are provided
     if (!email || !password) {
@@ -190,12 +284,12 @@ export async function getUserJWTController(req: Request, res: Response): Promise
       return;
     }
 
-    // Authenticate user and get JWT token
-    const token = await getUser(email, password);
+    // Authenticate user and get google auth user
+    const user = await getUser(email, password);
 
-    // If authentication is successful, return the token
-    if (token) {
-      res.status(200).json({ token });
+    // If authentication is successful, return the user
+    if (user) {
+      res.status(200).json(user);
     } else {
       res.status(401).json({ error: "Authentication failed." });
     }
