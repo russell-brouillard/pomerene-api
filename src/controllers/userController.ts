@@ -135,6 +135,8 @@ export const createUserWithSolanaKeypair = async (
 
 export async function getUserJWTController(req: Request, res: Response): Promise<void> {
   try {
+
+    console.log("body", req.body);
     const email = req.body.email as string;
     const password = req.body.password as string;
 

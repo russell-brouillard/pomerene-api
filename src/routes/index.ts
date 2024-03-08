@@ -8,9 +8,8 @@ import { authMiddleware } from "../middleware/authMiddleware";
 import {
   createUserWithSolanaKeypair,
   getSolanaKeypair,
+  getUserJWTController,
 } from "../controllers/userController";
-
-import { getUserJWTController } from "../controllers/testController";
 
 const router = express.Router();
 
