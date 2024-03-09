@@ -60,7 +60,7 @@ async function main() {
   console.log(`My balance: ${balance / LAMPORTS_PER_SOL} SOL`);
 
   // Generate new keypair for Mint Account
-  const mintKeypair = Keypair.generate();
+  const mintKeypair:Keypair = Keypair.generate();
 
   console.log("Mint Account:", mintKeypair.publicKey.toString());
   console.log("mint private key", bs58.encode(mintKeypair.secretKey));

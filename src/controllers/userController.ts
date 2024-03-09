@@ -5,6 +5,7 @@ import { AuthRequest } from "../middleware/authMiddleware";
 import {
   createUserAndStoreSolanaKeypair,
   getAllUsers,
+  getSolanaKeypairForUser,
   getUser,
   getUserByEmail,
   getUserByUID,
@@ -43,21 +44,14 @@ export const getSolanaKeypair = async (req: AuthRequest, res: Response) => {
     return res.status(401).send("User is not authenticated");
   }
 
-  const userId = req.user.uid; // Assuming `uid` is available from decodedToken attached in authMiddleware
-
-  const secretId = `solana-keypair-${userId}`;
-  const parent = `projects/${process.env.GCP_PROGECT_ID}/secrets/${secretId}/versions/latest`;
-
   try {
-    const [accessResponse] =
-      await secretManagerServiceClient.accessSecretVersion({ name: parent });
-    const secretKeyString = accessResponse.payload?.data?.toString();
-    if (!secretKeyString) {
-      return res.status(404).send("Solana keypair not found for user");
-    }
+    const userId = req.user.uid; // Assuming `uid` is available from decodedToken attached in authMiddleware
 
-    const secretKeyArray = JSON.parse(secretKeyString);
-    return res.json({ secretKeyArray });
+    console.log("userId", userId);
+
+    const keypair = await getSolanaKeypairForUser(userId);
+
+    return res.json(keypair);
   } catch (error) {
     console.error("Error retrieving Solana keypair:", error);
     return res.status(500).send("Failed to retrieve Solana keypair");
@@ -358,7 +352,9 @@ export async function getUserByUIDController(req: Request, res: Response) {
  *         description: Internal server error
  */
 export async function getUserByEmailController(req: Request, res: Response) {
-  const { email } = req.params;
+  const email = req.body.email as string;
+
+  console.log("email", email);
   try {
     const userRecord = await getUserByEmail(email);
     if (!userRecord) {

@@ -1,9 +1,10 @@
 // src/middleware/authMiddleware.ts
 import { Request, Response, NextFunction } from "express";
 import { auth } from "firebase-admin";
+import { DecodedIdToken } from "firebase-admin/lib/auth/token-verifier";
 
 export interface AuthRequest extends Request {
-  user?: auth.DecodedIdToken;
+  user?: DecodedIdToken;
 }
 
 export const authMiddleware = async (

@@ -13,6 +13,7 @@ import {
   getUserByUIDController,
   getUserJWTController,
 } from "../controllers/userController";
+import { createDeviceController } from "../controllers/deviceController";
 
 const router = express.Router();
 
@@ -21,11 +22,15 @@ router.get("/wallet/:publicKey/balance", getWalletBalance);
 // Define the route for getting SPL tokens
 router.get("/spl-tokens/:publicKey", getSPLTokensController);
 
+//user endpoints
 router.get("/user/solana-keypair", authMiddleware, getSolanaKeypair);
 router.post("/user/create", createUserWithSolanaKeypair);
 router.post("/user/signIn", getUserJWTController);
-router.get("/user/:uid", getUserByUIDController);
 router.get("/user/email/:email", getUserByEmailController);
+router.get("/user/:uid", getUserByUIDController);
 router.get("/users", getAllUsersController);
+
+//devices endpoints
+router.post("/device/create", authMiddleware, createDeviceController);
 
 export default router;

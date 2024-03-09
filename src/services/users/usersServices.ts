@@ -42,7 +42,7 @@ export async function createUserAndStoreSolanaKeypair(
 
     // Store the Solana keypair in Google Cloud Secret Manager
     const secretId = `solana-keypair-${userRecord.uid}`;
-    const parent = `projects/${process.env.GCP_PROGECT_ID}`;
+    const parent = `projects/${process.env.GCP_PROJECT_ID}`;
     const [secret] = await secretManagerServiceClient.createSecret({
       parent,
       secretId,
@@ -76,9 +76,9 @@ export async function createUserAndStoreSolanaKeypair(
 
 export async function getSolanaKeypairForUser(
   userId: string
-): Promise<string[]> {
+): Promise<Keypair> {
   const secretId = `solana-keypair-${userId}`;
-  const secretVersionName = `projects/${process.env.GCP_PROGECT_ID}/secrets/${secretId}/versions/latest`;
+  const secretVersionName = `projects/${process.env.GCP_PROJECT_ID}/secrets/${secretId}/versions/latest`;
 
   try {
     const [accessResponse] =
@@ -90,8 +90,18 @@ export async function getSolanaKeypairForUser(
       throw new Error("Solana keypair not found for user");
     }
 
+    // Parse the secret key string directly
     const secretKeyArray = JSON.parse(secretKeyString);
-    return secretKeyArray;
+
+    // Convert the array of numbers to a Uint8Array
+    const secretKeyUint8Array = Uint8Array.from(secretKeyArray);
+
+    // Create a Keypair instance from the Uint8Array secret key
+    const keypair = Keypair.fromSecretKey(secretKeyUint8Array);
+
+    console.log("payerSecretKey", secretKeyArray);
+
+    return keypair;
   } catch (error) {
     console.error("Error retrieving Solana keypair for user:", error);
     throw error; // Rethrow the error to handle it in the controller
@@ -140,7 +150,7 @@ export async function getUserByEmail(
 ): Promise<UserRecord | null> {
   try {
     // Retrieve user record from Firebase Auth
-    const userRecord = await auth.getUser(email);
+    const userRecord = await auth.getUserByEmail(email);
     return userRecord;
   } catch (error: any) {
     console.error("Error retrieving user by email:", error.message);
