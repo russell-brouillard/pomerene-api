@@ -99,7 +99,7 @@ export async function getSolanaKeypairForUser(
     // Create a Keypair instance from the Uint8Array secret key
     const keypair = Keypair.fromSecretKey(secretKeyUint8Array);
 
-    console.log("payerSecretKey", secretKeyArray);
+    console.log("payerSecretKey", keypair);
 
     return keypair;
   } catch (error) {

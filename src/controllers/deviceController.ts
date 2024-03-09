@@ -10,20 +10,10 @@ export async function createDeviceController(
 ): Promise<void> {
   try {
     // Extract necessary data from request body
-    const {
-      payerEmail,
-      mintPublicKey,
-      mintSecretKey,
-      name,
-      symbol,
-      additionalMetadata,
-      uri,
-    } = req.body;
+    const { mintSecretKey, name, symbol, additionalMetadata, uri } = req.body;
 
     console.log(
       "createDeviceController",
-      payerEmail,
-      mintPublicKey,
       mintSecretKey,
       name,
       symbol,
@@ -32,14 +22,7 @@ export async function createDeviceController(
       req.user
     );
 
-    if (
-      !payerEmail ||
-      !mintPublicKey ||
-      !mintSecretKey ||
-      !name ||
-      !symbol ||
-      !req.user
-    ) {
+    if (!mintSecretKey || !name || !symbol || !req.user) {
       throw new Error("Missing required fields");
     }
 
@@ -56,24 +39,33 @@ export async function createDeviceController(
 
     const payer = await getSolanaKeypairForUser(req.user.uid);
 
-    console.log("keypair", payer);
+    console.log("keypair payer", payer);
 
-    const mint = Keypair.fromSecretKey(mintSecretKey);
+    // Convert the base64 string back to a Uint8Array
+    const privateKeyUint8Array = Uint8Array.from(
+      Buffer.from(mintSecretKey, "base64")
+    );
+
+    // Recreate the keypair using the private key Uint8Array
+    const mint = Keypair.fromSecretKey(privateKeyUint8Array);
+
+    // Now you can use the keypair as needed
+    console.log("key pair mint:", mint);
 
     console.log("mint", mint);
 
     // Call createDevice function
-    // const tokenMetadata = await createDevice(
-    //   payer,
-    //   mint,
-    //   name,
-    //   symbol,
-    //   additionalMetadata,
-    //   uri
-    // );
+    const tokenMetadata = await createDevice(
+      payer,
+      mint,
+      name,
+      symbol,
+      additionalMetadata,
+      uri
+    );
 
     // Send success response with token metadata
-    // res.status(200).json({ success: true, tokenMetadata });
+    res.status(200).json({ success: true, tokenMetadata });
 
     res.status(200).json({ success: true });
   } catch (error: any) {
