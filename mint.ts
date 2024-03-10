@@ -68,7 +68,7 @@ async function main() {
   const mint = mintKeypair.publicKey;
   // Decimals for Mint Account
 
-  const decimals = 2;
+  const decimals = 0;
   // Authority that can mint new tokens
   const mintAuthority = payer.publicKey;
   // Authority that can update the metadata pointer and token metadata
