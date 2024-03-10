@@ -37,6 +37,24 @@ export async function createDevice(
 
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
+  const mintInfoCheck = await getMint(
+    connection,
+    mint.publicKey,
+    "confirmed",
+    TOKEN_2022_PROGRAM_ID
+  );
+
+ 
+
+  console.log("mintInfoCheck", mintInfoCheck);
+
+  const metadataCheck = await getTokenMetadata(connection, mint.publicKey);
+
+  if (metadataCheck) {
+    console.log("metadataCheck", metadataCheck);
+    return metadataCheck;
+  }
+
   // Define authorities
   const updateAuthority = payer.publicKey;
   const mintAuthority = payer.publicKey;
