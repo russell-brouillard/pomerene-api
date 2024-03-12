@@ -9,6 +9,14 @@ dotenv.config();
 
 const app = express();
 
+// CORS Configuration
+const corsOptions = {
+  origin: "https://www.pomerene.net",
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -30,14 +38,6 @@ const swaggerSpec = swaggerJSDoc(options);
 
 // Serve swagger docs
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// CORS Configuration
-const corsOptions = {
-  origin: "https://www.pomerene.net/",
-};
-
-// Apply CORS middleware
-app.use(cors(corsOptions));
 
 // Mount routes
 app.use("/api/v1/", routes);
