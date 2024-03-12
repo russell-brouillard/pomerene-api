@@ -18,6 +18,8 @@ export async function createUserAndStoreSolanaKeypair(
   password: string
 ): Promise<CreateUserAndStoreSolanaKeypairResult> {
   console.log("Creating user and storing Solana keypair");
+
+  console.log("Russell");
   try {
     // Create user in Firebase Auth
     const userRecord = await auth.createUser({
