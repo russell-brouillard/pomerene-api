@@ -1,8 +1,7 @@
-// src/app.ts
 import express from "express";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
-import swaggerJSDoc from "swagger-jsdoc"; // Correctly import swagger-jsdoc
+import swaggerJSDoc from "swagger-jsdoc";
 import routes from "./routes";
 import cors from "cors";
 
@@ -16,41 +15,43 @@ app.use(express.urlencoded({ extended: true }));
 // Options for the swagger docs
 const options = {
   definition: {
-    openapi: "3.0.0", // Moved openapi, info, etc., under definition
+    openapi: "3.0.0",
     info: {
       title: "Pomerene API Docs",
       version: "1.0.0",
       description: "pomerene SaaS web API documentation",
     },
   },
-  // Paths to files containing OpenAPI definitions
-  apis: ["./routes/*.ts", "./src/controllers/*.ts"], // Make sure this path is correct and points to your actual route files
+  apis: ["./routes/*.ts", "./src/controllers/*.ts"],
 };
 
 // Initialize swagger-jsdoc
 const swaggerSpec = swaggerJSDoc(options);
 
-// Serve swagger docs the way you like (Recommendation: only in development)
+// Serve swagger docs
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Use the imported routes
-app.use("/api/v1/", routes); // Mount the routes at the "/api" base path
+// CORS Configuration
+const corsOptions = {
+  origin: "https://www.pomerene.net",
+  methods: "GET,POST,PUT,DELETE,OPTIONS",
+  allowedHeaders: "Content-Type,Authorization",
+  credentials: true,
+};
 
-app.use(
-  cors({
-    origin: "https://www.pomerene.net", // Allow only this origin to access the resources
-    methods: "GET,POST,PUT,DELETE,OPTIONS", // Allowed methods
-    allowedHeaders: "Content-Type,Authorization", // Allowed headers
-    credentials: true, // Enable cookies across domains
-  })
-);
+// Apply CORS middleware
+app.use(cors(corsOptions));
 
+// Preflight request handling for specific route
 app.options('/api/v1/user/signin', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://www.pomerene.net');
   res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.sendStatus(200);
 });
+
+// Mount routes
+app.use("/api/v1/", routes);
 
 const PORT = process.env.PORT || 3000;
 
