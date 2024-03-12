@@ -13,13 +13,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors({
-  origin: 'https://www.pomerene.net', // Allow only this origin to access the resources
-  methods: 'GET,POST,PUT,DELETE,OPTIONS', // Allowed methods
-  allowedHeaders: 'Content-Type,Authorization', // Allowed headers
-  credentials: true, // Enable cookies across domains
-}));
-
 // Options for the swagger docs
 const options = {
   definition: {
@@ -42,6 +35,22 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Use the imported routes
 app.use("/api/v1/", routes); // Mount the routes at the "/api" base path
+
+app.use(
+  cors({
+    origin: "https://www.pomerene.net", // Allow only this origin to access the resources
+    methods: "GET,POST,PUT,DELETE,OPTIONS", // Allowed methods
+    allowedHeaders: "Content-Type,Authorization", // Allowed headers
+    credentials: true, // Enable cookies across domains
+  })
+);
+
+app.options('/api/v1/user/signin', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://www.pomerene.net');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(200);
+});
 
 const PORT = process.env.PORT || 3000;
 
