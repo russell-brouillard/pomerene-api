@@ -1,13 +1,26 @@
-// src/app.ts
 import express from "express";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
-import swaggerJSDoc from "swagger-jsdoc"; // Correctly import swagger-jsdoc
+import swaggerJSDoc from "swagger-jsdoc";
 import routes from "./routes";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
+
+// Custom middleware to add Access-Control-Allow-Origin header
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://www.pomerene.net");
+  next();
+});
+
+// Apply CORS middleware
+app.use(
+  cors({
+    origin: "https://www.pomerene.net",
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -15,25 +28,24 @@ app.use(express.urlencoded({ extended: true }));
 // Options for the swagger docs
 const options = {
   definition: {
-    openapi: "3.0.0", // Moved openapi, info, etc., under definition
+    openapi: "3.0.0",
     info: {
       title: "Pomerene API Docs",
       version: "1.0.0",
       description: "pomerene SaaS web API documentation",
     },
   },
-  // Paths to files containing OpenAPI definitions
-  apis: ["./routes/*.ts", "./src/controllers/*.ts"], // Make sure this path is correct and points to your actual route files
+  apis: ["./routes/*.ts", "./src/controllers/*.ts"],
 };
 
 // Initialize swagger-jsdoc
 const swaggerSpec = swaggerJSDoc(options);
 
-// Serve swagger docs the way you like (Recommendation: only in development)
+// Serve swagger docs
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Use the imported routes
-app.use("/api/v1/", routes); // Mount the routes at the "/api" base path
+// Mount routes
+app.use("/api/v1/", routes);
 
 const PORT = process.env.PORT || 3000;
 

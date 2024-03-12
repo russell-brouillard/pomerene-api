@@ -1,10 +1,8 @@
 runtime: nodejs20
 env: standard
-# service: api
+service: api
 
 handlers:
   - url: /.*
     script: auto
 
-env_variables:
-  CORS_ORIGIN: "https://www.pomerene.xyz"

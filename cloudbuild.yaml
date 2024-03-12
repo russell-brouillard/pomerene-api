@@ -12,7 +12,8 @@ steps:
     entrypoint: "npm"
     args: ["run", "build"]
     env:
-      - "CORS_ORIGIN=https://www.pomerene.xyz" 
+      - "CORS_ORIGIN=https://www.pomerene.net" 
+      
 
   # Step 3: Deploy to Google App Engine
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
@@ -20,5 +21,8 @@ steps:
     args:
       - app
       - deploy
+      - '--version'
+      - '$BUILD_ID'
       - "--project=$PROJECT_ID"
       - "--quiet" # Add this flag to prevent prompts during deployment
+      # - "dispatch.yaml"

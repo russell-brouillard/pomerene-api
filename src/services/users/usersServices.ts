@@ -18,6 +18,8 @@ export async function createUserAndStoreSolanaKeypair(
   password: string
 ): Promise<CreateUserAndStoreSolanaKeypairResult> {
   console.log("Creating user and storing Solana keypair");
+
+  console.log("Russell");
   try {
     // Create user in Firebase Auth
     const userRecord = await auth.createUser({
@@ -42,7 +44,7 @@ export async function createUserAndStoreSolanaKeypair(
 
     // Store the Solana keypair in Google Cloud Secret Manager
     const secretId = `solana-keypair-${userRecord.uid}`;
-    const parent = `projects/${process.env.GCP_PROJECT_ID}`;
+    const parent = `projects/pomerene-416519`;
     const [secret] = await secretManagerServiceClient.createSecret({
       parent,
       secretId,
@@ -78,7 +80,7 @@ export async function getSolanaKeypairForUser(
   userId: string
 ): Promise<Keypair> {
   const secretId = `solana-keypair-${userId}`;
-  const secretVersionName = `projects/${process.env.GCP_PROJECT_ID}/secrets/${secretId}/versions/latest`;
+  const secretVersionName = `projects/pomerene-416519/secrets/${secretId}/versions/latest`;
 
   try {
     const [accessResponse] =
