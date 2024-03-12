@@ -4,10 +4,18 @@ import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc"; // Correctly import swagger-jsdoc
 import routes from "./routes";
+import cors from "cors";
 
 dotenv.config();
 
+
+
 const app = express();
+
+app.use(cors({
+  origin: 'https://www.pomerene.net',
+  // Add other CORS options as needed
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
