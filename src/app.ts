@@ -8,18 +8,16 @@ import cors from "cors";
 
 dotenv.config();
 
-
-
 const app = express();
-
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: 'https://www.pomerene.net',
-  // Add other CORS options as needed
+  origin: 'https://www.pomerene.net', // Allow only this origin to access the resources
+  methods: 'GET,POST,PUT,DELETE,OPTIONS', // Allowed methods
+  allowedHeaders: 'Content-Type,Authorization', // Allowed headers
+  credentials: true, // Enable cookies across domains
 }));
 
 // Options for the swagger docs
