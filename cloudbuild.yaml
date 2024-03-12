@@ -13,11 +13,9 @@ steps:
     args: ["run", "build"]
     env:
       - "CORS_ORIGIN=https://www.pomerene.net" 
-      - "NODE_ENV=production"
-      - "PROJECT_ID=pomerene-416519"
       
 
- # Step 3: Deploy to Google App Engine
+  # Step 3: Deploy to Google App Engine
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "gcloud"
     args:
