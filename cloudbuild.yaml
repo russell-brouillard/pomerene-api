@@ -13,6 +13,8 @@ steps:
     args: ["run", "build"]
     env:
       - "CORS_ORIGIN=https://www.pomerene.net" 
+      - "NODE_ENV=production"
+      - "PROJECT_ID=pomerene-416519"
       
 
   # Step 3: Deploy to Google App Engine
@@ -21,6 +23,8 @@ steps:
     args:
       - app
       - deploy
+      - '--version'
+      - '$BUILD_ID'
       - "--project=$PROJECT_ID"
       - "--quiet" # Add this flag to prevent prompts during deployment
       # - "dispatch.yaml"
