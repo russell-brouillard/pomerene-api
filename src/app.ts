@@ -33,22 +33,11 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // CORS Configuration
 const corsOptions = {
-  origin: "https://www.pomerene.net",
-  methods: "GET,POST,PUT,DELETE,OPTIONS",
-  allowedHeaders: "Content-Type,Authorization",
-  credentials: true,
+  origin: "https://www.pomerene.net/",
 };
 
 // Apply CORS middleware
 app.use(cors(corsOptions));
-
-// Preflight request handling for specific route
-app.options('/api/v1/user/signin', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://www.pomerene.net');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.sendStatus(200);
-});
 
 // Mount routes
 app.use("/api/v1/", routes);
