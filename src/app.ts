@@ -9,13 +9,18 @@ dotenv.config();
 
 const app = express();
 
-// CORS Configuration
-const corsOptions = {
-  origin: "https://www.pomerene.net",
-};
+// Custom middleware to add Access-Control-Allow-Origin header
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://www.pomerene.net");
+  next();
+});
 
 // Apply CORS middleware
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: "https://www.pomerene.net",
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
