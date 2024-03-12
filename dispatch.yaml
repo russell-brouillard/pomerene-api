@@ -1,5 +1,5 @@
 dispatch:
-  - url: "api.pomerene.net/*"
+  - url: "www.pomerene.net/api/v1/*"
     service: api
 
   - url: "www.pomerene.net/*"
