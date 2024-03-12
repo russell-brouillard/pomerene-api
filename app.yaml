@@ -6,5 +6,3 @@ handlers:
   - url: /.*
     script: auto
 
-env_variables:
-  CORS_ORIGIN: "https://www.pomerene.xyz"
