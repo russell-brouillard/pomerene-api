@@ -18,9 +18,10 @@ app.use((req, res, next) => {
 // Apply CORS middleware
 app.use(
   cors({
-    origin: "https://www.pomerene.net",
+    origin: ["https://www.pomerene.net", "http://localhost:5173"]
   })
 );
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
