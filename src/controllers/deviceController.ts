@@ -4,6 +4,59 @@ import { createDevice } from "../services/solana/devices";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 
+/**
+ * @swagger
+ * /devices/create:
+ *   post:
+ *     summary: Create a new device and its corresponding token metadata
+ *     tags:
+ *       tags: [Devices]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mintSecretKey
+ *               - name
+ *               - symbol
+ *               - uri
+ *             properties:
+ *               mintSecretKey:
+ *                 type: string
+ *                 description: Base64 encoded secret key for minting the token.
+ *               name:
+ *                 type: string
+ *                 description: Name of the device.
+ *               symbol:
+ *                 type: string
+ *                 description: Symbol for the device token.
+ *               additionalMetadata:
+ *                 type: object
+ *                 description: Additional metadata for the token.
+ *                 example: { "color": "red", "size": "large" }
+ *               uri:
+ *                 type: string
+ *                 description: URI for the token's metadata.
+ *     responses:
+ *       200:
+ *         description: Successfully created device and token metadata.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 tokenMetadata:
+ *                   type: object
+ *                   description: Metadata of the created token.
+ *       400:
+ *         description: Missing required fields in the request.
+ *       500:
+ *         description: Error occurred during device creation.
+ */
 export async function createDeviceController(
   req: AuthRequest,
   res: Response
@@ -25,17 +78,6 @@ export async function createDeviceController(
     if (!mintSecretKey || !name || !symbol || !req.user) {
       throw new Error("Missing required fields");
     }
-
-    // // Generate a new keypair
-    // const keypair = Keypair.generate();
-
-    // console.log("key pub", keypair.publicKey.toString());
-
-    // // Convert the private key to a base64 string
-    // const privateKeyBase64 = Buffer.from(keypair.secretKey).toString("base64");
-
-    // // Store the privateKeyBase64 string wherever you need it
-    // console.log("Private key (base64):", privateKeyBase64);
 
     const payer = await getSolanaKeypairForUser(req.user.uid);
 

@@ -2,23 +2,23 @@ import express from "express";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
-import routes from "./routes";
+import routes from "./routes/allRoutes";
 import cors from "cors";
 
 dotenv.config();
 
 const app = express();
 
-// Custom middleware to add Access-Control-Allow-Origin header
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "https://www.pomerene.net");
-  next();
-});
+// // Custom middleware to add Access-Control-Allow-Origin header
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "https://www.pomerene.net");
+//   next();
+// });
 
 // Apply CORS middleware
 app.use(
   cors({
-    origin: "https://www.pomerene.net",
+    origin: process.env.CORS_ORIGIN,
   })
 );
 
@@ -50,6 +50,6 @@ app.use("/api/v1/", routes);
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+  console.log(`Server is running at http://localhost:${PORT}/api/v1/`);
   console.log(`API docs are running at http://localhost:${PORT}/api-docs`);
 });

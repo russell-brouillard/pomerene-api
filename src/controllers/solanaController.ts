@@ -1,6 +1,10 @@
 //src/controllers/solanaController.ts
 import { Request, Response } from "express";
-import { getBalance, getSPLTokens } from "../services/solana/solanaService";
+import {
+  getBalance,
+  getSPLTokens,
+  generateSolanaKeypair,
+} from "../services/solana/solanaService";
 import { SplTokenAccount } from "solanaTypes";
 
 /**
@@ -104,3 +108,47 @@ export const getSPLTokensController = async (
     res.status(500).send("Failed to retrieve SPL tokens");
   }
 };
+
+
+/**
+ * @swagger
+ * paths:
+ *   /generate-keypair:
+ *     get:
+ *       summary: Generates a new Solana keypair
+ *       tags: [Solana]
+ *       responses:
+ *         200:
+ *           description: Successfully generated Solana keypair
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   publicKey:
+ *                     type: string
+ *                     description: The public key of the generated Solana keypair.
+ *                   privateKey:
+ *                     type: string
+ *                     description: The base58-encoded private key of the generated Solana keypair.
+ *         500:
+ *           description: Error occurred while generating Solana keypair
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   error:
+ *                     type: string
+ *                     description: Error message.
+ */
+export async function solanaKeypairController(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    res.json(generateSolanaKeypair());
+  } catch (error) {
+    res.status(500).json({ error: "Error generating Solana keypair" });
+  }
+}

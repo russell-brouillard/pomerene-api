@@ -1,11 +1,13 @@
 import {
   Connection,
+  Keypair,
   LAMPORTS_PER_SOL,
   PublicKey,
   clusterApiUrl,
 } from "@solana/web3.js";
 import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { SplTokenAccount } from "solanaTypes";
+import { encode } from "bs58";
 
 // Function to get balance
 export async function getBalance(publicKey: string): Promise<number> {
@@ -32,4 +34,18 @@ export async function getSPLTokens(
     owner: account.account.data.parsed.info.owner,
     tokenAmount: account.account.data.parsed.info.tokenAmount.uiAmount,
   }));
+}
+
+
+export function generateSolanaKeypair(): { publicKey: string; privateKey: string } {
+  const keypair = Keypair.generate();
+
+  // Encode the secret key as a base58 string
+  const privateKeyBase58 = encode(keypair.secretKey);
+
+  // Return both the public key and the private key as strings
+  return {
+    publicKey: keypair.publicKey.toString(),
+    privateKey: privateKeyBase58,
+  };
 }
