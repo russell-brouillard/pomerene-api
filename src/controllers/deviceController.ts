@@ -6,11 +6,11 @@ import { getSolanaKeypairForUser } from "../services/users/usersServices";
 
 /**
  * @swagger
- * /devices:
+ * /devices/create:
  *   post:
  *     summary: Create a new device and its corresponding token metadata
  *     tags:
- *       - Devices
+ *       tags: [Devices]
  *     requestBody:
  *       required: true
  *       content:
