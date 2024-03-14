@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import { Keypair } from "@solana/web3.js";
-import { createDevice } from "../services/solana/devices";
+import {
+  createDevice,
+} from "../services/solana/devices";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
+import bs58 from "bs58";
 
 /**
  * @swagger
@@ -83,18 +86,13 @@ export async function createDeviceController(
 
     console.log("keypair payer", payer);
 
-    // Convert the base64 string back to a Uint8Array
-    const privateKeyUint8Array = Uint8Array.from(
-      Buffer.from(mintSecretKey, "base64")
-    );
+    const secretKey = bs58.decode(mintSecretKey);
 
     // Recreate the keypair using the private key Uint8Array
-    const mint = Keypair.fromSecretKey(privateKeyUint8Array);
+    const mint = Keypair.fromSecretKey(secretKey);
 
     // Now you can use the keypair as needed
     console.log("key pair mint:", mint);
-
-    console.log("mint", mint);
 
     // Call createDevice function
     const tokenMetadata = await createDevice(
@@ -103,16 +101,17 @@ export async function createDeviceController(
       name,
       symbol,
       additionalMetadata,
-      uri
+      "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json"
     );
+
+    console.log("tokenMetadata", tokenMetadata);
 
     // Send success response with token metadata
     res.status(200).json({ success: true, tokenMetadata });
-
-    res.status(200).json({ success: true });
   } catch (error: any) {
     // Send error response
     console.error("Error creating device:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 }
+

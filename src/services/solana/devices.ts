@@ -1,6 +1,7 @@
 import {
   Connection,
   Keypair,
+  PublicKey,
   SystemProgram,
   Transaction,
   clusterApiUrl,
@@ -30,35 +31,35 @@ export async function createDevice(
   mint: Keypair,
   name: string,
   symbol: string,
-  additionalMetadata: [string, any][],
+  additionalMetadata: [string, string][],
   uri: string
 ): Promise<TokenMetadata | null> {
   // Initialize connection to Solana cluster
 
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-  const mintInfoCheck = await getMint(
-    connection,
-    mint.publicKey,
-    "confirmed",
-    TOKEN_2022_PROGRAM_ID
-  );
+  try {
+    const mintInfoCheck = await getMint(
+      connection,
+      mint.publicKey,
+      "confirmed",
+      TOKEN_2022_PROGRAM_ID
+    );
 
- 
+    console.log("mintInfoCheck", mintInfoCheck);
 
-  console.log("mintInfoCheck", mintInfoCheck);
+    const metadataCheck = await getTokenMetadata(connection, mint.publicKey);
 
-  const metadataCheck = await getTokenMetadata(connection, mint.publicKey);
-
-  if (metadataCheck) {
-    console.log("metadataCheck", metadataCheck);
-    return metadataCheck;
-  }
+    if (metadataCheck) {
+      console.log("metadataCheck", metadataCheck);
+      return metadataCheck;
+    }
+  } catch (error) {}
 
   // Define authorities
   const updateAuthority = payer.publicKey;
   const mintAuthority = payer.publicKey;
-  const decimals = 2;
+  const decimals = 0;
 
   // Define metadata for the mint
   const metaData: TokenMetadata = {
@@ -169,3 +170,5 @@ export async function createDevice(
 
   return metaData;
 }
+
+

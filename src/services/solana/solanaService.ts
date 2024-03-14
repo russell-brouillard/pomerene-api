@@ -49,3 +49,23 @@ export function generateSolanaKeypair(): { publicKey: string; privateKey: string
     privateKey: privateKeyBase58,
   };
 }
+
+export async function fetchOwnedMintAddresses(ownerAddress: string): Promise<string[]> {
+  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+  const ownerPublicKey = new PublicKey(ownerAddress); // Ensure ownerAddress is a PublicKey
+
+  console.log("ownerPublicKey = ", ownerPublicKey.toBase58());
+  const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+    ownerPublicKey, // Use the converted PublicKey instance
+    {
+      programId: TOKEN_2022_PROGRAM_ID,
+    }
+  );
+
+  const mintAddresses = tokenAccounts.value.map((accountInfo) => {
+    const accountData = accountInfo.account.data.parsed.info;
+    return accountData.mint;
+  });
+
+  return mintAddresses;
+}
