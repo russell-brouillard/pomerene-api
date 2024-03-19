@@ -95,14 +95,7 @@ export async function createScannerController(
     console.log("key pair mint:", mint);
 
     // Call createScanner function
-    const tokenMetadata = await createScanner(
-      payer,
-      mint,
-      name,
-      symbol,
-      additionalMetadata,
-      "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json"
-    );
+    const tokenMetadata = await createScanner(payer, mint);
 
     console.log("tokenMetadata", tokenMetadata);
 
@@ -151,7 +144,7 @@ export async function createScannerTransactionController(
     const response = await createScannerTransaction(
       payer,
       scannerKeypair,
-      itemKeypair,
+      itemKeypair.publicKey
     );
     // Send success response with token metadata
     res.status(200).json(response);
