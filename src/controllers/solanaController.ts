@@ -4,8 +4,11 @@ import {
   getBalance,
   getSPLTokens,
   generateSolanaKeypair,
+  getAccountsByOwner,
 } from "../services/solana/solanaService";
 import { SplTokenAccount } from "solanaTypes";
+import { AuthRequest } from "../middleware/authMiddleware";
+import { getSolanaKeypairForUser } from "../services/users/usersServices";
 
 /**
  * @swagger
@@ -109,7 +112,6 @@ export const getSPLTokensController = async (
   }
 };
 
-
 /**
  * @swagger
  * paths:
@@ -152,3 +154,54 @@ export async function solanaKeypairController(
     res.status(500).json({ error: "Error generating Solana keypair" });
   }
 }
+
+/**
+ * @swagger
+ * /api/v1/accounts:
+ *   get:
+ *     summary: Retrieves the mint accounts associated with the current user
+ *     tags: [Solana]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of mint accounts associated with the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   mint:
+ *                     type: string
+ *                     description: The mint address of the SPL token
+ *                   owner:
+ *                     type: string
+ *                     description: The owner's public key
+ *                   tokenAmount:
+ *                     type: number
+ *                     description: The amount of tokens, adjusted for decimals
+ *       400:
+ *         description: User is required
+ *       500:
+ *         description: Failed to retrieve associated mint accounts
+ */
+export const getAccountsController = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    if (req.user === undefined) {
+      res.status(400).send("User is required");
+      return;
+    }
+    const userKeyPair = await getSolanaKeypairForUser(req.user.uid);
+
+    const mintAccounts = await getAccountsByOwner(userKeyPair);
+    res.json(mintAccounts);
+  } catch (error) {
+    console.error("Failed to get mint accounts:", error);
+    res.status(500).send("Failed to retrieve associated mint accounts");
+  }
+};

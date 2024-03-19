@@ -18,7 +18,7 @@ router.post("/create", createUserWithSolanaKeypair);
 router.post("/signIn", getUserJWTController);
 router.get("/email/:email", getUserByEmailController);
 router.get("/users", getAllUsersController);
-router.get("/devices", authMiddleware, handleFetchMintAddresses);
+router.get("/scanner", authMiddleware, handleFetchMintAddresses);
 router.get("/:uid", getUserByUIDController);
 
 export default router;

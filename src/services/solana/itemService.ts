@@ -18,6 +18,9 @@ import {
   getTokenMetadata,
   TYPE_SIZE,
   LENGTH_SIZE,
+  getOrCreateAssociatedTokenAccount,
+  mintTo,
+  createEnableRequiredMemoTransfersInstruction,
 } from "@solana/spl-token";
 import {
   createInitializeInstruction,
@@ -26,7 +29,7 @@ import {
   TokenMetadata,
 } from "@solana/spl-token-metadata";
 
-export async function createDevice(
+export async function createItem(
   payer: Keypair,
   mint: Keypair,
   name: string,
@@ -129,13 +132,33 @@ export async function createDevice(
     value: metaData.additionalMetadata[0][1],
   });
 
+  const sourceTokenAccount = await getOrCreateAssociatedTokenAccount(
+    connection,
+    payer, // Payer to create Token Account
+    mint.publicKey, // Mint Account address
+    payer.publicKey, // Token Account owner
+    false, // Skip owner check
+    undefined, // Optional keypair, default to Associated Token Account
+    undefined, // Confirmation options
+    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+  ).then((ata) => ata.address);
+
+  const enableRequiredMemoTransfersInstruction =
+    createEnableRequiredMemoTransfersInstruction(
+      sourceTokenAccount, // Token Account address
+      payer.publicKey, // Token Account Owner
+      undefined, // Additional signers
+      TOKEN_2022_PROGRAM_ID // Token Program ID
+    );
+
   // Create transaction
   const transaction = new Transaction().add(
     createAccountInstruction,
     initializeMetadataPointerInstruction,
     initializeMintInstruction,
     initializeMetadataInstruction,
-    updateFieldInstruction
+    updateFieldInstruction, 
+    enableRequiredMemoTransfersInstruction
   );
 
   // Send transaction
@@ -168,7 +191,26 @@ export async function createDevice(
   const metadata = await getTokenMetadata(connection, mint.publicKey);
   console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
 
+  console.log("Token Account:", sourceTokenAccount);
+
+  const transactionSignatureMint = await mintTo(
+    connection,
+    payer, // Transaction fee payer
+    mint.publicKey, // Mint Account address
+    sourceTokenAccount, // Mint to
+    mintAuthority, // Mint Authority address
+    1, // Amount
+    undefined, // Additional signers
+    undefined, // Confirmation options
+    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+  );
+
+  console.log(
+    "\nMint Tokens:",
+    `https://solana.fm/tx/${transactionSignatureMint}?cluster=devnet-solana`
+  );
+
+  console.log("russell new");
+
   return metaData;
 }
-
-

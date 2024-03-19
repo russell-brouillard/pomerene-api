@@ -1,66 +1,43 @@
 import { Request, Response } from "express";
 import { Keypair } from "@solana/web3.js";
-import {
-  createDevice,
-} from "../services/solana/devices";
+import { createItem } from "../services/solana/itemService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 import bs58 from "bs58";
 
 /**
  * @swagger
- * /devices/create:
+ * /item/create:
  *   post:
- *     summary: Create a new device and its corresponding token metadata
- *     tags:
- *       tags: [Devices]
+ *     summary: Creates a new item
+ *     tags: [Item]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - mintSecretKey
- *               - name
- *               - symbol
- *               - uri
  *             properties:
  *               mintSecretKey:
  *                 type: string
- *                 description: Base64 encoded secret key for minting the token.
+ *                 description: The base58 encoded secret key.
  *               name:
  *                 type: string
- *                 description: Name of the device.
  *               symbol:
  *                 type: string
- *                 description: Symbol for the device token.
  *               additionalMetadata:
  *                 type: object
- *                 description: Additional metadata for the token.
- *                 example: { "color": "red", "size": "large" }
+ *                 description: Additional metadata for the item.
  *               uri:
  *                 type: string
- *                 description: URI for the token's metadata.
+ *                 description: URI for the item's metadata.
  *     responses:
  *       200:
- *         description: Successfully created device and token metadata.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 tokenMetadata:
- *                   type: object
- *                   description: Metadata of the created token.
- *       400:
- *         description: Missing required fields in the request.
+ *         description: Item created successfully.
  *       500:
- *         description: Error occurred during device creation.
+ *         description: Error creating the item.
  */
-export async function createDeviceController(
+export async function createItemController(
   req: AuthRequest,
   res: Response
 ): Promise<void> {
@@ -69,7 +46,7 @@ export async function createDeviceController(
     const { mintSecretKey, name, symbol, additionalMetadata, uri } = req.body;
 
     console.log(
-      "createDeviceController",
+      "createScannerController",
       mintSecretKey,
       name,
       symbol,
@@ -94,8 +71,8 @@ export async function createDeviceController(
     // Now you can use the keypair as needed
     console.log("key pair mint:", mint);
 
-    // Call createDevice function
-    const tokenMetadata = await createDevice(
+    // Call createScanner function
+    const tokenMetadata = await createItem(
       payer,
       mint,
       name,
@@ -114,4 +91,3 @@ export async function createDeviceController(
     res.status(500).json({ success: false, error: error.message });
   }
 }
-
