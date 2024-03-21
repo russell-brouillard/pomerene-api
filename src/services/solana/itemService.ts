@@ -21,6 +21,7 @@ import {
   getOrCreateAssociatedTokenAccount,
   mintTo,
   createEnableRequiredMemoTransfersInstruction,
+  createMint,
 } from "@solana/spl-token";
 import {
   createInitializeInstruction,
@@ -28,46 +29,43 @@ import {
   pack,
   TokenMetadata,
 } from "@solana/spl-token-metadata";
+import { it } from "node:test";
+import base58, { encode } from "bs58";
 
 export async function createItem(
   payer: Keypair,
-  mint: Keypair,
   name: string,
   symbol: string,
   additionalMetadata: [string, string][],
   uri: string
-): Promise<TokenMetadata | null> {
+): Promise<{
+  owner: PublicKey;
+  mint: PublicKey;
+  tokenAccount: PublicKey;
+  itemKey: string;
+}> {
   // Initialize connection to Solana cluster
+
+  console.log("create Item !!!!");
 
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-  try {
-    const mintInfoCheck = await getMint(
-      connection,
-      mint.publicKey,
-      "confirmed",
-      TOKEN_2022_PROGRAM_ID
-    );
+  const itemKeyPair = Keypair.generate();
 
-    console.log("mintInfoCheck", mintInfoCheck);
+  // Create Mint Account
+  const mintKeyPair = Keypair.generate();
 
-    const metadataCheck = await getTokenMetadata(connection, mint.publicKey);
-
-    if (metadataCheck) {
-      console.log("metadataCheck", metadataCheck);
-      return metadataCheck;
-    }
-  } catch (error) {}
+  const mint = mintKeyPair.publicKey;
 
   // Define authorities
-  const updateAuthority = payer.publicKey;
-  const mintAuthority = payer.publicKey;
+  const updateAuthority = itemKeyPair.publicKey;
+  const mintAuthority = itemKeyPair.publicKey;
   const decimals = 0;
 
   // Define metadata for the mint
   const metaData: TokenMetadata = {
     updateAuthority,
-    mint: mint.publicKey,
+    mint: mint,
     name,
     symbol,
     uri,
@@ -87,24 +85,26 @@ export async function createItem(
   // Create account instruction
   const createAccountInstruction = SystemProgram.createAccount({
     fromPubkey: payer.publicKey,
-    newAccountPubkey: mint.publicKey,
+    newAccountPubkey: mint,
     space: mintLen,
     lamports,
     programId: TOKEN_2022_PROGRAM_ID,
   });
 
+  console.log("create Item !!!!");
+
   // Initialize metadata pointer instruction
   const initializeMetadataPointerInstruction =
     createInitializeMetadataPointerInstruction(
-      mint.publicKey,
+      mint,
       updateAuthority,
-      mint.publicKey,
+      mint,
       TOKEN_2022_PROGRAM_ID
     );
 
   // Initialize mint instruction
   const initializeMintInstruction = createInitializeMintInstruction(
-    mint.publicKey,
+    mint,
     decimals,
     mintAuthority,
     null,
@@ -114,9 +114,9 @@ export async function createItem(
   // Initialize metadata instruction
   const initializeMetadataInstruction = createInitializeInstruction({
     programId: TOKEN_2022_PROGRAM_ID,
-    metadata: mint.publicKey,
+    metadata: mint,
     updateAuthority,
-    mint: mint.publicKey,
+    mint: mint,
     mintAuthority,
     name: metaData.name,
     symbol: metaData.symbol,
@@ -126,30 +126,11 @@ export async function createItem(
   // Update metadata instruction
   const updateFieldInstruction = createUpdateFieldInstruction({
     programId: TOKEN_2022_PROGRAM_ID,
-    metadata: mint.publicKey,
+    metadata: mint,
     updateAuthority,
     field: metaData.additionalMetadata[0][0],
     value: metaData.additionalMetadata[0][1],
   });
-
-  const sourceTokenAccount = await getOrCreateAssociatedTokenAccount(
-    connection,
-    payer, // Payer to create Token Account
-    mint.publicKey, // Mint Account address
-    payer.publicKey, // Token Account owner
-    false, // Skip owner check
-    undefined, // Optional keypair, default to Associated Token Account
-    undefined, // Confirmation options
-    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
-  ).then((ata) => ata.address);
-
-  const enableRequiredMemoTransfersInstruction =
-    createEnableRequiredMemoTransfersInstruction(
-      sourceTokenAccount, // Token Account address
-      payer.publicKey, // Token Account Owner
-      undefined, // Additional signers
-      TOKEN_2022_PROGRAM_ID // Token Program ID
-    );
 
   // Create transaction
   const transaction = new Transaction().add(
@@ -157,16 +138,20 @@ export async function createItem(
     initializeMetadataPointerInstruction,
     initializeMintInstruction,
     initializeMetadataInstruction,
-    updateFieldInstruction, 
-    enableRequiredMemoTransfersInstruction
+    updateFieldInstruction
+    // enableRequiredMemoTransfersInstruction
   );
 
+
+  console.log("create Item !!!!2");
   // Send transaction
   const transactionSignature = await sendAndConfirmTransaction(
     connection,
     transaction,
-    [payer, mint]
+    [payer, itemKeyPair, mintKeyPair],  // Signers
   );
+
+  console.log("create Item !!!!3");
 
   // Log transaction details
   console.log(
@@ -177,7 +162,7 @@ export async function createItem(
   // Retrieve mint information
   const mintInfo = await getMint(
     connection,
-    mint.publicKey,
+    mint,
     "confirmed",
     TOKEN_2022_PROGRAM_ID
   );
@@ -186,21 +171,35 @@ export async function createItem(
   const metadataPointer = getMetadataPointerState(mintInfo);
   console.log("\nMetadata Pointer:", JSON.stringify(metadataPointer, null, 2));
 
-  // Retrieve and log metadata state
-  console.log("mint = ", mint);
-  const metadata = await getTokenMetadata(connection, mint.publicKey);
+  const metadata = await getTokenMetadata(connection, mint);
   console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
 
-  console.log("Token Account:", sourceTokenAccount);
+
+  console.log("test");
+
+  const tokenAccount = await getOrCreateAssociatedTokenAccount(
+    connection,
+    payer, // Payer to create Token Account
+    new PublicKey(mint), // Mint Account address
+    itemKeyPair.publicKey, // Token Account owner
+    false, // Skip owner check
+    undefined, // Optional keypair, default to Associated Token Account
+    undefined, // Confirmation options
+    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+  ).then((ata) => ata.address);
+
+  console.log("test");
+
+  console.log("Token Account:", tokenAccount);
 
   const transactionSignatureMint = await mintTo(
     connection,
     payer, // Transaction fee payer
-    mint.publicKey, // Mint Account address
-    sourceTokenAccount, // Mint to
+    mint, // Mint Account address
+    tokenAccount, // Mint to
     mintAuthority, // Mint Authority address
-    1, // Amount
-    undefined, // Additional signers
+    100_00, // Amount
+    [itemKeyPair], // Additional signers
     undefined, // Confirmation options
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
   );
@@ -210,7 +209,11 @@ export async function createItem(
     `https://solana.fm/tx/${transactionSignatureMint}?cluster=devnet-solana`
   );
 
-  console.log("russell new");
+  return {
+    owner: payer.publicKey,
+    mint: mint,
+    tokenAccount: tokenAccount,
+    itemKey: encode(itemKeyPair.secretKey),
 
-  return metaData;
+  };
 }

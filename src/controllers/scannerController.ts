@@ -1,12 +1,11 @@
 import { Request, Response } from "express";
-import { Keypair } from "@solana/web3.js";
 import {
   createScanner,
   createScannerTransaction,
 } from "../services/solana/scannerService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
-import bs58 from "bs58";
+
 
 /**
  * @swagger
@@ -65,42 +64,21 @@ export async function createScannerController(
   res: Response
 ): Promise<void> {
   try {
-    // Extract necessary data from request body
-    const { mintSecretKey, name, symbol, additionalMetadata, uri } = req.body;
+    console.log(req.user);
 
-    console.log(
-      "createScannerController",
-      mintSecretKey,
-      name,
-      symbol,
-      additionalMetadata,
-      uri,
-      req.user
-    );
-
-    if (!mintSecretKey || !name || !symbol || !req.user) {
+    if (!req.user) {
       throw new Error("Missing required fields");
     }
 
     const payer = await getSolanaKeypairForUser(req.user.uid);
 
-    console.log("keypair payer", payer);
-
-    const secretKey = bs58.decode(mintSecretKey);
-
-    // Recreate the keypair using the private key Uint8Array
-    const mint = Keypair.fromSecretKey(secretKey);
-
-    // Now you can use the keypair as needed
-    console.log("key pair mint:", mint);
-
     // Call createScanner function
-    const tokenMetadata = await createScanner(payer, mint);
+    const accounts = await createScanner(payer);
 
-    console.log("tokenMetadata", tokenMetadata);
+    console.log("acocunts", accounts);
 
     // Send success response with token metadata
-    res.status(200).json({ success: true, tokenMetadata });
+    res.status(200).json({ success: true, accounts });
   } catch (error: any) {
     // Send error response
     console.error("Error creating device:", error);
@@ -108,45 +86,35 @@ export async function createScannerController(
   }
 }
 
+//note to self item secret key could be the signer for transfer of tokens from scanner to scanner
 export async function createScannerTransactionController(
   req: AuthRequest,
   res: Response
 ): Promise<void> {
   try {
     // Extract necessary data from request body
-    const { itemSecretKey, scannerSecretKey } = req.body;
+    const { scannerTokenAccount, itemTokenAccount , itemMint} = req.body;
 
     console.log(
       "createScannerTransactionController",
-      itemSecretKey,
-      scannerSecretKey,
+      scannerTokenAccount,
+      itemTokenAccount,
       req.user
     );
 
-    if (!itemSecretKey || !scannerSecretKey || !req.user) {
+    if (!itemTokenAccount || !scannerTokenAccount || !req.user) {
       throw new Error("Missing required fields");
     }
 
     const payer = await getSolanaKeypairForUser(req.user.uid);
 
-    console.log("keypair payer", payer);
-
-    const itemSecretKeyDecoded = bs58.decode(itemSecretKey);
-
-    // Recreate the keypair using the private key Uint8Array
-    const itemKeypair = Keypair.fromSecretKey(itemSecretKeyDecoded);
-
-    const scannerSecretKeyDecoded = bs58.decode(scannerSecretKey);
-
-    // Recreate the keypair using the private key Uint8Array
-    const scannerKeypair = Keypair.fromSecretKey(scannerSecretKeyDecoded);
-
     const response = await createScannerTransaction(
       payer,
-      scannerKeypair,
-      itemKeypair.publicKey
+      scannerTokenAccount,
+      itemTokenAccount,
+      itemMint
     );
-    // Send success response with token metadata
+
     res.status(200).json(response);
   } catch (error: any) {
     // Send error response

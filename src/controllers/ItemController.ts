@@ -43,11 +43,10 @@ export async function createItemController(
 ): Promise<void> {
   try {
     // Extract necessary data from request body
-    const { mintSecretKey, name, symbol, additionalMetadata, uri } = req.body;
+    const { name, symbol, additionalMetadata, uri } = req.body;
 
     console.log(
       "createScannerController",
-      mintSecretKey,
       name,
       symbol,
       additionalMetadata,
@@ -55,33 +54,22 @@ export async function createItemController(
       req.user
     );
 
-    if (!mintSecretKey || !name || !symbol || !req.user) {
+    if (!name || !symbol || !req.user) {
       throw new Error("Missing required fields");
     }
 
     const payer = await getSolanaKeypairForUser(req.user.uid);
 
-    console.log("keypair payer", payer);
-
-    const secretKey = bs58.decode(mintSecretKey);
-
-    // Recreate the keypair using the private key Uint8Array
-    const mint = Keypair.fromSecretKey(secretKey);
-
-    // Now you can use the keypair as needed
-    console.log("key pair mint:", mint);
-
     // Call createScanner function
     const tokenMetadata = await createItem(
       payer,
-      mint,
       name,
       symbol,
       additionalMetadata,
       "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json"
     );
 
-    console.log("tokenMetadata", tokenMetadata);
+    console.log("test", tokenMetadata);
 
     // Send success response with token metadata
     res.status(200).json({ success: true, tokenMetadata });
