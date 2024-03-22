@@ -6,7 +6,6 @@ import {
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 
-
 /**
  * @swagger
  * /Scanner/create:
@@ -92,26 +91,28 @@ export async function createScannerTransactionController(
   res: Response
 ): Promise<void> {
   try {
+    console.log("createScannerTransactionController", req.body);
     // Extract necessary data from request body
-    const { scannerTokenAccount, itemTokenAccount , itemMint} = req.body;
+    const { scannerSecret, itemSecret, itemMint } = req.body;
 
     console.log(
       "createScannerTransactionController",
-      scannerTokenAccount,
-      itemTokenAccount,
+      scannerSecret,
+      itemSecret,
+      itemMint,
       req.user
     );
 
-    if (!itemTokenAccount || !scannerTokenAccount || !req.user) {
-      throw new Error("Missing required fields");
+    if (!itemSecret || !scannerSecret || !itemMint || !req.user) {
+      throw new Error("Missing required fields to scan item.");
     }
 
     const payer = await getSolanaKeypairForUser(req.user.uid);
 
     const response = await createScannerTransaction(
       payer,
-      scannerTokenAccount,
-      itemTokenAccount,
+      scannerSecret,
+      itemSecret,
       itemMint
     );
 

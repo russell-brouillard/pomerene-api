@@ -33,11 +33,11 @@ import {
   pack,
   TokenMetadata,
 } from "@solana/spl-token-metadata";
-import bs58 from "bs58";
+import bs58, { encode } from "bs58";
 
 export async function createScanner(
   payer: Keypair
-): Promise<{ owner: PublicKey; mint: PublicKey; tokenAccount: PublicKey }> {
+): Promise<{ owner: PublicKey; mint: PublicKey; accountSecret: string }> {
   // Connection to devnet cluster
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
@@ -64,9 +64,9 @@ export async function createScanner(
   );
 
   // Random keypair to use as owner of Token Account
-  const tokenAccountKeypair = Keypair.generate();
+  const accountKeypair = Keypair.generate();
   // Address for Token Account
-  const tokenAccount = tokenAccountKeypair.publicKey;
+  const account = accountKeypair.publicKey;
 
   // Size of Token Account with extension
   const accountLen = getAccountLen([ExtensionType.MemoTransfer]);
@@ -78,7 +78,7 @@ export async function createScanner(
   // Instruction to invoke System Program to create new account
   const createAccountInstruction = SystemProgram.createAccount({
     fromPubkey: payer.publicKey, // Account that will transfer lamports to created account
-    newAccountPubkey: tokenAccount, // Address of the account to create
+    newAccountPubkey: account, // Address of the account to create
     space: accountLen, // Amount of bytes to allocate to the created account
     lamports, // Amount of lamports transferred to created account
     programId: TOKEN_2022_PROGRAM_ID, // Program assigned as owner of created account
@@ -86,7 +86,7 @@ export async function createScanner(
 
   // Instruction to initialize Token Account data
   const initializeAccountInstruction = createInitializeAccountInstruction(
-    tokenAccount, // Token Account Address
+    account, // Token Account Address
     mint, // Mint Account
     payer.publicKey, // Token Account Owner
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
@@ -95,7 +95,7 @@ export async function createScanner(
   // Instruction to initialize the MemoTransfer Extension
   const enableRequiredMemoTransfersInstruction =
     createEnableRequiredMemoTransfersInstruction(
-      tokenAccount, // Token Account address
+      account, // Token Account address
       payer.publicKey, // Token Account Owner
       undefined, // Additional signers
       TOKEN_2022_PROGRAM_ID // Token Program ID
@@ -112,7 +112,7 @@ export async function createScanner(
   transactionSignature = await sendAndConfirmTransaction(
     connection,
     transaction,
-    [payer, tokenAccountKeypair] // Signers
+    [payer, accountKeypair] // Signers
   );
 
   console.log(
@@ -120,7 +120,11 @@ export async function createScanner(
     `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`
   );
 
-  return { owner: payer.publicKey, mint: mint, tokenAccount: tokenAccount };
+  return {
+    owner: payer.publicKey,
+    mint: mint,
+    accountSecret: encode(accountKeypair.secretKey),
+  };
 }
 ////////////////////////////
 
@@ -143,24 +147,41 @@ export async function createScannerTransaction(
 
   console.log("createScannerTransaction", scannerSecret, itemSecret);
 
-  const associatedTokenAccount = await getOrCreateAssociatedTokenAccount(
+  const scannerAccount = Keypair.fromSecretKey(bs58.decode(scannerSecret));
+
+  console.log("createScannerTransaction", scannerAccount.publicKey);
+
+  const itemAccount = Keypair.fromSecretKey(bs58.decode(itemSecret));
+
+  const associatedTokenAccountScanner = await getOrCreateAssociatedTokenAccount(
     connection,
     payer, // Payer to create Token Account
     new PublicKey(itemMint), // Mint Account address
-    payer.publicKey, // Token Account owner
+    scannerAccount.publicKey, // Token Account owner
     false, // Skip owner check
     undefined, // Optional keypair, default to Associated Token Account
     undefined, // Confirmation options
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
   ).then((ata) => ata.address);
 
-  const itemAccount = Keypair.fromSecretKey(bs58.decode(itemSecret));
+  console.log("test 1");
+
+  const associatedTokenAccountItem = await getOrCreateAssociatedTokenAccount(
+    connection,
+    payer, // Payer to create Token Account
+    new PublicKey(itemMint), // Mint Account address
+    itemAccount.publicKey, // Token Account owner
+    false, // Skip owner check
+    undefined, // Optional keypair, default to Associated Token Account
+    undefined, // Confirmation options
+    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+  ).then((ata) => ata.address);
 
   // Instruction to transfer tokens
   const transferInstruction = createTransferInstruction(
-    itemAccount.publicKey, // Source Token Account
-    associatedTokenAccount, // Destination Token Account
-    payer.publicKey, // Source Token Account owner
+    associatedTokenAccountItem, // Source Token Account
+    associatedTokenAccountScanner, // Destination Token Account
+    itemAccount.publicKey, // Source Token Account owner
     1, // Amount
     undefined, // Additional signers
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
@@ -172,12 +193,12 @@ export async function createScannerTransaction(
   console.log("test 2");
   // Send transaction
 
-  const scannerAccount = Keypair.fromSecretKey(bs58.decode(scannerSecret));
+  console.log("test 3");
 
   const transactionSignature = await sendAndConfirmTransaction(
     connection,
     transaction,
-    [payer, scannerAccount, itemAccount] // Signers
+    [payer, itemAccount] // Signers
   );
 
   console.log(
