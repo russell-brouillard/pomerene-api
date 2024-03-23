@@ -12,6 +12,7 @@ import { CreateUserAndStoreSolanaKeypairResult } from "solanaTypes";
 import { auth } from "../google/firebase";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { ListUsersResult } from "firebase-admin/lib/auth/base-auth";
+import { encode } from "bs58";
 
 export async function createUserAndStoreSolanaKeypair(
   email: string,
@@ -29,8 +30,8 @@ export async function createUserAndStoreSolanaKeypair(
 
     // Generate a new Solana keypair
     const keypair = Keypair.generate();
-    const secretKeyArray = Array.from(keypair.secretKey); // Convert Uint8Array to Array
-    const secretKeyString = JSON.stringify(secretKeyArray);
+
+    const secretKeyString = encode(keypair.secretKey);
 
     const publicKey = keypair.publicKey.toString();
 
