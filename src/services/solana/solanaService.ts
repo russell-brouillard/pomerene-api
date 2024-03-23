@@ -82,8 +82,6 @@ export async function fetchOwnedMintAddresses(
 export async function getAccountsByOwner(owner: Keypair) {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-  console.log("owner", owner.publicKey);
-
   // Fetch all token accounts for the owner
   const accounts = await connection.getParsedTokenAccountsByOwner(
     owner.publicKey,
@@ -96,10 +94,6 @@ export async function getAccountsByOwner(owner: Keypair) {
   const parsedAccounts = await Promise.all(
     accounts.value.map(async (accountInfo) => {
       const accountData = accountInfo.account.data.parsed.info;
-
-      console.log("Account Data:", accountData);
-
-      console.log("Account Data mint:", accountData.mint);
 
       const sourceTokenAccount = await getOrCreateAssociatedTokenAccount(
         connection,

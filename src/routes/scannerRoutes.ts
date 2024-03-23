@@ -5,7 +5,7 @@ import { createScannerController, createScannerTransactionController } from "../
 const router = express.Router();
 
 // Scanner endpoints
-router.post("/create", authMiddleware, createScannerController);
+// router.post("/create", authMiddleware, createScannerController);
 router.post("/scan", authMiddleware, createScannerTransactionController);
 
 export default router;

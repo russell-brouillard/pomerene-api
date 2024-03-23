@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import {
-  createScanner,
+
   createScannerTransaction,
 } from "../services/solana/scannerService";
 import { AuthRequest } from "../middleware/authMiddleware";
@@ -72,12 +72,12 @@ export async function createScannerController(
     const payer = await getSolanaKeypairForUser(req.user.uid);
 
     // Call createScanner function
-    const accounts = await createScanner(payer);
+    // const accounts = await createScanner(payer);
 
-    console.log("acocunts", accounts);
+    // console.log("acocunts", accounts);
 
     // Send success response with token metadata
-    res.status(200).json({ success: true, accounts });
+    res.status(200).json({ success: true});
   } catch (error: any) {
     // Send error response
     console.error("Error creating device:", error);
@@ -93,17 +93,17 @@ export async function createScannerTransactionController(
   try {
     console.log("createScannerTransactionController", req.body);
     // Extract necessary data from request body
-    const { scannerSecret, itemSecret, itemMint } = req.body;
+    const { scannerSecret, itemSecret, message } = req.body;
 
     console.log(
       "createScannerTransactionController",
       scannerSecret,
       itemSecret,
-      itemMint,
+      message,
       req.user
     );
 
-    if (!itemSecret || !scannerSecret || !itemMint || !req.user) {
+    if (!itemSecret || !scannerSecret || !message || !req.user) {
       throw new Error("Missing required fields to scan item.");
     }
 
@@ -113,7 +113,7 @@ export async function createScannerTransactionController(
       payer,
       scannerSecret,
       itemSecret,
-      itemMint
+      message
     );
 
     res.status(200).json(response);
