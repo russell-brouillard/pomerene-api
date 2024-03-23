@@ -1,6 +1,7 @@
 import {
   Connection,
   Keypair,
+  PublicKey,
   SystemProgram,
   Transaction,
   clusterApiUrl,
@@ -17,6 +18,12 @@ import {
   getTokenMetadata,
   TYPE_SIZE,
   LENGTH_SIZE,
+  getOrCreateAssociatedTokenAccount,
+  mintTo,
+  createEnableRequiredMemoTransfersInstruction,
+  getAccountLen,
+  createInitializeAccountInstruction,
+  createAccount,
 } from "@solana/spl-token";
 import {
   createInitializeInstruction,
@@ -24,46 +31,41 @@ import {
   pack,
   TokenMetadata,
 } from "@solana/spl-token-metadata";
+import { it } from "node:test";
+import base58, { encode } from "bs58";
 
-export async function createDevice(
+export async function createItem(
   payer: Keypair,
-  mint: Keypair,
   name: string,
   symbol: string,
-  additionalMetadata: [string, any][],
+  additionalMetadata: [string, string][],
   uri: string
-): Promise<TokenMetadata | null> {
+): Promise<{
+  owner: PublicKey;
+  mint: PublicKey;
+  tokenAccount: string;
+  itemSecret: string;
+}> {
   // Initialize connection to Solana cluster
 
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-  const mintInfoCheck = await getMint(
-    connection,
-    mint.publicKey,
-    "confirmed",
-    TOKEN_2022_PROGRAM_ID
-  );
+  const itemKeyPair = Keypair.generate();
 
- 
+  // Create Mint Account
+  const mintKeyPair = Keypair.generate();
 
-  console.log("mintInfoCheck", mintInfoCheck);
-
-  const metadataCheck = await getTokenMetadata(connection, mint.publicKey);
-
-  if (metadataCheck) {
-    console.log("metadataCheck", metadataCheck);
-    return metadataCheck;
-  }
+  const mint = mintKeyPair.publicKey;
 
   // Define authorities
-  const updateAuthority = payer.publicKey;
-  const mintAuthority = payer.publicKey;
-  const decimals = 2;
+  const updateAuthority = itemKeyPair.publicKey;
+  const mintAuthority = itemKeyPair.publicKey;
+  const decimals = 0;
 
   // Define metadata for the mint
   const metaData: TokenMetadata = {
     updateAuthority,
-    mint: mint.publicKey,
+    mint: mint,
     name,
     symbol,
     uri,
@@ -83,24 +85,26 @@ export async function createDevice(
   // Create account instruction
   const createAccountInstruction = SystemProgram.createAccount({
     fromPubkey: payer.publicKey,
-    newAccountPubkey: mint.publicKey,
+    newAccountPubkey: mint,
     space: mintLen,
     lamports,
     programId: TOKEN_2022_PROGRAM_ID,
   });
 
+  console.log("create Item !!!!");
+
   // Initialize metadata pointer instruction
   const initializeMetadataPointerInstruction =
     createInitializeMetadataPointerInstruction(
-      mint.publicKey,
+      mint,
       updateAuthority,
-      mint.publicKey,
+      mint,
       TOKEN_2022_PROGRAM_ID
     );
 
   // Initialize mint instruction
   const initializeMintInstruction = createInitializeMintInstruction(
-    mint.publicKey,
+    mint,
     decimals,
     mintAuthority,
     null,
@@ -110,9 +114,9 @@ export async function createDevice(
   // Initialize metadata instruction
   const initializeMetadataInstruction = createInitializeInstruction({
     programId: TOKEN_2022_PROGRAM_ID,
-    metadata: mint.publicKey,
+    metadata: mint,
     updateAuthority,
-    mint: mint.publicKey,
+    mint: mint,
     mintAuthority,
     name: metaData.name,
     symbol: metaData.symbol,
@@ -122,7 +126,7 @@ export async function createDevice(
   // Update metadata instruction
   const updateFieldInstruction = createUpdateFieldInstruction({
     programId: TOKEN_2022_PROGRAM_ID,
-    metadata: mint.publicKey,
+    metadata: mint,
     updateAuthority,
     field: metaData.additionalMetadata[0][0],
     value: metaData.additionalMetadata[0][1],
@@ -137,35 +141,45 @@ export async function createDevice(
     updateFieldInstruction
   );
 
+  console.log("create Item !!!!2");
   // Send transaction
   const transactionSignature = await sendAndConfirmTransaction(
     connection,
     transaction,
-    [payer, mint]
+    [payer, itemKeyPair, mintKeyPair] // Signers
   );
 
-  // Log transaction details
-  console.log(
-    "\nCreate Mint Account:",
-    `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`
-  );
-
-  // Retrieve mint information
-  const mintInfo = await getMint(
+  const tokenAccount = await createAccount(
     connection,
-    mint.publicKey,
-    "confirmed",
-    TOKEN_2022_PROGRAM_ID
+    payer, // Payer to create Token Account
+    mint, // Mint Account address
+    itemKeyPair.publicKey, // Token Account owner
+    undefined, // Optional keypair, default to Associated Token Account
+    undefined, // Confirmation options
+    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
   );
 
-  // Log metadata pointer state
-  const metadataPointer = getMetadataPointerState(mintInfo);
-  console.log("\nMetadata Pointer:", JSON.stringify(metadataPointer, null, 2));
+  const transactionSignatureMint = await mintTo(
+    connection,
+    payer, // Transaction fee payer
+    mint, // Mint Account address
+    tokenAccount, // Mint to
+    mintAuthority, // Mint Authority address
+    101, // Amount
+    [itemKeyPair], // Additional signers
+    undefined, // Confirmation options
+    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+  );
 
-  // Retrieve and log metadata state
-  console.log("mint = ", mint);
-  const metadata = await getTokenMetadata(connection, mint.publicKey);
-  console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
+  console.log(
+    "\nMint Tokens:",
+    `https://solana.fm/tx/${transactionSignatureMint}?cluster=devnet-solana`
+  );
 
-  return metaData;
+  return {
+    owner: payer.publicKey,
+    mint: mint,
+    tokenAccount: tokenAccount.toString(),
+    itemSecret: encode(itemKeyPair.secretKey),
+  };
 }

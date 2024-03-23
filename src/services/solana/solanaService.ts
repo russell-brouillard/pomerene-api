@@ -5,7 +5,12 @@ import {
   PublicKey,
   clusterApiUrl,
 } from "@solana/web3.js";
-import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import {
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+  getAccount,
+  getOrCreateAssociatedTokenAccount,
+} from "@solana/spl-token";
 import { SplTokenAccount } from "solanaTypes";
 import { encode } from "bs58";
 
@@ -36,8 +41,10 @@ export async function getSPLTokens(
   }));
 }
 
-
-export function generateSolanaKeypair(): { publicKey: string; privateKey: string } {
+export function generateSolanaKeypair(): {
+  publicKey: string;
+  privateKey: string;
+} {
   const keypair = Keypair.generate();
 
   // Encode the secret key as a base58 string
@@ -48,4 +55,75 @@ export function generateSolanaKeypair(): { publicKey: string; privateKey: string
     publicKey: keypair.publicKey.toString(),
     privateKey: privateKeyBase58,
   };
+}
+
+export async function fetchOwnedMintAddresses(
+  ownerAddress: string
+): Promise<string[]> {
+  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+  const ownerPublicKey = new PublicKey(ownerAddress); // Ensure ownerAddress is a PublicKey
+
+  console.log("ownerPublicKey = ", ownerPublicKey.toBase58());
+  const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+    ownerPublicKey, // Use the converted PublicKey instance
+    {
+      programId: TOKEN_2022_PROGRAM_ID,
+    }
+  );
+
+  const mintAddresses = tokenAccounts.value.map((accountInfo) => {
+    const accountData = accountInfo.account.data.parsed.info;
+    return accountData.mint;
+  });
+
+  return mintAddresses;
+}
+
+export async function getAccountsByOwner(owner: Keypair) {
+  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+  const ownedAccounts = await connection.getProgramAccounts(
+    TOKEN_2022_PROGRAM_ID,
+    {
+      filters: [{ memcmp: { offset: 32, bytes: owner.publicKey.toBase58() } }],
+    }
+  );
+
+  console.log("ownedAccounts = ", ownedAccounts);
+
+  // Fetch all token accounts for the owner
+  const accounts = await connection.getParsedTokenAccountsByOwner(
+    owner.publicKey,
+    {
+      programId: TOKEN_2022_PROGRAM_ID,
+    }
+  );
+
+  // Parse the accounts to differentiate between mints and token balances (if necessary)
+  const parsedAccounts = await Promise.all(
+    accounts.value.map(async (accountInfo) => {
+      const accountData = accountInfo.account.data.parsed.info;
+
+      const sourceTokenAccount = await getOrCreateAssociatedTokenAccount(
+        connection,
+        owner, // Payer to create Token Account
+        new PublicKey(accountData.mint), // Mint Account address
+        owner.publicKey, // Token Account owner
+        false, // Skip owner check
+        undefined, // Optional keypair, default to Associated Token Account
+        undefined, // Confirmation options
+        TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+      ).then((ata) => ata.address);
+
+      return {
+        mint: accountData.mint, // The mint address this token account is associated with
+        owner: accountData.owner, // Owner of this token account
+        tokenAccount: sourceTokenAccount, // The token account address
+        tokenAmount: accountData.tokenAmount.uiAmount, // The token balance
+        // You might include more details as necessary
+      };
+    })
+  );
+
+  return parsedAccounts;
 }

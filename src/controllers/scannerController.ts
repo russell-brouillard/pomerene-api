@@ -1,16 +1,14 @@
 import { Request, Response } from "express";
-import { Keypair } from "@solana/web3.js";
-import { createDevice } from "../services/solana/devices";
+import { createScannerTransaction } from "../services/solana/scannerService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 
 /**
  * @swagger
- * /devices/create:
+ * /Scanner/create:
  *   post:
  *     summary: Create a new device and its corresponding token metadata
- *     tags:
- *       tags: [Devices]
+ *     tags: [Scanners]
  *     requestBody:
  *       required: true
  *       content:
@@ -57,59 +55,56 @@ import { getSolanaKeypairForUser } from "../services/users/usersServices";
  *       500:
  *         description: Error occurred during device creation.
  */
-export async function createDeviceController(
+export async function createScannerController(
   req: AuthRequest,
   res: Response
 ): Promise<void> {
   try {
-    // Extract necessary data from request body
-    const { mintSecretKey, name, symbol, additionalMetadata, uri } = req.body;
+    console.log(req.user);
 
-    console.log(
-      "createDeviceController",
-      mintSecretKey,
-      name,
-      symbol,
-      additionalMetadata,
-      uri,
-      req.user
-    );
-
-    if (!mintSecretKey || !name || !symbol || !req.user) {
+    if (!req.user) {
       throw new Error("Missing required fields");
     }
 
     const payer = await getSolanaKeypairForUser(req.user.uid);
 
-    console.log("keypair payer", payer);
+    // Call createScanner function
+    // const accounts = await createScanner(payer);
 
-    // Convert the base64 string back to a Uint8Array
-    const privateKeyUint8Array = Uint8Array.from(
-      Buffer.from(mintSecretKey, "base64")
-    );
-
-    // Recreate the keypair using the private key Uint8Array
-    const mint = Keypair.fromSecretKey(privateKeyUint8Array);
-
-    // Now you can use the keypair as needed
-    console.log("key pair mint:", mint);
-
-    console.log("mint", mint);
-
-    // Call createDevice function
-    const tokenMetadata = await createDevice(
-      payer,
-      mint,
-      name,
-      symbol,
-      additionalMetadata,
-      uri
-    );
+    // console.log("acocunts", accounts);
 
     // Send success response with token metadata
-    res.status(200).json({ success: true, tokenMetadata });
-
     res.status(200).json({ success: true });
+  } catch (error: any) {
+    // Send error response
+    console.error("Error creating device:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+//note to self item secret key could be the signer for transfer of tokens from scanner to scanner
+export async function createScannerTransactionController(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    // Extract necessary data from request body
+    const { scannerSecret, itemSecret, message } = req.body;
+
+    if (!itemSecret || !scannerSecret || !message || !req.user) {
+      throw new Error("Missing required fields to scan item.");
+    }
+
+    const payer = await getSolanaKeypairForUser(req.user.uid);
+
+    const response = await createScannerTransaction(
+      payer,
+      scannerSecret,
+      itemSecret,
+      message
+    );
+
+    res.status(200).json(response);
   } catch (error: any) {
     // Send error response
     console.error("Error creating device:", error);

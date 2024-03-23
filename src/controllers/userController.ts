@@ -9,7 +9,10 @@ import {
   getUser,
   getUserByEmail,
   getUserByUID,
+
 } from "../services/users/usersServices";
+import { fetchOwnedMintAddresses } from "../services/solana/solanaService";
+
 
 /**
  * @swagger
@@ -386,5 +389,29 @@ export async function getAllUsersController(req: Request, res: Response) {
   } catch (error) {
     console.error("Error in getAllUsersController:", error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
+export async function handleFetchMintAddresses(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    console.log(req.user);
+
+    if (!req.user || !req.user.name) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    console.log("Fetching mint addresses for user:", req.user.name);
+
+    const mintAddresses = await fetchOwnedMintAddresses(req.user.name); // Using publicKey from the user object
+
+    res.status(200).json({ success: true, mintAddresses });
+  } catch (error: any) {
+    console.error("Error:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 }

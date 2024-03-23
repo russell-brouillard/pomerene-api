@@ -12,6 +12,7 @@ import { CreateUserAndStoreSolanaKeypairResult } from "solanaTypes";
 import { auth } from "../google/firebase";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { ListUsersResult } from "firebase-admin/lib/auth/base-auth";
+import { decode, encode } from "bs58";
 
 export async function createUserAndStoreSolanaKeypair(
   email: string,
@@ -29,8 +30,8 @@ export async function createUserAndStoreSolanaKeypair(
 
     // Generate a new Solana keypair
     const keypair = Keypair.generate();
-    const secretKeyArray = Array.from(keypair.secretKey); // Convert Uint8Array to Array
-    const secretKeyString = JSON.stringify(secretKeyArray);
+
+    const secretKeyString = encode(keypair.secretKey);
 
     const publicKey = keypair.publicKey.toString();
 
@@ -92,16 +93,10 @@ export async function getSolanaKeypairForUser(
       throw new Error("Solana keypair not found for user");
     }
 
-    // Parse the secret key string directly
-    const secretKeyArray = JSON.parse(secretKeyString);
 
-    // Convert the array of numbers to a Uint8Array
-    const secretKeyUint8Array = Uint8Array.from(secretKeyArray);
-
+    console.log("Secret Key String = ", secretKeyString);
     // Create a Keypair instance from the Uint8Array secret key
-    const keypair = Keypair.fromSecretKey(secretKeyUint8Array);
-
-    console.log("payerSecretKey", keypair);
+    const keypair = Keypair.fromSecretKey(decode(secretKeyString));
 
     return keypair;
   } catch (error) {
@@ -121,10 +116,6 @@ export async function getUser(
       email,
       password
     );
-
-    // Get the user's JWT token
-    const idToken: string = await userCredential.user.getIdToken();
-    console.log("User's JWT token:", idToken);
 
     // Return the userCredential
     return userCredential;
