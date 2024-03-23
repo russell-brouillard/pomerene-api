@@ -168,49 +168,56 @@ export async function createScannerTransaction(
     accountLen
   );
 
-  // // Instruction to invoke System Program to create new account
-  // const createAccountInstructionMemo = SystemProgram.createAccount({
-  //   fromPubkey: payer.publicKey, // Account that will transfer lamports to created account
-  //   newAccountPubkey: scannerAccount.publicKey, // Address of the account to create
-  //   space: accountLen, // Amount of bytes to allocate to the created account
-  //   lamports, // Amount of lamports transferred to created account
-  //   programId: TOKEN_2022_PROGRAM_ID, // Program assigned as owner of created account
-  // });
+  // Instruction to invoke System Program to create new account
+  const createAccountInstructionMemo = SystemProgram.createAccount({
+    fromPubkey: payer.publicKey, // Account that will transfer lamports to created account
+    newAccountPubkey: scannerAccount.publicKey, // Address of the account to create
+    space: accountLen, // Amount of bytes to allocate to the created account
+    lamports, // Amount of lamports transferred to created account
+    programId: TOKEN_2022_PROGRAM_ID, // Program assigned as owner of created account
+  });
 
-  // // Instruction to initialize Token Account data
-  // const initializeAccountInstructionMemo = createInitializeAccountInstruction(
-  //   scannerAccount.publicKey, // Token Account Address
-  //   new PublicKey(itemMint), // Mint Account
-  //   payer.publicKey, // Token Account Owner
-  //   TOKEN_2022_PROGRAM_ID // Token Extension Program ID
-  // );
-
-  // // Instruction to initialize the MemoTransfer Extension
-  // const enableRequiredMemoTransfersInstruction =
-  //   createEnableRequiredMemoTransfersInstruction(
-  //     scannerAccount.publicKey, // Token Account address
-  //     payer.publicKey, // Token Account Owner
-  //     undefined, // Additional signers
-  //     TOKEN_2022_PROGRAM_ID // Token Program ID
-  //   );
-
-  // // Add instructions to new transaction
-  // const transactionMemo = new Transaction().add(
-  //   createAccountInstructionMemo,
-  //   initializeAccountInstructionMemo,
-  //   enableRequiredMemoTransfersInstruction
-  // );
-
-  // // Send transaction
-  // const transactionSignaturememo = await sendAndConfirmTransaction(
-  //   connection,
-  //   transactionMemo,
-  //   [payer, scannerAccount] // Signers
-  // );
-
-  const associatedTokenAccountItem = new PublicKey(
-    "5KPK2EjpRZg5fHVWhCEU4WdVxYx2mnpKXBFwvkYFQNhr"
+  // Instruction to initialize Token Account data
+  const initializeAccountInstructionMemo = createInitializeAccountInstruction(
+    scannerAccount.publicKey, // Token Account Address
+    new PublicKey(itemMint), // Mint Account
+    payer.publicKey, // Token Account Owner
+    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
   );
+
+  // Instruction to initialize the MemoTransfer Extension
+  const enableRequiredMemoTransfersInstruction =
+    createEnableRequiredMemoTransfersInstruction(
+      scannerAccount.publicKey, // Token Account address
+      payer.publicKey, // Token Account Owner
+      undefined, // Additional signers
+      TOKEN_2022_PROGRAM_ID // Token Program ID
+    );
+
+  // Add instructions to new transaction
+  const transactionMemo = new Transaction().add(
+    createAccountInstructionMemo,
+    initializeAccountInstructionMemo,
+    enableRequiredMemoTransfersInstruction
+  );
+
+  // Send transaction
+  const transactionSignaturememo = await sendAndConfirmTransaction(
+    connection,
+    transactionMemo,
+    [payer, scannerAccount] // Signers
+  );
+
+  const associatedTokenAccountItem = await getOrCreateAssociatedTokenAccount(
+    connection,
+    payer, // Payer to create Token Account
+    new PublicKey(itemMint), // Mint Account address
+    itemAccount.publicKey, // Token Account owner
+    false, // Skip owner check
+    undefined, // Optional keypair, default to Associated Token Account
+    undefined, // Confirmation options
+    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+  ).then((ata) => ata.address);
 
   console.log("test 69");
 
@@ -225,24 +232,25 @@ export async function createScannerTransaction(
   );
 
   // Message for the memo
-const message = "Latitude: 40.696062 / N 40° 41' 45.823' 'Longitude: -111.794433 / W 111° 47' 39.959''";
-// Instruction to add memo
-const memoInstruction = new TransactionInstruction({
-  keys: [{ pubkey: payer.publicKey, isSigner: true, isWritable: true }],
-  data: Buffer.from(message, "utf-8"),
-  programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
-});
+  const message =
+    "Latitude: 40.696062 / N 40° 41' 45.823' 'Longitude: -111.794433 / W 111° 47' 39.959''";
+  // Instruction to add memo
+  const memoInstruction = new TransactionInstruction({
+    keys: [{ pubkey: payer.publicKey, isSigner: true, isWritable: true }],
+    data: Buffer.from(message, "utf-8"),
+    programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
+  });
 
   // Add instructions to new transaction
-  const transaction = new Transaction().add(memoInstruction, transferInstruction);
+  const transaction = new Transaction().add(
+    memoInstruction,
+    transferInstruction
+  );
 
   console.log("test 2");
   // Send transaction
 
   console.log("test 3");
-
-
-
 
   const transactionSignature = await sendAndConfirmTransaction(
     connection,

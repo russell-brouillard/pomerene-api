@@ -60,7 +60,7 @@ export async function createItem(
   // Define authorities
   const updateAuthority = itemKeyPair.publicKey;
   const mintAuthority = itemKeyPair.publicKey;
-  const decimals = 2;
+  const decimals = 0;
 
   // Define metadata for the mint
   const metaData: TokenMetadata = {
@@ -165,7 +165,7 @@ export async function createItem(
     mint, // Mint Account address
     tokenAccount, // Mint to
     mintAuthority, // Mint Authority address
-    100_00, // Amount
+    101, // Amount
     [itemKeyPair], // Additional signers
     undefined, // Confirmation options
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
