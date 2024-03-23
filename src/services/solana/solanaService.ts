@@ -82,6 +82,15 @@ export async function fetchOwnedMintAddresses(
 export async function getAccountsByOwner(owner: Keypair) {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
+  const ownedAccounts = await connection.getProgramAccounts(
+    TOKEN_2022_PROGRAM_ID,
+    {
+      filters: [{ memcmp: { offset: 32, bytes: owner.publicKey.toBase58() } }],
+    }
+  );
+
+  console.log("ownedAccounts = ", ownedAccounts);
+
   // Fetch all token accounts for the owner
   const accounts = await connection.getParsedTokenAccountsByOwner(
     owner.publicKey,
@@ -106,8 +115,6 @@ export async function getAccountsByOwner(owner: Keypair) {
         TOKEN_2022_PROGRAM_ID // Token Extension Program ID
       ).then((ata) => ata.address);
 
-      console.log("Token Account =====", sourceTokenAccount);
-
       return {
         mint: accountData.mint, // The mint address this token account is associated with
         owner: accountData.owner, // Owner of this token account
@@ -118,6 +125,5 @@ export async function getAccountsByOwner(owner: Keypair) {
     })
   );
 
-  console.log("Parsed Accounts:", parsedAccounts);
   return parsedAccounts;
 }

@@ -37,6 +37,8 @@ import {
 import bs58, { encode } from "bs58";
 import { getAccountsByOwner } from "./solanaService";
 
+
+
 /**
  * Creates a transaction for a scanner to interact with an item, transferring tokens.
  *
@@ -73,7 +75,7 @@ export async function createScannerTransaction(
 
   const scannerTokenAccountKeypair = Keypair.generate();
 
-  console.log("SCANNER = ", scannerTokenAccountKeypair.publicKey.toString());
+  console.log("SCANNER = ",  scannerTokenAccountKeypair.publicKey );
 
   // Instruction to invoke System Program to create new account
   const createAccountInstructionMemo = SystemProgram.createAccount({
@@ -107,6 +109,7 @@ export async function createScannerTransaction(
     initializeAccountInstructionMemo,
     enableRequiredMemoTransfersInstruction
   );
+
 
   console.log("Test 1");
   // Send transaction
