@@ -252,6 +252,9 @@ export async function createMetadataMint(
   // Retrieve and log the metadata pointer state
   const metadataPointer = getMetadataPointerState(mintInfo);
   console.log("\nMetadata Pointer:", JSON.stringify(metadataPointer, null, 2));
+
+
+  return mint;
 }
 
 export async function mintToAccount(

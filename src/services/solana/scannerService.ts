@@ -32,7 +32,7 @@ export async function createScanner(payer: Keypair) {
   const scannerKeypair = Keypair.generate();
 
   const itemKeyPair = Keypair.generate();
-  
+
   const scanner = encode(scannerKeypair.secretKey);
 
   const name = "scanner";
@@ -75,7 +75,7 @@ export async function createScanner(payer: Keypair) {
     connection,
     itemKeyPair,
     payer.publicKey,
-    1
+    2
   );
 }
 
