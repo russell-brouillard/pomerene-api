@@ -1,7 +1,6 @@
 import {
   Connection,
   Keypair,
-  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction,
@@ -12,32 +11,73 @@ import {
 import {
   ExtensionType,
   TOKEN_2022_PROGRAM_ID,
-  createInitializeMintInstruction,
-  getMintLen,
-  createInitializeMetadataPointerInstruction,
-  getMint,
-  getMetadataPointerState,
-  getTokenMetadata,
-  TYPE_SIZE,
-  LENGTH_SIZE,
   getOrCreateAssociatedTokenAccount,
-  mintTo,
   createTransferInstruction,
-  createMint,
   getAccountLen,
   createInitializeAccountInstruction,
   createEnableRequiredMemoTransfersInstruction,
 } from "@solana/spl-token";
+
+import { decode, encode } from "bs58";
 import {
-  createInitializeInstruction,
-  createUpdateFieldInstruction,
-  pack,
-  TokenMetadata,
-} from "@solana/spl-token-metadata";
-import bs58, { encode } from "bs58";
-import { getAccountsByOwner } from "./solanaService";
+  createMetadataMint,
+  getAccountsByOwner,
+  mintToAccount,
+} from "./solanaService";
+import { TokenMetadata } from "@solana/spl-token-metadata";
 
+export async function createScanner(payer: Keypair) {
+  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
+  const scannerKeypair = Keypair.generate();
+
+  const itemKeyPair = Keypair.generate();
+  
+  const scanner = encode(scannerKeypair.secretKey);
+
+  const name = "scanner";
+  const symbol = "SCNR";
+  const uri =
+    "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json";
+  const additionalMetadata: [string, string][] = [["scanner", scanner]];
+
+  const updateAuthority = payer.publicKey;
+
+  const mintKeypair = Keypair.generate();
+  const mint = mintKeypair.publicKey;
+  const mintAuthority = payer.publicKey;
+  const decimals = 0;
+
+  const metaData: TokenMetadata = {
+    updateAuthority,
+    mint: mintKeypair.publicKey,
+    name,
+    symbol,
+    uri,
+    additionalMetadata,
+  };
+
+  await createMetadataMint(
+    metaData,
+    payer,
+    mint,
+    mintAuthority,
+    decimals,
+    connection,
+    mintKeypair,
+    updateAuthority
+  );
+
+  return await mintToAccount(
+    payer,
+    mint,
+    mintAuthority,
+    connection,
+    itemKeyPair,
+    payer.publicKey,
+    1
+  );
+}
 
 /**
  * Creates a transaction for a scanner to interact with an item, transferring tokens.
@@ -56,15 +96,18 @@ export async function createScannerTransaction(
   console.log("createScannerTransaction", payer.publicKey.toString());
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-  const itemAccount = Keypair.fromSecretKey(bs58.decode(itemSecret));
+  const itemAccount = Keypair.fromSecretKey(decode(itemSecret));
+
+  console.log("ITEM = ", itemAccount.publicKey);
 
   const itemMint = await getAccountsByOwner(itemAccount).then(
-    (parsedAccounts: any) => new PublicKey(bs58.decode(parsedAccounts[0].mint))
+    (parsedAccounts: any) => new PublicKey(decode(parsedAccounts[0].mint))
   );
 
   console.log("MINT = ", itemMint);
 
-  const scannerAccount = Keypair.fromSecretKey(bs58.decode(scannerSecret));
+  const scannerAccountKeypair = Keypair.fromSecretKey(decode(scannerSecret));
+  const scannerAccount = scannerAccountKeypair.publicKey;
 
   // Size of Token Account with extension
   const accountLen = getAccountLen([ExtensionType.MemoTransfer]);
@@ -75,7 +118,7 @@ export async function createScannerTransaction(
 
   const scannerTokenAccountKeypair = Keypair.generate();
 
-  console.log("SCANNER = ",  scannerTokenAccountKeypair.publicKey );
+  console.log("SCANNER = ", scannerTokenAccountKeypair.publicKey);
 
   // Instruction to invoke System Program to create new account
   const createAccountInstructionMemo = SystemProgram.createAccount({
@@ -86,11 +129,13 @@ export async function createScannerTransaction(
     programId: TOKEN_2022_PROGRAM_ID, // Program assigned as owner of created account
   });
 
+  console.log("Test 0");
+
   // Instruction to initialize Token Account data
   const initializeAccountInstructionMemo = createInitializeAccountInstruction(
     scannerTokenAccountKeypair.publicKey, // Token Account Address
     itemMint, // Mint Account
-    scannerAccount.publicKey, // Token Account Owner
+    scannerAccount, // Token Account Owner
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
   );
 
@@ -98,7 +143,7 @@ export async function createScannerTransaction(
   const enableRequiredMemoTransfersInstruction =
     createEnableRequiredMemoTransfersInstruction(
       scannerTokenAccountKeypair.publicKey, // Token Account address
-      scannerAccount.publicKey, // Token Account Owner
+      scannerAccount, // Token Account Owner
       undefined, // Additional signers
       TOKEN_2022_PROGRAM_ID // Token Program ID
     );
@@ -110,13 +155,12 @@ export async function createScannerTransaction(
     enableRequiredMemoTransfersInstruction
   );
 
-
   console.log("Test 1");
   // Send transaction
   const transactionSignaturememo = await sendAndConfirmTransaction(
     connection,
     transactionMemo,
-    [payer, scannerAccount, scannerTokenAccountKeypair] // Signers
+    [payer, scannerAccountKeypair, scannerTokenAccountKeypair] // Signers
   );
 
   console.log("Test 2");

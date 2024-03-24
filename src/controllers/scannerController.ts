@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createScannerTransaction } from "../services/solana/scannerService";
+import { createScanner, createScannerTransaction } from "../services/solana/scannerService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 
@@ -68,10 +68,10 @@ export async function createScannerController(
 
     const payer = await getSolanaKeypairForUser(req.user.uid);
 
-    // Call createScanner function
-    // const accounts = await createScanner(payer);
 
-    // console.log("acocunts", accounts);
+    const accounts = await createScanner(payer);
+
+    console.log("acocunts", accounts);
 
     // Send success response with token metadata
     res.status(200).json({ success: true });
