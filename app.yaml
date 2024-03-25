@@ -5,4 +5,3 @@ service: api
 handlers:
   - url: /.*
     script: auto
-
