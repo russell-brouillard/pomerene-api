@@ -3,7 +3,7 @@ export const getCargo = () => {
       "name": "Cargo",
       "symbol": "ITEM",
       "description": "shipping container",
-      "image": "https://api.pomerene.net/images/cargo.png",
+      "image": "https://www.pomerene.net/api/v1/images/cargo.png",
       "attributes": [
         {
           "trait_type": "Item",
