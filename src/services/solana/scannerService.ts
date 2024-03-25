@@ -75,7 +75,7 @@ export async function createScanner(payer: Keypair) {
     connection,
     itemKeyPair,
     payer.publicKey,
-    2
+    1
   );
 }
 

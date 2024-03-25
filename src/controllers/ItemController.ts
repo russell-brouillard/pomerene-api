@@ -65,8 +65,7 @@ export async function createItemController(
       payer,
       name,
       symbol,
-      additionalMetadata,
-      "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json"
+      additionalMetadata
     );
 
     console.log("test", tokenMetadata);

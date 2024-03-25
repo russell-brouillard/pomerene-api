@@ -8,8 +8,7 @@ export async function createItem(
   payer: Keypair,
   name: string,
   symbol: string,
-  additionalMetadata: [string, string][],
-  uri: string
+  additionalMetadata: [string, string][]
 ): Promise<{
   owner: PublicKey;
   mint: PublicKey;
@@ -37,7 +36,7 @@ export async function createItem(
     mint: mintKeypair.publicKey,
     name,
     symbol,
-    uri,
+    uri: "https://api.pomerene.net/api/v1/uri/cargo",
     additionalMetadata,
   };
 

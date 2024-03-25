@@ -4,6 +4,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
 import routes from "./routes/allRoutes";
 import cors from "cors";
+import path from "path";
 
 dotenv.config();
 
@@ -24,6 +25,8 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Options for the swagger docs
 const options = {
