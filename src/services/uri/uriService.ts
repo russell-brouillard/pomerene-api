@@ -1,8 +1,8 @@
 export const getCargo = () => {
     return {
-      "name": "Cargo",
+      "name": "item",
       "symbol": "ITEM",
-      "description": "shipping container",
+      "description": "item tag",
       "image": "https://www.pomerene.net/api/v1/images/cargo.png",
       "attributes": [
         {
