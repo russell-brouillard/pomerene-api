@@ -36,7 +36,7 @@ export async function createItem(
     mint: mintKeypair.publicKey,
     name,
     symbol,
-    uri: "https://api.pomerene.net/api/v1/uri/cargo",
+    uri: "https://www.pomerene.net/api/v1/uri/cargo",
     additionalMetadata,
   };
 

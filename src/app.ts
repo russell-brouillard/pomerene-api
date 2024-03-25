@@ -25,8 +25,7 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-
+app.use("/api/v1", express.static(path.join(__dirname, "public")));
 
 // Options for the swagger docs
 const options = {
@@ -45,7 +44,7 @@ const options = {
 const swaggerSpec = swaggerJSDoc(options);
 
 // Serve swagger docs
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api/v1/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Mount routes
 app.use("/api/v1/", routes);
