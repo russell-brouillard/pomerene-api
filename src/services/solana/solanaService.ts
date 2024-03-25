@@ -22,10 +22,12 @@ import {
   createInitializeMintInstruction,
   createUpdateFieldInstruction,
   getAccount,
+  getAssociatedTokenAddress,
   getMetadataPointerState,
   getMint,
   getMintLen,
   getOrCreateAssociatedTokenAccount,
+  getTokenMetadata,
   mintTo,
 } from "@solana/spl-token";
 import { SplTokenAccount } from "solanaTypes";
@@ -115,22 +117,30 @@ export async function getAccountsByOwner(owner: Keypair) {
     accounts.value.map(async (accountInfo) => {
       const accountData = accountInfo.account.data.parsed.info;
 
-      const sourceTokenAccount = await getOrCreateAssociatedTokenAccount(
+      console.log("MINT!!! = ", accountData.mint);
+
+      const sourceTokenAccount = await getAssociatedTokenAddress(
+        new PublicKey(accountData.mint),
+        owner.publicKey, // Payer to create Token Account
+        // Mint Account address
+        true, // Token Account owner
+        TOKEN_2022_PROGRAM_ID,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      // Retrieve and log the metadata state
+      const metadata = await getTokenMetadata(
         connection,
-        owner, // Payer to create Token Account
-        new PublicKey(accountData.mint), // Mint Account address
-        owner.publicKey, // Token Account owner
-        false, // Skip owner check
-        undefined, // Optional keypair, default to Associated Token Account
-        undefined, // Confirmation options
-        TOKEN_2022_PROGRAM_ID // Token Extension Program ID
-      ).then((ata) => ata.address);
+        new PublicKey(accountData.mint) // Mint Account address
+      );
+      console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
 
       return {
         mint: accountData.mint, // The mint address this token account is associated with
         owner: accountData.owner, // Owner of this token account
         tokenAccount: sourceTokenAccount, // The token account address
         tokenAmount: accountData.tokenAmount.uiAmount, // The token balance
+        metadata: metadata,
         // You might include more details as necessary
       };
     })
@@ -218,6 +228,7 @@ export async function createMetadataMint(
       TOKEN_2022_PROGRAM_ID // Token Extension Program ID
     );
 
+  console.log("TEST");
   // Create transaction
   let transaction = new Transaction().add(
     createAccountInstruction,
@@ -228,6 +239,8 @@ export async function createMetadataMint(
     initializeMetadataInstruction,
     updateFieldInstruction
   );
+
+  console.log("TEST 2");
 
   // Send transaction
   let transactionSignature = await sendAndConfirmTransaction(
@@ -253,7 +266,6 @@ export async function createMetadataMint(
   const metadataPointer = getMetadataPointerState(mintInfo);
   console.log("\nMetadata Pointer:", JSON.stringify(metadataPointer, null, 2));
 
-
   return mint;
 }
 
@@ -266,18 +278,32 @@ export async function mintToAccount(
   tokenAccountOwner: PublicKey,
   amount: number
 ): Promise<PublicKey> {
-  const tokenAccount = await createAccount(
+  // const tokenAccount = await createAccount(
+  //   connection,
+  //   payer, // Payer to create Token Account
+  //   mint, // Mint Account address
+  //   tokenAccountOwner, // Token Account owner
+  //   undefined, // Optional keypair, default to Associated Token Account
+  //   undefined, // Confirmation options
+  //   TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+  // );
+
+  console.log("MINT TO");
+
+  const tokenAccount = await getOrCreateAssociatedTokenAccount(
     connection,
     payer, // Payer to create Token Account
     mint, // Mint Account address
     tokenAccountOwner, // Token Account owner
+    false, // Skip owner check
     undefined, // Optional keypair, default to Associated Token Account
     undefined, // Confirmation options
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
-  );
+  ).then((ata) => ata.address);
 
   console.log("Token Account:", tokenAccount);
 
+  console.log("MINT TO 1");
   const transactionSignatureMint = await mintTo(
     connection,
     payer, // Transaction fee payer
@@ -285,10 +311,12 @@ export async function mintToAccount(
     tokenAccount, // Mint to
     mintAuthority, // Mint Authority address
     amount, // Amount
-    itemKeyPair ? [itemKeyPair] : [], // Additional signers
+    itemKeyPair ? [itemKeyPair, payer] : undefined, // Additional signers
     undefined, // Confirmation options
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
   );
+
+  console.log("MINT TO 2");
 
   console.log(
     "\nMint Tokens:",

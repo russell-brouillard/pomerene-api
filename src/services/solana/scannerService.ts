@@ -65,7 +65,7 @@ export async function createScanner(payer: Keypair) {
     decimals,
     connection,
     mintKeypair,
-    updateAuthority
+    updateAuthority,
   );
 
   return await mintToAccount(

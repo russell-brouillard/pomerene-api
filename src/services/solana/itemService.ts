@@ -23,6 +23,8 @@ export async function createItem(
   const itemKeyPair = Keypair.generate();
   const mintKeypair = Keypair.generate();
 
+  console.log("PUBLIC KEY", payer.publicKey.toString());
+
   // Define authorities
   const updateAuthority = payer.publicKey;
   const mintAuthority = payer.publicKey;
@@ -54,6 +56,8 @@ export async function createItem(
 
   // SEND NEW TOKENS
 
+  console.log("TEST 2");
+
   mintToAccount(
     payer,
     mint,
@@ -64,6 +68,7 @@ export async function createItem(
     1
   );
 
+  console.log("TEST 3");
   const tokenAccount = await mintToAccount(
     payer,
     mint,
