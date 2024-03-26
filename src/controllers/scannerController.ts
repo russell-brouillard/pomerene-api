@@ -1,14 +1,17 @@
 import { Request, Response } from "express";
-import { createScanner, createScannerTransaction } from "../services/solana/scannerService";
+import {
+  createScanner,
+  createScannerTransaction,
+} from "../services/solana/scannerService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 
 /**
  * @swagger
- * /Scanner/create:
+ * /api/v1/scanner/create:
  *   post:
  *     summary: Create a new device and its corresponding token metadata
- *     tags: [Scanners]
+ *     tags: [Scanner]
  *     requestBody:
  *       required: true
  *       content:
@@ -68,7 +71,6 @@ export async function createScannerController(
 
     const payer = await getSolanaKeypairForUser(req.user.uid);
 
-
     const accounts = await createScanner(payer);
 
     console.log("acocunts", accounts);
@@ -82,7 +84,58 @@ export async function createScannerController(
   }
 }
 
-//note to self item secret key could be the signer for transfer of tokens from scanner to scanner
+
+/**
+ * @swagger
+ * /api/v1/scanner/scan:
+ *   post:
+ *     summary: Create a scanner transaction
+ *     tags: [Scanner]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - scannerSecret
+ *               - itemSecret
+ *               - message
+ *             properties:
+ *               scannerSecret:
+ *                 type: string
+ *                 description: Secret key of the scanner
+ *               itemSecret:
+ *                 type: string
+ *                 description: Secret key of the item to be scanned
+ *               message:
+ *                 type: string
+ *                 description: A message associated with the scanning action
+ *     responses:
+ *       '200':
+ *         description: Scanner transaction created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 transactionId:
+ *                   type: string
+ *                   description: The ID of the created transaction
+ *                 message:
+ *                   type: string
+ *                   description: A message associated with the transaction
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Timestamp of the transaction
+ *       '400':
+ *         description: Missing required fields to scan item
+ *       '500':
+ *         description: Server error
+ */
 export async function createScannerTransactionController(
   req: AuthRequest,
   res: Response

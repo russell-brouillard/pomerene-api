@@ -33,6 +33,7 @@ import {
 import { SplTokenAccount } from "solanaTypes";
 import { encode } from "bs58";
 import { TokenMetadata, pack } from "@solana/spl-token-metadata";
+import { TokenObject } from "userTypes";
 
 // Function to get balance
 export async function getBalance(publicKey: string): Promise<number> {
@@ -77,29 +78,7 @@ export function generateSolanaKeypair(): {
   };
 }
 
-export async function fetchOwnedMintAddresses(
-  ownerAddress: string
-): Promise<string[]> {
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-  const ownerPublicKey = new PublicKey(ownerAddress); // Ensure ownerAddress is a PublicKey
-
-  console.log("ownerPublicKey = ", ownerPublicKey.toBase58());
-  const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-    ownerPublicKey, // Use the converted PublicKey instance
-    {
-      programId: TOKEN_2022_PROGRAM_ID,
-    }
-  );
-
-  const mintAddresses = tokenAccounts.value.map((accountInfo) => {
-    const accountData = accountInfo.account.data.parsed.info;
-    return accountData.mint;
-  });
-
-  return mintAddresses;
-}
-
-export async function getAccountsByOwner(owner: Keypair) {
+export async function getAccountsByOwner(owner: Keypair): Promise<any[]>{
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
   // Fetch all token accounts for the owner

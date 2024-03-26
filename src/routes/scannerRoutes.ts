@@ -1,6 +1,9 @@
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware";
-import { createScannerController, createScannerTransactionController } from "../controllers/scannerController";
+import {
+  createScannerController,
+  createScannerTransactionController,
+} from "../controllers/scannerController";
 
 const router = express.Router();
 

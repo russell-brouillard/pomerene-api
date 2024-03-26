@@ -7,7 +7,7 @@ import { deleteItem } from "../services/solana/solanaService";
 
 /**
  * @swagger
- * /item/create:
+ * /api/v1/item/create:
  *   post:
  *     summary: Creates a new item
  *     tags: [Item]
@@ -81,7 +81,7 @@ export async function createItemController(
 
 /**
  * @swagger
- * /item/delete/{mint}:
+ * /api/v1/item/delete/{mint}:
  *   delete:
  *     summary: Deletes an item by closing its mint account.
  *     tags: [Item]

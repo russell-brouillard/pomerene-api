@@ -4,15 +4,14 @@ import { secretManagerServiceClient } from "../services/google/secretManager";
 import { AuthRequest } from "../middleware/authMiddleware";
 import {
   createUserAndStoreSolanaKeypair,
+  fetchItem,
+  fetchScanner,
   getAllUsers,
   getSolanaKeypairForUser,
   getUser,
   getUserByEmail,
   getUserByUID,
-
 } from "../services/users/usersServices";
-import { fetchOwnedMintAddresses } from "../services/solana/solanaService";
-
 
 /**
  * @swagger
@@ -300,7 +299,7 @@ export async function getUserJWTController(
 
 /**
  * @swagger
- * /user/{uid}:
+ * /api/v1/user/{uid}:
  *   get:
  *     summary: Get user by UID
  *     tags: [User]
@@ -335,7 +334,7 @@ export async function getUserByUIDController(req: Request, res: Response) {
 
 /**
  * @swagger
- * /user/email/{email}:
+ * /api/v1/user/email/{email}:
  *   get:
  *     summary: Get user by email
  *     tags: [User]
@@ -372,7 +371,7 @@ export async function getUserByEmailController(req: Request, res: Response) {
 
 /**
  * @swagger
- * /users:
+ * /api/v1/user:
  *   get:
  *     summary: Get all users
  *     tags: [User]
@@ -392,24 +391,114 @@ export async function getAllUsersController(req: Request, res: Response) {
   }
 }
 
-
-export async function handleFetchMintAddresses(
+/**
+ * @swagger
+ * /api/v1/user/scanners:
+ *   get:
+ *     summary: Fetch scanner information for a user
+ *     tags: [User]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of scanners associated with the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 scanners:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *       400:
+ *         description: Missing required fields
+ *       500:
+ *         description: Server error
+ */
+export async function handleFetchScanner(
   req: AuthRequest,
   res: Response
 ): Promise<void> {
   try {
     console.log(req.user);
 
-    if (!req.user || !req.user.name) {
+    if (!req.user) {
       // Assuming publicKey is the correct property for the wallet address
       throw new Error("Missing required fields");
     }
 
-    console.log("Fetching mint addresses for user:", req.user.name);
+    const owner = await getSolanaKeypairForUser(req.user.uid);
 
-    const mintAddresses = await fetchOwnedMintAddresses(req.user.name); // Using publicKey from the user object
+    const scanners = await fetchScanner(owner); // Using publicKey from the user object
 
-    res.status(200).json({ success: true, mintAddresses });
+    res.status(200).json({ success: true, scanners });
+  } catch (error: any) {
+    console.error("Error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+/**
+ * @swagger
+ * /api/v1/user/items:
+ *   get:
+ *     summary: Fetch item information for a user
+ *     tags: [User]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of items associated with the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       type:
+ *                         type: string
+ *       400:
+ *         description: Missing required fields
+ *       500:
+ *         description: Server error
+ */
+export async function handleFetchItems(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    console.log(req.user);
+
+    if (!req.user) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    const owner = await getSolanaKeypairForUser(req.user.uid);
+
+    const scanners = await fetchItem(owner); // Using publicKey from the user object
+
+    res.status(200).json({ success: true, scanners });
   } catch (error: any) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });
