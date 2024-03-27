@@ -376,7 +376,7 @@ export async function getAllUsersController(req: Request, res: Response) {
  * @swagger
  * /api/v1/user/scanners:
  *   get:
- *     summary: Fetch scanner information for a user
+ *     summary: Fetch item information for a user
  *     tags: [User]
  *     security:
  *       - BearerAuth: []
@@ -390,17 +390,50 @@ export async function getAllUsersController(req: Request, res: Response) {
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
  *                 scanners:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
- *                       id:
+ *                       mint:
  *                         type: string
- *                       name:
+ *                         description: Mint address of the scanner.
+ *                       owner:
  *                         type: string
- *                       location:
+ *                         description: Owner's wallet address.
+ *                       tokenAccount:
  *                         type: string
+ *                         description: Token account address for the scanner.
+ *                       tokenAmount:
+ *                         type: integer
+ *                         description: Amount of tokens.
+ *                       metadata:
+ *                         type: object
+ *                         properties:
+ *                           updateAuthority:
+ *                             type: string
+ *                             description: Authority allowed to update the metadata.
+ *                           mint:
+ *                             type: string
+ *                             description: Mint address of the scanner.
+ *                           name:
+ *                             type: string
+ *                             description: Name of the scanner.
+ *                           symbol:
+ *                             type: string
+ *                             description: Symbol of the scanner.
+ *                           uri:
+ *                             type: string
+ *                             description: URI pointing to the metadata of the scanner.
+ *                           additionalMetadata:
+ *                             type: array
+ *                             items:
+ *                               type: array
+ *                               items:
+ *                                 type: string
+ *                             description: Additional metadata associated with the scanner. Each entry is an array of two strings, the first being a key and the second its value.
+ *                             example: [["scanner", "jTW2SfoRecY4eaShFpq5M7qEFUVSEPaS5drhyj7Tnk54S2A6yAPu8r5qxWrormLd1Anbw5aBYhNDe3eebPuXVHC"]]
  *       400:
  *         description: Missing required fields
  *       500:
@@ -447,17 +480,50 @@ export async function handleFetchScanner(
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
  *                 items:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
- *                       id:
+ *                       mint:
  *                         type: string
- *                       name:
+ *                         description: Mint address of the item.
+ *                       owner:
  *                         type: string
- *                       type:
+ *                         description: Owner's wallet address.
+ *                       tokenAccount:
  *                         type: string
+ *                         description: Token account address for the item.
+ *                       tokenAmount:
+ *                         type: integer
+ *                         description: Amount of tokens.
+ *                       metadata:
+ *                         type: object
+ *                         properties:
+ *                           updateAuthority:
+ *                             type: string
+ *                             description: Authority allowed to update the metadata.
+ *                           mint:
+ *                             type: string
+ *                             description: Mint address of the item.
+ *                           name:
+ *                             type: string
+ *                             description: Name of the item.
+ *                           symbol:
+ *                             type: string
+ *                             description: Symbol of the item.
+ *                           uri:
+ *                             type: string
+ *                             description: URI pointing to the metadata of the item.
+ *                           additionalMetadata:
+ *                             type: array
+ *                             items:
+ *                               type: array
+ *                               items:
+ *                                 type: string
+ *                             description: Additional metadata associated with the scanner. Each entry is an array of two strings, the first being a key and the second its value.
+ *                             example: [["item", "potatoes"]]
  *       400:
  *         description: Missing required fields
  *       500:
@@ -477,9 +543,9 @@ export async function handleFetchItems(
 
     const owner = await getSolanaKeypairForUser(req.user.uid);
 
-    const scanners = await fetchItem(owner); // Using publicKey from the user object
+    const items = await fetchItem(owner); // Using publicKey from the user object
 
-    res.status(200).json({ success: true, scanners });
+    res.status(200).json({ success: true, items });
   } catch (error: any) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });
