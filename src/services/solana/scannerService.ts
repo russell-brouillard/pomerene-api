@@ -26,7 +26,7 @@ import {
 } from "./solanaService";
 import { TokenMetadata } from "@solana/spl-token-metadata";
 
-export async function createScanner(payer: Keypair) {
+export async function createScanner(payer: Keypair, description: string) {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
   const scannerKeypair = Keypair.generate();
@@ -35,11 +35,14 @@ export async function createScanner(payer: Keypair) {
 
   const scanner = encode(scannerKeypair.secretKey);
 
-  const name = "scanner";
-  const symbol = "SCNR";
+  const name = "SCANNER";
+  const symbol = "POM";
   const uri =
     "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json";
-  const additionalMetadata: [string, string][] = [["scanner", scanner]];
+  const additionalMetadata: [string, string][] = [
+    ["scanner", scanner],
+    ["description", description],
+  ];
 
   const updateAuthority = payer.publicKey;
 
@@ -57,7 +60,7 @@ export async function createScanner(payer: Keypair) {
     additionalMetadata,
   };
 
-  await createMetadataMint(
+  const mintData = await createMetadataMint(
     metaData,
     payer,
     mint,
@@ -65,10 +68,10 @@ export async function createScanner(payer: Keypair) {
     decimals,
     connection,
     mintKeypair,
-    updateAuthority,
+    updateAuthority
   );
 
-  return await mintToAccount(
+  const tokenAccount = await mintToAccount(
     payer,
     mint,
     mintAuthority,
@@ -77,6 +80,14 @@ export async function createScanner(payer: Keypair) {
     payer.publicKey,
     1
   );
+
+  return {
+    owner: payer.publicKey,
+    mint: mint,
+    scannerAccount: tokenAccount.toString(),
+    itemSecret: encode(itemKeyPair.secretKey),
+    description,
+  };
 }
 
 /**

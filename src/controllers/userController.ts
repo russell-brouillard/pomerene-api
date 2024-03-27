@@ -1,6 +1,5 @@
 // src/controllers/userController.ts
 import { Request, Response } from "express";
-import { secretManagerServiceClient } from "../services/google/secretManager";
 import { AuthRequest } from "../middleware/authMiddleware";
 import {
   createUserAndStoreSolanaKeypair,
@@ -93,24 +92,6 @@ export const getSolanaKeypair = async (req: AuthRequest, res: Response) => {
  *         description: Email and password are required.
  *       500:
  *         description: Failed to create user and Solana keypair.
- *
- * components:
- *   schemas:
- *     CreateUserAndStoreSolanaKeypairResult:
- *       type: object
- *       properties:
- *         message:
- *           type: string
- *           description: Success message.
- *         data:
- *           type: object
- *           properties:
- *             firebaseUserId:
- *               type: string
- *               description: The Firebase user ID of the created user.
- *             solanaPublic:
- *               type: string
- *               description: The public part of the Solana keypair.
  */
 export const createUserWithSolanaKeypair = async (
   req: Request,
@@ -282,7 +263,7 @@ export async function getUserJWTController(
       return;
     }
 
-    // Authenticate user and get google auth user
+    // Authenticate user and get google firebase auth user
     const user = await getUser(email, password);
 
     // If authentication is successful, return the user

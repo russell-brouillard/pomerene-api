@@ -6,14 +6,13 @@ import { createMetadataMint, mintToAccount } from "./solanaService";
 
 export async function createItem(
   payer: Keypair,
-  name: string,
-  symbol: string,
-  additionalMetadata: [string, string][]
+  description: string,
 ): Promise<{
   owner: PublicKey;
   mint: PublicKey;
   tokenAccount: string;
   itemSecret: string;
+  description: string;
 }> {
   // Initialize connection to Solana cluster
 
@@ -34,10 +33,10 @@ export async function createItem(
   const metaData: TokenMetadata = {
     updateAuthority,
     mint: mintKeypair.publicKey,
-    name,
-    symbol,
+    name:"ITEM",
+    symbol: "POM",
     uri: "https://www.pomerene.net/api/v1/json/metadata.json",
-    additionalMetadata,
+    additionalMetadata:[["description", description]],
   };
 
   // CREATE MINTMETADATA
@@ -83,5 +82,6 @@ export async function createItem(
     mint: mint,
     tokenAccount: tokenAccount.toString(),
     itemSecret: encode(itemKeyPair.secretKey),
+    description,
   };
 }
