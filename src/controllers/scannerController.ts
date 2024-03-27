@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import {
   createScanner,
-  createScannerTransaction,
   fetchScanner,
 } from "../services/solana/scannerService";
 import { AuthRequest } from "../middleware/authMiddleware";

@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware";
-import { createScannerTransaction } from "../services/solana/scannerService";
+
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
+import { createScannerTransaction } from "../services/solana/eventService";
 
 /**
  * @swagger
