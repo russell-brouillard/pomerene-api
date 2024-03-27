@@ -86,7 +86,7 @@ export async function createScanner(payer: Keypair, description: string) {
     owner: payer.publicKey,
     mint: mint,
     scannerAccount: tokenAccount.toString(),
-    itemSecret: encode(itemKeyPair.secretKey),
+    scannerSecret: encode(itemKeyPair.secretKey),
     description,
   };
 }
