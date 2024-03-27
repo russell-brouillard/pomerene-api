@@ -25,6 +25,7 @@ import {
   mintToAccount,
 } from "./solanaService";
 import { TokenMetadata } from "@solana/spl-token-metadata";
+import { TokenObject } from "userTypes";
 
 export async function createScanner(payer: Keypair, description: string) {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
@@ -217,4 +218,12 @@ export async function createScannerTransaction(
   );
 
   return `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`;
+}
+
+export async function fetchScanner(owner: Keypair) {
+  const tokens = await getAccountsByOwner(owner);
+
+  return tokens.filter(
+    (token: TokenObject) => token.metadata.name.toLowerCase() === "scanner"
+  );
 }

@@ -164,20 +164,3 @@ export async function getAllUsers(): Promise<UserRecord[]> {
     throw error;
   }
 }
-
-export async function fetchScanner(owner: Keypair) {
-  const tokens = await getAccountsByOwner(owner);
-
-  return tokens.filter(
-    (token: TokenObject) => token.metadata.name.toLowerCase() === "scanner"
-  );
-}
-
-
-export async function fetchItem(owner: Keypair) {
-  const tokens = await getAccountsByOwner(owner);
-
-  return tokens.filter(
-    (token: TokenObject) => token.metadata.name.toLowerCase() === "item"
-  );
-}

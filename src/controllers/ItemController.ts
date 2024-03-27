@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createItem } from "../services/solana/itemService";
+import { createItem, fetchItem } from "../services/solana/itemService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 import { PublicKey } from "@solana/web3.js";
@@ -168,6 +168,96 @@ export async function deleteItemController(
       .json({ success: true, message: "Item deleted successfully." });
   } catch (error: any) {
     console.error("Error deleting item:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+/**
+ * @swagger
+ * /api/v1/item/user:
+ *   get:
+ *     summary: Fetch item information for a user
+ *     tags: [Item]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of items associated with the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       mint:
+ *                         type: string
+ *                         description: Mint address of the item.
+ *                       owner:
+ *                         type: string
+ *                         description: Owner's wallet address.
+ *                       tokenAccount:
+ *                         type: string
+ *                         description: Token account address for the item.
+ *                       tokenAmount:
+ *                         type: integer
+ *                         description: Amount of tokens.
+ *                       metadata:
+ *                         type: object
+ *                         properties:
+ *                           updateAuthority:
+ *                             type: string
+ *                             description: Authority allowed to update the metadata.
+ *                           mint:
+ *                             type: string
+ *                             description: Mint address of the item.
+ *                           name:
+ *                             type: string
+ *                             description: Name of the item.
+ *                           symbol:
+ *                             type: string
+ *                             description: Symbol of the item.
+ *                           uri:
+ *                             type: string
+ *                             description: URI pointing to the metadata of the item.
+ *                           additionalMetadata:
+ *                             type: array
+ *                             items:
+ *                               type: array
+ *                               items:
+ *                                 type: string
+ *                             description: Additional metadata associated with the scanner. Each entry is an array of two strings, the first being a key and the second its value.
+ *                             example: [["item", "potatoes"]]
+ *       400:
+ *         description: Missing required fields
+ *       500:
+ *         description: Server error
+ */
+export async function handleFetchItemsForUser(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    console.log(req.user);
+
+    if (!req.user) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    const owner = await getSolanaKeypairForUser(req.user.uid);
+
+    const items = await fetchItem(owner); // Using publicKey from the user object
+
+    res.status(200).json({ success: true, items });
+  } catch (error: any) {
+    console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 }

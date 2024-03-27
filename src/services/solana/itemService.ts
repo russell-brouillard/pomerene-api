@@ -2,7 +2,8 @@ import { Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
 
 import { TokenMetadata } from "@solana/spl-token-metadata";
 import { encode } from "bs58";
-import { createMetadataMint, mintToAccount } from "./solanaService";
+import { createMetadataMint, getAccountsByOwner, mintToAccount } from "./solanaService";
+import { TokenObject } from "userTypes";
 
 export async function createItem(
   payer: Keypair,
@@ -84,4 +85,12 @@ export async function createItem(
     itemSecret: encode(itemKeyPair.secretKey),
     description,
   };
+}
+
+export async function fetchItem(owner: Keypair) {
+  const tokens = await getAccountsByOwner(owner);
+
+  return tokens.filter(
+    (token: TokenObject) => token.metadata.name.toLowerCase() === "item"
+  );
 }
