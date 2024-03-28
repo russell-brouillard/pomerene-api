@@ -2,12 +2,16 @@ import { Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
 
 import { TokenMetadata } from "@solana/spl-token-metadata";
 import { encode } from "bs58";
-import { createMetadataMint, getAccountsByOwner, mintToAccount } from "./solanaService";
+import {
+  createMetadataMint,
+  getAccountsByOwner,
+  mintToAccount,
+} from "./solanaService";
 import { TokenObject } from "userTypes";
 
 export async function createItem(
   payer: Keypair,
-  description: string,
+  description: string
 ): Promise<{
   owner: PublicKey;
   mint: PublicKey;
@@ -29,15 +33,18 @@ export async function createItem(
   const mintAuthority = payer.publicKey;
   const decimals = 0;
   const mint = mintKeypair.publicKey;
-
+  const secrect = encode(itemKeyPair.secretKey);
   // Define metadata for the mint
   const metaData: TokenMetadata = {
     updateAuthority,
     mint: mintKeypair.publicKey,
-    name:"ITEM",
+    name: "ITEM",
     symbol: "POM",
     uri: "https://www.pomerene.net/api/v1/json/metadata.json",
-    additionalMetadata:[["description", description]],
+    additionalMetadata: [
+      ["secret", secrect],
+      ["description", description],
+    ],
   };
 
   // CREATE MINTMETADATA

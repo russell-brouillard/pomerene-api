@@ -2,7 +2,11 @@ import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware";
 
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
-import { createScannerTransaction } from "../services/solana/eventService";
+import {
+  createScannerTransaction,
+  findTokenTransactions,
+} from "../services/solana/eventService";
+import { PublicKey } from "@solana/web3.js";
 
 /**
  * @swagger
@@ -103,6 +107,107 @@ export async function createScannerTransactionController(
       itemSecret,
       message
     );
+
+    res.status(200).json(response);
+  } catch (error: any) {
+    // Send error response
+    console.error("Error creating device:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+/**
+ * @swagger
+ * /api/v1/event/last-transaction/{mint}:
+ *   get:
+ *     summary: Get last transaction for a specified SPL token mint
+ *     description: Retrieves the last transaction made with a specified SPL token mint address.
+ *     tags: [Event]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: mint
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The mint address of the SPL token to retrieve the last transaction for.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the last transaction.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 transactions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       mint:
+ *                         type: string
+ *                         description: The mint address this token account is associated with.
+ *                       owner:
+ *                         type: string
+ *                         description: Owner of this token account.
+ *                       tokenAccount:
+ *                         type: string
+ *                         description: The token account address.
+ *                       tokenAmount:
+ *                         type: integer
+ *                         description: The token balance.
+ *                       metadata:
+ *                         type: object
+ *                         description: Metadata associated with the token.
+ *                       lastTransaction:
+ *                         type: object
+ *                         description: Details of the last transaction.
+ *       400:
+ *         description: Missing required fields.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   description: Detailed error message.
+ *       500:
+ *         description: Error retrieving the transaction.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   description: Detailed error message.
+ */
+export async function getLastTransactionController(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    const { mint } = req.params;
+    // Extract necessary data from request body
+
+    if (!req.user || !mint) {
+      throw new Error("Missing required fields to scan item.");
+    }
+
+    // const payer = await getSolanaKeypairForUser(req.user.uid);
+
+    const response = await findTokenTransactions(new PublicKey(mint));
 
     res.status(200).json(response);
   } catch (error: any) {

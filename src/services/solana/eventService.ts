@@ -18,7 +18,9 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { decode } from "bs58";
-import { getAccountsByOwner } from "./solanaService";
+import {
+  getAccountsByOwner,
+} from "./solanaService";
 
 /**
  * Creates a transaction for a scanner to interact with an item, transferring tokens.
@@ -147,4 +149,19 @@ export async function createScannerTransaction(
   );
 
   return `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`;
+}
+
+export async function findTokenTransactions(mintPublicKey: PublicKey) {
+  // Find all transactions involving the Token Program
+  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+  const lastTransactionPromise = connection
+    .getSignaturesForAddress(mintPublicKey, { limit: 1 })
+    .then((signatures) =>
+      signatures.length > 0
+        ? connection.getTransaction(signatures[0].signature)
+        : null
+    );
+
+  return lastTransactionPromise;
 }

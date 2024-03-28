@@ -34,14 +34,14 @@ export async function createScanner(payer: Keypair, description: string) {
 
   const itemKeyPair = Keypair.generate();
 
-  const scanner = encode(scannerKeypair.secretKey);
+  const secrect = encode(scannerKeypair.secretKey);
 
   const name = "SCANNER";
   const symbol = "POM";
   const uri =
     "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json";
   const additionalMetadata: [string, string][] = [
-    ["scanner", scanner],
+    ["secret", secrect],
     ["description", description],
   ];
 

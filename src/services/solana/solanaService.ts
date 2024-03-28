@@ -12,16 +12,13 @@ import {
   ExtensionType,
   LENGTH_SIZE,
   TOKEN_2022_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
   TYPE_SIZE,
   closeAccount,
-  createAccount,
   createInitializeInstruction,
   createInitializeMetadataPointerInstruction,
   createInitializeMintCloseAuthorityInstruction,
   createInitializeMintInstruction,
   createUpdateFieldInstruction,
-  getAccount,
   getAssociatedTokenAddress,
   getMetadataPointerState,
   getMint,
@@ -33,7 +30,6 @@ import {
 import { SplTokenAccount } from "solanaTypes";
 import { encode } from "bs58";
 import { TokenMetadata, pack } from "@solana/spl-token-metadata";
-import { TokenObject } from "userTypes";
 
 // Function to get balance
 export async function getBalance(publicKey: string): Promise<number> {
@@ -78,7 +74,7 @@ export function generateSolanaKeypair(): {
   };
 }
 
-export async function getAccountsByOwner(owner: Keypair): Promise<any[]>{
+export async function getAccountsByOwner(owner: Keypair): Promise<any[]> {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
   // Fetch all token accounts for the owner
@@ -199,6 +195,14 @@ export async function createMetadataMint(
     value: metaData.additionalMetadata[0][1],
   });
 
+  const updateFieldInstruction2 = createUpdateFieldInstruction({
+    programId: TOKEN_2022_PROGRAM_ID,
+    metadata: mint,
+    updateAuthority,
+    field: metaData.additionalMetadata[1][0],
+    value: metaData.additionalMetadata[1][1],
+  });
+
   // Instruction to initialize the MintCloseAuthority Extension
   const initializeMintCloseAuthorityInstruction =
     createInitializeMintCloseAuthorityInstruction(
@@ -207,7 +211,6 @@ export async function createMetadataMint(
       TOKEN_2022_PROGRAM_ID // Token Extension Program ID
     );
 
-  console.log("TEST");
   // Create transaction
   let transaction = new Transaction().add(
     createAccountInstruction,
@@ -216,10 +219,9 @@ export async function createMetadataMint(
 
     initializeMintInstruction,
     initializeMetadataInstruction,
-    updateFieldInstruction
+    updateFieldInstruction,
+    updateFieldInstruction2
   );
-
-  console.log("TEST 2");
 
   // Send transaction
   let transactionSignature = await sendAndConfirmTransaction(
@@ -325,4 +327,42 @@ export async function deleteItem(payer: Keypair, mint: PublicKey) {
   );
 
   return transactionSignature;
+}
+
+export async function getAccountsByOwnerWithLastTransaction(
+  owner: Keypair
+): Promise<any[]> {
+  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+  // Fetch all token accounts for the owner
+  const accounts = await connection.getParsedTokenAccountsByOwner(
+    owner.publicKey,
+    { programId: TOKEN_2022_PROGRAM_ID }
+  );
+
+  console.log("accounts = ", accounts);
+
+  // Prepare promises for all metadata and last transaction fetch operations
+  const operations = accounts.value.map((accountInfo) => {
+    const accountData = accountInfo.account.data.parsed.info;
+    const mintPublicKey = new PublicKey(accountData.mint);
+
+    // Prepare to fetch metadata and the last transaction in parallel
+    const metadataPromise = getTokenMetadata(connection, mintPublicKey);
+    // const lastTransactionPromise = connection
+    //   .getSignaturesForAddress(mintPublicKey, { limit: 1 })
+    //   .then((signatures) =>
+    //     signatures.length > 0
+    //       ? connection.getTransaction(signatures[0].signature)
+    //       : null
+    //   );
+
+    return Promise.all([metadataPromise]).then(([metadata]) => ({
+      metadata,
+    }));
+  });
+
+  // Wait for all operations to complete
+  const results = await Promise.all(operations);
+  return results;
 }
