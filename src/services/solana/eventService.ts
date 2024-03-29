@@ -18,9 +18,7 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { decode } from "bs58";
-import {
-  getAccountsByOwner,
-} from "./solanaService";
+import { getAccountsByOwner } from "./solanaService";
 
 /**
  * Creates a transaction for a scanner to interact with an item, transferring tokens.
@@ -41,13 +39,9 @@ export async function createScannerTransaction(
 
   const itemAccount = Keypair.fromSecretKey(decode(itemSecret));
 
-  console.log("ITEM = ", itemAccount.publicKey);
-
   const itemMint = await getAccountsByOwner(itemAccount).then(
     (parsedAccounts: any) => new PublicKey(decode(parsedAccounts[0].mint))
   );
-
-  console.log("MINT = ", itemMint);
 
   const scannerAccountKeypair = Keypair.fromSecretKey(decode(scannerSecret));
   const scannerAccount = scannerAccountKeypair.publicKey;
@@ -61,8 +55,6 @@ export async function createScannerTransaction(
 
   const scannerTokenAccountKeypair = Keypair.generate();
 
-  console.log("SCANNER = ", scannerTokenAccountKeypair.publicKey);
-
   // Instruction to invoke System Program to create new account
   const createAccountInstructionMemo = SystemProgram.createAccount({
     fromPubkey: payer.publicKey, // Account that will transfer lamports to created account
@@ -71,8 +63,6 @@ export async function createScannerTransaction(
     lamports, // Amount of lamports transferred to created account
     programId: TOKEN_2022_PROGRAM_ID, // Program assigned as owner of created account
   });
-
-  console.log("Test 0");
 
   // Instruction to initialize Token Account data
   const initializeAccountInstructionMemo = createInitializeAccountInstruction(
