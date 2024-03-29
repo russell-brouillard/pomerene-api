@@ -31,10 +31,13 @@ export async function createScanner(payer: Keypair, description: string) {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
   const scannerKeypair = Keypair.generate();
-
-  const itemKeyPair = Keypair.generate();
-
+  const scannerPublic = scannerKeypair.publicKey.toString();
   const secrect = encode(scannerKeypair.secretKey);
+  const updateAuthority = payer.publicKey;
+  const mintKeypair = Keypair.generate();
+  const mint = mintKeypair.publicKey;
+  const mintAuthority = payer.publicKey;
+  const decimals = 0;
 
   const name = "SCANNER";
   const symbol = "POM";
@@ -43,14 +46,8 @@ export async function createScanner(payer: Keypair, description: string) {
   const additionalMetadata: [string, string][] = [
     ["secret", secrect],
     ["description", description],
+    ["public", scannerPublic],
   ];
-
-  const updateAuthority = payer.publicKey;
-
-  const mintKeypair = Keypair.generate();
-  const mint = mintKeypair.publicKey;
-  const mintAuthority = payer.publicKey;
-  const decimals = 0;
 
   const metaData: TokenMetadata = {
     updateAuthority,
@@ -77,7 +74,7 @@ export async function createScanner(payer: Keypair, description: string) {
     mint,
     mintAuthority,
     connection,
-    itemKeyPair,
+    scannerKeypair,
     payer.publicKey,
     1
   );
@@ -86,7 +83,8 @@ export async function createScanner(payer: Keypair, description: string) {
     owner: payer.publicKey,
     mint: mint,
     scannerAccount: tokenAccount.toString(),
-    scannerSecret: encode(itemKeyPair.secretKey),
+    scannerSecret: encode(scannerKeypair.secretKey),
+    scannerPublic: scannerPublic,
     description,
   };
 }

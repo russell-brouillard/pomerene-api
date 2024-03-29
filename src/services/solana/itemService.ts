@@ -18,12 +18,14 @@ export async function createItem(
   tokenAccount: string;
   itemSecret: string;
   description: string;
+  itemPublic: string;
 }> {
   // Initialize connection to Solana cluster
 
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
   const itemKeyPair = Keypair.generate();
+  const itemPublic = itemKeyPair.publicKey.toString();
   const mintKeypair = Keypair.generate();
 
   console.log("PUBLIC KEY", payer.publicKey.toString());
@@ -44,6 +46,7 @@ export async function createItem(
     additionalMetadata: [
       ["secret", secrect],
       ["description", description],
+      ["public", itemPublic],
     ],
   };
 
@@ -90,6 +93,7 @@ export async function createItem(
     mint: mint,
     tokenAccount: tokenAccount.toString(),
     itemSecret: encode(itemKeyPair.secretKey),
+    itemPublic: itemPublic,
     description,
   };
 }
