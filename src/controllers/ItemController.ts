@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createItem } from "../services/solana/itemService";
+import { createItem, fetchItem } from "../services/solana/itemService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 import { PublicKey } from "@solana/web3.js";
@@ -7,35 +7,81 @@ import { deleteItem } from "../services/solana/solanaService";
 
 /**
  * @swagger
- * /item/create:
+ * /api/v1/item/create:
  *   post:
  *     summary: Creates a new item
- *     tags: [Item]
+ *     description: This endpoint allows the creation of a new item with a description. The user must be authenticated to perform this action.
+ *     tags:
+ *       - Item
+ *     security:
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - description
  *             properties:
- *               mintSecretKey:
+ *               description:
  *                 type: string
- *                 description: The base58 encoded secret key.
- *               name:
- *                 type: string
- *               symbol:
- *                 type: string
- *               additionalMetadata:
- *                 type: object
- *                 description: Additional metadata for the item.
- *               uri:
- *                 type: string
- *                 description: URI for the item's metadata.
+ *                 description: The description of the item to be created.
  *     responses:
  *       200:
- *         description: Item created successfully.
+ *         description: Item created successfully. Returns the item object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 item:
+ *                   type: object
+ *                   properties:
+ *                     owner:
+ *                       type: string
+ *                       description: Owner's wallet address.
+ *                     mint:
+ *                       type: string
+ *                       description: Mint address of the item.
+ *                     tokenAccount:
+ *                       type: string
+ *                       description: Token account address for the item.
+ *                     itemSecret:
+ *                       type: string
+ *                       description: Secret key for the item associated with the item.
+ *                     description:
+ *                       type: string
+ *                       description: Description of the item.
+ *       400:
+ *         description: Missing required fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   description: A descriptive error message about what is missing.
  *       500:
- *         description: Error creating the item.
+ *         description: Internal server error due to a failure in creating the item
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   description: Detailed error message explaining the server error.
  */
 export async function createItemController(
   req: AuthRequest,
@@ -43,35 +89,19 @@ export async function createItemController(
 ): Promise<void> {
   try {
     // Extract necessary data from request body
-    const { name, symbol, additionalMetadata, uri } = req.body;
+    const { description } = req.body;
 
-    console.log(
-      "createScannerController",
-      name,
-      symbol,
-      additionalMetadata,
-      uri,
-      req.user
-    );
-
-    if (!name || !symbol || !req.user) {
+    if (!req.user || !description) {
       throw new Error("Missing required fields");
     }
 
     const payer = await getSolanaKeypairForUser(req.user.uid);
 
     // Call createScanner function
-    const tokenMetadata = await createItem(
-      payer,
-      name,
-      symbol,
-      additionalMetadata
-    );
-
-    console.log("test", tokenMetadata);
+    const item = await createItem(payer, description);
 
     // Send success response with token metadata
-    res.status(200).json({ success: true, tokenMetadata });
+    res.status(200).json({ success: true, item });
   } catch (error: any) {
     // Send error response
     console.error("Error creating device:", error);
@@ -81,7 +111,7 @@ export async function createItemController(
 
 /**
  * @swagger
- * /item/delete/{mint}:
+ * /api/v1/item/delete/{mint}:
  *   delete:
  *     summary: Deletes an item by closing its mint account.
  *     tags: [Item]
@@ -138,6 +168,96 @@ export async function deleteItemController(
       .json({ success: true, message: "Item deleted successfully." });
   } catch (error: any) {
     console.error("Error deleting item:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+/**
+ * @swagger
+ * /api/v1/item/user:
+ *   get:
+ *     summary: Fetch item information for a user
+ *     tags: [Item]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of items associated with the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       mint:
+ *                         type: string
+ *                         description: Mint address of the item.
+ *                       owner:
+ *                         type: string
+ *                         description: Owner's wallet address.
+ *                       tokenAccount:
+ *                         type: string
+ *                         description: Token account address for the item.
+ *                       tokenAmount:
+ *                         type: integer
+ *                         description: Amount of tokens.
+ *                       metadata:
+ *                         type: object
+ *                         properties:
+ *                           updateAuthority:
+ *                             type: string
+ *                             description: Authority allowed to update the metadata.
+ *                           mint:
+ *                             type: string
+ *                             description: Mint address of the item.
+ *                           name:
+ *                             type: string
+ *                             description: Name of the item.
+ *                           symbol:
+ *                             type: string
+ *                             description: Symbol of the item.
+ *                           uri:
+ *                             type: string
+ *                             description: URI pointing to the metadata of the item.
+ *                           additionalMetadata:
+ *                             type: array
+ *                             items:
+ *                               type: array
+ *                               items:
+ *                                 type: string
+ *                             description: Additional metadata associated with the scanner. Each entry is an array of two strings, the first being a key and the second its value.
+ *                             example: [["item", "potatoes"]]
+ *       400:
+ *         description: Missing required fields
+ *       500:
+ *         description: Server error
+ */
+export async function handleFetchItemsForUser(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    console.log(req.user);
+
+    if (!req.user) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    const owner = await getSolanaKeypairForUser(req.user.uid);
+
+    const items = await fetchItem(owner); // Using publicKey from the user object
+
+    res.status(200).json({ success: true, items });
+  } catch (error: any) {
+    console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 }

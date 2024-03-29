@@ -13,6 +13,8 @@ import { auth } from "../google/firebase";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { ListUsersResult } from "firebase-admin/lib/auth/base-auth";
 import { decode, encode } from "bs58";
+import { getAccountsByOwner } from "../solana/solanaService";
+import { TokenObject } from "userTypes";
 
 export async function createUserAndStoreSolanaKeypair(
   email: string,
@@ -92,7 +94,6 @@ export async function getSolanaKeypairForUser(
     if (!secretKeyString) {
       throw new Error("Solana keypair not found for user");
     }
-
 
     console.log("Secret Key String = ", secretKeyString);
     // Create a Keypair instance from the Uint8Array secret key

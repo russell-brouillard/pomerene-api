@@ -2,18 +2,22 @@ import { Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
 
 import { TokenMetadata } from "@solana/spl-token-metadata";
 import { encode } from "bs58";
-import { createMetadataMint, mintToAccount } from "./solanaService";
+import {
+  createMetadataMint,
+  getAccountsByOwner,
+  mintToAccount,
+} from "./solanaService";
+import { TokenObject } from "userTypes";
 
 export async function createItem(
   payer: Keypair,
-  name: string,
-  symbol: string,
-  additionalMetadata: [string, string][]
+  description: string
 ): Promise<{
   owner: PublicKey;
   mint: PublicKey;
   tokenAccount: string;
   itemSecret: string;
+  description: string;
 }> {
   // Initialize connection to Solana cluster
 
@@ -29,15 +33,18 @@ export async function createItem(
   const mintAuthority = payer.publicKey;
   const decimals = 0;
   const mint = mintKeypair.publicKey;
-
+  const secrect = encode(itemKeyPair.secretKey);
   // Define metadata for the mint
   const metaData: TokenMetadata = {
     updateAuthority,
     mint: mintKeypair.publicKey,
-    name,
-    symbol,
-    uri: "https://storage.cloud.google.com/pomerene-bucket/public/json/cargo.json",
-    additionalMetadata,
+    name: "ITEM",
+    symbol: "POM",
+    uri: "https://www.pomerene.net/api/v1/json/metadata.json",
+    additionalMetadata: [
+      ["secret", secrect],
+      ["description", description],
+    ],
   };
 
   // CREATE MINTMETADATA
@@ -83,5 +90,14 @@ export async function createItem(
     mint: mint,
     tokenAccount: tokenAccount.toString(),
     itemSecret: encode(itemKeyPair.secretKey),
+    description,
   };
+}
+
+export async function fetchItem(owner: Keypair) {
+  const tokens = await getAccountsByOwner(owner);
+
+  return tokens.filter(
+    (token: TokenObject) => token.metadata.name.toLowerCase() === "item"
+  );
 }

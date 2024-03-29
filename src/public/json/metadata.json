@@ -1,8 +1,8 @@
 {
-    "name": "OPOS",
-    "symbol": "OPOS",
+    "name": "OPOS6",
+    "symbol": "OPOS6",
     "description": "Only Possible On Solana",
-    "image": "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/image.png",
+    "image": "https://www.pomerene.net/api/v1/images/image.png",
     "attributes": [
       {
         "trait_type": "Item",

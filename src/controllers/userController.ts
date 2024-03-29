@@ -1,6 +1,5 @@
 // src/controllers/userController.ts
 import { Request, Response } from "express";
-import { secretManagerServiceClient } from "../services/google/secretManager";
 import { AuthRequest } from "../middleware/authMiddleware";
 import {
   createUserAndStoreSolanaKeypair,
@@ -9,10 +8,7 @@ import {
   getUser,
   getUserByEmail,
   getUserByUID,
-
 } from "../services/users/usersServices";
-import { fetchOwnedMintAddresses } from "../services/solana/solanaService";
-
 
 /**
  * @swagger
@@ -94,24 +90,6 @@ export const getSolanaKeypair = async (req: AuthRequest, res: Response) => {
  *         description: Email and password are required.
  *       500:
  *         description: Failed to create user and Solana keypair.
- *
- * components:
- *   schemas:
- *     CreateUserAndStoreSolanaKeypairResult:
- *       type: object
- *       properties:
- *         message:
- *           type: string
- *           description: Success message.
- *         data:
- *           type: object
- *           properties:
- *             firebaseUserId:
- *               type: string
- *               description: The Firebase user ID of the created user.
- *             solanaPublic:
- *               type: string
- *               description: The public part of the Solana keypair.
  */
 export const createUserWithSolanaKeypair = async (
   req: Request,
@@ -283,7 +261,7 @@ export async function getUserJWTController(
       return;
     }
 
-    // Authenticate user and get google auth user
+    // Authenticate user and get google firebase auth user
     const user = await getUser(email, password);
 
     // If authentication is successful, return the user
@@ -300,7 +278,7 @@ export async function getUserJWTController(
 
 /**
  * @swagger
- * /user/{uid}:
+ * /api/v1/user/{uid}:
  *   get:
  *     summary: Get user by UID
  *     tags: [User]
@@ -335,7 +313,7 @@ export async function getUserByUIDController(req: Request, res: Response) {
 
 /**
  * @swagger
- * /user/email/{email}:
+ * /api/v1/user/email/{email}:
  *   get:
  *     summary: Get user by email
  *     tags: [User]
@@ -372,7 +350,7 @@ export async function getUserByEmailController(req: Request, res: Response) {
 
 /**
  * @swagger
- * /users:
+ * /api/v1/user:
  *   get:
  *     summary: Get all users
  *     tags: [User]
@@ -393,25 +371,5 @@ export async function getAllUsersController(req: Request, res: Response) {
 }
 
 
-export async function handleFetchMintAddresses(
-  req: AuthRequest,
-  res: Response
-): Promise<void> {
-  try {
-    console.log(req.user);
 
-    if (!req.user || !req.user.name) {
-      // Assuming publicKey is the correct property for the wallet address
-      throw new Error("Missing required fields");
-    }
 
-    console.log("Fetching mint addresses for user:", req.user.name);
-
-    const mintAddresses = await fetchOwnedMintAddresses(req.user.name); // Using publicKey from the user object
-
-    res.status(200).json({ success: true, mintAddresses });
-  } catch (error: any) {
-    console.error("Error:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-}
