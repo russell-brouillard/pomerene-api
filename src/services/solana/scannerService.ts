@@ -40,9 +40,9 @@ export async function createScanner(payer: Keypair, description: string) {
   const decimals = 0;
 
   const name = "SCANNER";
-  const symbol = "POM";
+  const symbol = "POME";
   const uri =
-    "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json";
+    "https://www.pomerene.net/api/v1/json/metadata.json";
   const additionalMetadata: [string, string][] = [
     ["secret", secrect],
     ["description", description],

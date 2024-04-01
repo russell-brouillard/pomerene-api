@@ -206,8 +206,9 @@ export async function getLastTransactionController(
     }
 
     // const payer = await getSolanaKeypairForUser(req.user.uid);
+   
 
-    const response = await findTokenTransactions(new PublicKey(mint));
+    const response = await findTokenTransactions(mint);
 
     res.status(200).json(response);
   } catch (error: any) {

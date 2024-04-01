@@ -10,6 +10,7 @@ import {
 import {
   Connection,
   Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction,
@@ -18,7 +19,7 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { decode } from "bs58";
-import { getAccountsByOwner } from "./solanaService";
+import { getAccountsByOwner, getBalance } from "./solanaService";
 
 /**
  * Creates a transaction for a scanner to interact with an item, transferring tokens.
@@ -34,7 +35,6 @@ export async function createScannerTransaction(
   itemSecret: string,
   message: string
 ): Promise<string> {
-  console.log("createScannerTransaction", payer.publicKey.toString());
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
   const itemAccount = Keypair.fromSecretKey(decode(itemSecret));
@@ -53,11 +53,35 @@ export async function createScannerTransaction(
     accountLen
   );
 
+  const amountLamports = 0.00001 * LAMPORTS_PER_SOL;
+
+  console.log("LAMPORTS", amountLamports + lamports)
+
+  const transferInstructionSOL = SystemProgram.transfer({
+    fromPubkey: payer.publicKey,
+    toPubkey: scannerAccount,
+    lamports: amountLamports + lamports,
+  });
+
+  // Create a transaction
+  const transactionSOL = new Transaction().add(transferInstructionSOL);
+
+  // Sign and send the transaction
+  const signature = await sendAndConfirmTransaction(
+    connection,
+    transactionSOL,
+    [payer]
+  );
+
+
+  console.log(scannerAccount);
+  console.log("SOL TRANSER", signature);
+
   const scannerTokenAccountKeypair = Keypair.generate();
 
   // Instruction to invoke System Program to create new account
   const createAccountInstructionMemo = SystemProgram.createAccount({
-    fromPubkey: payer.publicKey, // Account that will transfer lamports to created account
+    fromPubkey: scannerAccount, // Account that will transfer lamports to created account
     newAccountPubkey: scannerTokenAccountKeypair.publicKey, // Address of the account to create
     space: accountLen, // Amount of bytes to allocate to the created account
     lamports, // Amount of lamports transferred to created account
@@ -93,14 +117,14 @@ export async function createScannerTransaction(
   const transactionSignaturememo = await sendAndConfirmTransaction(
     connection,
     transactionMemo,
-    [payer, scannerAccountKeypair, scannerTokenAccountKeypair] // Signers
+    [scannerAccountKeypair, scannerTokenAccountKeypair] // Signers
   );
 
   console.log("Test 2");
 
   const associatedTokenAccountItem = await getOrCreateAssociatedTokenAccount(
     connection,
-    payer, // Payer to create Token Account
+    scannerAccountKeypair, // Payer to create Token Account
     itemMint, // Mint Account address
     itemAccount.publicKey, // Token Account owner
     false, // Skip owner check
@@ -121,7 +145,13 @@ export async function createScannerTransaction(
 
   // Instruction to add memo
   const memoInstruction = new TransactionInstruction({
-    keys: [{ pubkey: payer.publicKey, isSigner: true, isWritable: true }],
+    keys: [
+      {
+        pubkey: scannerAccountKeypair.publicKey,
+        isSigner: true,
+        isWritable: true,
+      },
+    ],
     data: Buffer.from(JSON.stringify(message), "utf-8"),
     programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
   });
@@ -132,26 +162,34 @@ export async function createScannerTransaction(
     transferInstruction
   );
 
+  console.log("SCANNER", await getBalance(scannerAccount.toString()));
+  console.log("PAYER", await getBalance(payer.publicKey.toString()));
   const transactionSignature = await sendAndConfirmTransaction(
     connection,
     transaction,
-    [payer, itemAccount] // Signers
+    [scannerAccountKeypair, itemAccount] // Signers
   );
 
   return `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`;
 }
 
-export async function findTokenTransactions(mintPublicKey: PublicKey) {
-  // Find all transactions involving the Token Program
+/////////////////////////////////////
+
+export async function findTokenTransactions(publicKeyString: string) {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+  const publicKey = new PublicKey(publicKeyString);
 
-  const lastTransactionPromise = connection
-    .getSignaturesForAddress(mintPublicKey, { limit: 1 })
-    .then((signatures) =>
-      signatures.length > 0
-        ? connection.getTransaction(signatures[0].signature)
-        : null
-    );
+  // Fetch the signatures of the last N transactions. Adjust 'limit' as needed.
+  const signatures = await connection.getSignaturesForAddress(publicKey, {
+    limit: 10,
+  });
 
-  return lastTransactionPromise;
+  // Fetch the actual transactions using the signatures
+  const transactions = await Promise.all(
+    signatures.map((signatureInfo) =>
+      connection.getTransaction(signatureInfo.signature)
+    )
+  );
+
+  return transactions.filter((tx) => tx !== null); // Filter out any null transactions
 }

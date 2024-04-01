@@ -41,7 +41,7 @@ export async function createItem(
     updateAuthority,
     mint: mintKeypair.publicKey,
     name: "ITEM",
-    symbol: "POM",
+    symbol: "POME",
     uri: "https://www.pomerene.net/api/v1/json/metadata.json",
     additionalMetadata: [
       ["secret", secrect],
