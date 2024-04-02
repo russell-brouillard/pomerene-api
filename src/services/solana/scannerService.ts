@@ -1,6 +1,7 @@
 import {
   Connection,
   Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction,
@@ -40,9 +41,8 @@ export async function createScanner(payer: Keypair, description: string) {
   const decimals = 0;
 
   const name = "SCANNER";
-  const symbol = "POM";
-  const uri =
-    "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json";
+  const symbol = "POME";
+  const uri = "https://www.pomerene.net/api/v1/json/metadata.json";
   const additionalMetadata: [string, string][] = [
     ["secret", secrect],
     ["description", description],
@@ -77,6 +77,24 @@ export async function createScanner(payer: Keypair, description: string) {
     scannerKeypair,
     payer.publicKey,
     1
+  );
+
+  const amountLamports = 0.1 * LAMPORTS_PER_SOL;
+
+  const transferInstructionSOL = SystemProgram.transfer({
+    fromPubkey: payer.publicKey,
+    toPubkey: scannerKeypair.publicKey,
+    lamports: amountLamports,
+  });
+
+  // Create a transaction
+  const transactionSOL = new Transaction().add(transferInstructionSOL);
+
+  // Sign and send the transaction
+  const signature = await sendAndConfirmTransaction(
+    connection,
+    transactionSOL,
+    [payer]
   );
 
   return {

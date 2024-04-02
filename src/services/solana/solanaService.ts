@@ -19,7 +19,6 @@ import {
   createInitializeMintCloseAuthorityInstruction,
   createInitializeMintInstruction,
   createUpdateFieldInstruction,
-  getAssociatedTokenAddress,
   getMetadataPointerState,
   getMint,
   getMintLen,
@@ -85,38 +84,37 @@ export async function getAccountsByOwner(owner: Keypair): Promise<any[]> {
     }
   );
 
-  console.log("accounts = ", accounts);
+  // Cache for metadata to avoid fetching the same data multiple times
+  const metadataCache = new Map<string, any>();
 
-  // Parse the accounts to differentiate between mints and token balances (if necessary)
+  // Process each account in parallel, leveraging the cache for metadata
   const parsedAccounts = await Promise.all(
     accounts.value.map(async (accountInfo) => {
       const accountData = accountInfo.account.data.parsed.info;
+      let metadata = metadataCache.get(accountData.mint);
 
-      console.log("MINT!!! = ", accountData.mint);
+      if (!metadata) {
+        // Fetch metadata if not already cached
+        metadata = await getTokenMetadata(
+          connection,
+          new PublicKey(accountData.mint)
+        );
+        metadataCache.set(accountData.mint, metadata);
+      }
 
-      const sourceTokenAccount = await getAssociatedTokenAddress(
-        new PublicKey(accountData.mint),
-        owner.publicKey, // Payer to create Token Account
-        // Mint Account address
-        true, // Token Account owner
-        TOKEN_2022_PROGRAM_ID,
-        TOKEN_2022_PROGRAM_ID
-      );
+      // const signatures = await connection.getSignaturesForAddress(
+      //   new PublicKey(accountInfo.pubkey),
+      //   { limit: 1 }
+      // );
 
-      // Retrieve and log the metadata state
-      const metadata = await getTokenMetadata(
-        connection,
-        new PublicKey(accountData.mint) // Mint Account address
-      );
-      console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
+      // console.log(signatures);
 
       return {
-        mint: accountData.mint, // The mint address this token account is associated with
-        owner: accountData.owner, // Owner of this token account
-        tokenAccount: sourceTokenAccount, // The token account address
-        tokenAmount: accountData.tokenAmount.uiAmount, // The token balance
-        metadata: metadata,
-        // You might include more details as necessary
+        mint: accountData.mint,
+        owner: accountData.owner,
+        tokenAmount: accountData.tokenAmount.uiAmount,
+        metadata,
+        //lastTokenTransaction
       };
     })
   );
@@ -229,7 +227,7 @@ export async function createMetadataMint(
     initializeMetadataInstruction,
     updateFieldInstruction,
     updateFieldInstruction2,
-    updateFieldInstruction3 
+    updateFieldInstruction3
   );
 
   // Send transaction
@@ -319,42 +317,4 @@ export async function deleteItem(payer: Keypair, mint: PublicKey) {
   );
 
   return transactionSignature;
-}
-
-export async function getAccountsByOwnerWithLastTransaction(
-  owner: Keypair
-): Promise<any[]> {
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-
-  // Fetch all token accounts for the owner
-  const accounts = await connection.getParsedTokenAccountsByOwner(
-    owner.publicKey,
-    { programId: TOKEN_2022_PROGRAM_ID }
-  );
-
-  console.log("accounts = ", accounts);
-
-  // Prepare promises for all metadata and last transaction fetch operations
-  const operations = accounts.value.map((accountInfo) => {
-    const accountData = accountInfo.account.data.parsed.info;
-    const mintPublicKey = new PublicKey(accountData.mint);
-
-    // Prepare to fetch metadata and the last transaction in parallel
-    const metadataPromise = getTokenMetadata(connection, mintPublicKey);
-    // const lastTransactionPromise = connection
-    //   .getSignaturesForAddress(mintPublicKey, { limit: 1 })
-    //   .then((signatures) =>
-    //     signatures.length > 0
-    //       ? connection.getTransaction(signatures[0].signature)
-    //       : null
-    //   );
-
-    return Promise.all([metadataPromise]).then(([metadata]) => ({
-      metadata,
-    }));
-  });
-
-  // Wait for all operations to complete
-  const results = await Promise.all(operations);
-  return results;
 }
