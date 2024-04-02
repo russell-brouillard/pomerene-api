@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/authMiddleware";
 import {
   createUserWithSolanaKeypair,
   getAllUsersController,
+  getSolanaBalance,
   getSolanaKeypair,
   getUserByEmailController,
   getUserByUIDController,
@@ -12,6 +13,7 @@ import {
 const router = express.Router();
 
 // User endpoints
+router.get("/balance", authMiddleware, getSolanaBalance);
 router.get("/solana-keypair", authMiddleware, getSolanaKeypair);
 router.post("/create", createUserWithSolanaKeypair);
 router.post("/signIn", getUserJWTController);

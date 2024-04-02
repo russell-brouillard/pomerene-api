@@ -20,9 +20,6 @@ export async function createUserAndStoreSolanaKeypair(
   email: string,
   password: string
 ): Promise<CreateUserAndStoreSolanaKeypairResult> {
-  console.log("Creating user and storing Solana keypair");
-
-  console.log("Russell");
   try {
     // Create user in Firebase Auth
     const userRecord = await auth.createUser({
@@ -65,10 +62,6 @@ export async function createUserAndStoreSolanaKeypair(
       },
     });
 
-    console.log(
-      `Saved Solana keypair to Secret Manager with version ${version.name}`
-    );
-
     return {
       firebaseUserId: userRecord.uid,
       solanaPublic: publicKey,
@@ -95,7 +88,6 @@ export async function getSolanaKeypairForUser(
       throw new Error("Solana keypair not found for user");
     }
 
-    console.log("Secret Key String = ", secretKeyString);
     // Create a Keypair instance from the Uint8Array secret key
     const keypair = Keypair.fromSecretKey(decode(secretKeyString));
 
