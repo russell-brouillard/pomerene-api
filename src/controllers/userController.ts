@@ -461,8 +461,8 @@ export const airdropSOLController = async (req: AuthRequest, res: Response) => {
   req.body;
 
   try {
-    await airdropSol(req.user.name);
-    return res.json({ success: true });
+    const sol = await airdropSol(req.user.name);
+    return res.json({ success: true , sol});
   } catch (error) {
     console.error("Error airdropping SOL:", error);
     return res.status(500).send("Failed to airdrop SOL");

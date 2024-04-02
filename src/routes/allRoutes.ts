@@ -3,8 +3,8 @@ import userRoutes from "./userRoutes";
 import scannerRoutes from "./scannerRoutes";
 import itemRoutes from "./itemRoutes";
 import eventRoutes from "./eventRoutes";
-import swaggerSpec from "../config/swaggerConfig";
-import swaggerUi from "swagger-ui-express"; // Import the swaggerSpec from the new file
+import apiDocsRoutes from "./apiDocsRoutes"
+
 import path from "path";
 
 const router = express.Router();
@@ -14,8 +14,7 @@ router.use("/event", eventRoutes);
 router.use("/user", userRoutes);
 router.use("/scanner", scannerRoutes);
 router.use("/item", itemRoutes);
-// Serve Swagger docs using imported swaggerSpec
-router.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+router.use('/api-docs', apiDocsRoutes)
 router.use("/", express.static(path.join(__dirname, "public")));
 
 

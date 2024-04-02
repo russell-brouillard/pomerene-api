@@ -60,6 +60,8 @@ export async function airdropSol(publicKeyString: string) {
       lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
       signature: airdropSignature,
     });
+
+    return 0.9
   } catch (error) {
     console.error("Airdrop failed try again!:", error);
     throw error;
