@@ -37,6 +37,35 @@ export async function getBalance(publicKey: string): Promise<number> {
   return balance / LAMPORTS_PER_SOL;
 }
 
+export async function airdropSol(publicKeyString: string) {
+  // Connect to the Solana devnet cluster.
+  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+  const recipientPublicKey = new PublicKey(publicKeyString);
+
+  const lamports = 0.9 * LAMPORTS_PER_SOL;
+
+  try {
+    // Request airdrop
+    const airdropSignature = await connection.requestAirdrop(
+      recipientPublicKey,
+      lamports
+    );
+
+    // Confirm the transaction
+    const latestBlockHash = await connection.getLatestBlockhash();
+
+    await connection.confirmTransaction({
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      signature: airdropSignature,
+    });
+  } catch (error) {
+    console.error("Airdrop failed try again!:", error);
+    throw error;
+  }
+}
+
 export async function getSPLTokens(
   publicKey: string
 ): Promise<SplTokenAccount[]> {

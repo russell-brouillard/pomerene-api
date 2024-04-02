@@ -9,7 +9,7 @@ import {
   getUserByEmail,
   getUserByUID,
 } from "../services/users/usersServices";
-import { getBalance } from "../services/solana/solanaService";
+import { airdropSol, getBalance } from "../services/solana/solanaService";
 
 /**
  * @swagger
@@ -412,5 +412,59 @@ export const getSolanaBalance = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error("Error retrieving Solana balance:", error);
     return res.status(500).send("Failed to retrieve Solana balance");
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/user/airdrop:
+ *   post:
+ *     summary: Airdrops SOL to the authenticated user's public key.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               publicKey:
+ *                 type: string
+ *                 description: The public key of the user to receive the airdrop.
+ *     responses:
+ *       200:
+ *         description: SOL successfully airdropped.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   description: True if the airdrop was successful.
+ *       401:
+ *         description: User is not authenticated.
+ *       404:
+ *         description: Public key not provided.
+ *       500:
+ *         description: Failed to airdrop SOL.
+ */
+export const airdropSOLController = async (req: AuthRequest, res: Response) => {
+
+  console.log("AIRDROP")
+  if (!req.user) {
+    return res.status(401).send("User is not authenticated");
+  }
+
+  req.body;
+
+  try {
+    await airdropSol(req.user.name);
+    return res.json({ success: true });
+  } catch (error) {
+    console.error("Error airdropping SOL:", error);
+    return res.status(500).send("Failed to airdrop SOL");
   }
 };
