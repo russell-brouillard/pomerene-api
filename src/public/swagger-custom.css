@@ -1,0 +1,9 @@
+.swagger-ui .topbar {
+  background-color: #00bb57 !important; /* A bright orange color for visibility */
+}
+
+.swagger-ui img {
+  content: url(/api/v1/images/white-small.png);
+  width: 140px; /* width of your logo */
+  height: 40px; /* height of your logo */
+}

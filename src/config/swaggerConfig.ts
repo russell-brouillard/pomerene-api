@@ -1,3 +1,4 @@
+// src/config/swaggerConfig.ts remains focused on API documentation specifics
 import swaggerJSDoc from 'swagger-jsdoc';
 
 // Swagger definition
@@ -10,7 +11,7 @@ const swaggerDefinition = {
   },
   components: {
     securitySchemes: {
-      BearerAuth: { // Changed from GoogleAuth to BearerAuth for clarity
+      BearerAuth: {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
@@ -19,7 +20,7 @@ const swaggerDefinition = {
     },
   },
   security: [{
-    BearerAuth: [] // Reflecting the change above
+    BearerAuth: []
   }],
 };
 
