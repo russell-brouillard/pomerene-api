@@ -79,7 +79,7 @@ export async function createScanner(payer: Keypair, description: string) {
     1
   );
 
-  const amountLamports = 0.1 * LAMPORTS_PER_SOL;
+  const amountLamports = 0.01 * LAMPORTS_PER_SOL;
 
   const transferInstructionSOL = SystemProgram.transfer({
     fromPubkey: payer.publicKey,

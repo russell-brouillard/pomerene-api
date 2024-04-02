@@ -9,6 +9,7 @@ import {
   getUserByEmail,
   getUserByUID,
 } from "../services/users/usersServices";
+import { getBalance } from "../services/solana/solanaService";
 
 /**
  * @swagger
@@ -370,6 +371,46 @@ export async function getAllUsersController(req: Request, res: Response) {
   }
 }
 
+/**
+ * @swagger
+ * /api/v1/user/balance:
+ *   get:
+ *     summary: Retrieves the Solana balance for the authenticated user.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Solana balance successfully retrieved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 balance:
+ *                   type: number
+ *                   description: The Solana balance of the authenticated user in SOL.
+ *       401:
+ *         description: User is not authenticated.
+ *       404:
+ *         description: User or Solana public key not found.
+ *       500:
+ *         description: Failed to retrieve Solana balance.
+ */
+export const getSolanaBalance = async (req: AuthRequest, res: Response) => {
+  console.log("get balence");
+  if (!req.user) {
+    return res.status(401).send("User is not authenticated");
+  }
 
+  console.log(req.user);
+  try {
+    const userPublicKey = req.user.name;
 
-
+    const balance = await getBalance(userPublicKey);
+    return res.json({ balance });
+  } catch (error) {
+    console.error("Error retrieving Solana balance:", error);
+    return res.status(500).send("Failed to retrieve Solana balance");
+  }
+};
