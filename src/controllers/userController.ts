@@ -452,8 +452,6 @@ export const getSolanaBalance = async (req: AuthRequest, res: Response) => {
  *         description: Failed to airdrop SOL.
  */
 export const airdropSOLController = async (req: AuthRequest, res: Response) => {
-
-  console.log("AIRDROP")
   if (!req.user) {
     return res.status(401).send("User is not authenticated");
   }
@@ -462,7 +460,7 @@ export const airdropSOLController = async (req: AuthRequest, res: Response) => {
 
   try {
     const sol = await airdropSol(req.user.name);
-    return res.json({ success: true , sol});
+    return res.json({ success: true, sol });
   } catch (error) {
     console.error("Error airdropping SOL:", error);
     return res.status(500).send("Failed to airdrop SOL");

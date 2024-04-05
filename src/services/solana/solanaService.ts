@@ -61,7 +61,7 @@ export async function airdropSol(publicKeyString: string) {
       signature: airdropSignature,
     });
 
-    return 0.9
+    return 0.9;
   } catch (error) {
     console.error("Airdrop failed try again!:", error);
     throw error;
@@ -132,13 +132,6 @@ export async function getAccountsByOwner(owner: Keypair): Promise<any[]> {
         );
         metadataCache.set(accountData.mint, metadata);
       }
-
-      // const signatures = await connection.getSignaturesForAddress(
-      //   new PublicKey(accountInfo.pubkey),
-      //   { limit: 1 }
-      // );
-
-      // console.log(signatures);
 
       return {
         mint: accountData.mint,

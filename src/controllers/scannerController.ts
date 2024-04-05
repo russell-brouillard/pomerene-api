@@ -1,8 +1,5 @@
-import { Request, Response } from "express";
-import {
-  createScanner,
-  fetchScanner,
-} from "../services/solana/scannerService";
+import { Response } from "express";
+import { createScanner, fetchScanner } from "../services/solana/scannerService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 
@@ -94,8 +91,6 @@ export async function createScannerController(
   res: Response
 ): Promise<void> {
   try {
-    console.log(req.user);
-
     const { description } = req.body;
 
     if (!req.user) {
@@ -106,26 +101,12 @@ export async function createScannerController(
 
     const scanner = await createScanner(payer, description);
 
-
-    // this is the scanner object that is returned
-    // {
-    //   "owner": "Fe839miamnUS6cY23JBr5K8dVD6aGErzuSJQX6eqwkzW",
-    //   "mint": "9ecViYvsNrjydTWE3XTpGcgBgZz1DiNNh76DqKCyHeKU",
-    //   "tokenAccount": "8UYjXs4bjNW8LHHqvWHjtrYn14buZ5NNvoFm3rGpG2Pp",
-    //   "itemSecret": "9j1e3ZseyjWfCm2ZVZrG9GWFmaSvr9KVUsjxAkUx9Wyqjsy3empsAzcw7e7AvSuDNHHh2UsStbNDSs1KeoQQW8E",
-    //   "description": "string"
-    // }
-
-    // Send success response with token metadata
-    res.status(200).json({ success: true , scanner});
+    res.status(200).json({ success: true, scanner });
   } catch (error: any) {
-    // Send error response
     console.error("Error creating device:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 }
-
-
 
 /**
  * @swagger
@@ -199,10 +180,7 @@ export async function handleFetchScannerForUser(
   res: Response
 ): Promise<void> {
   try {
-    console.log(req.user);
-
     if (!req.user) {
-      // Assuming publicKey is the correct property for the wallet address
       throw new Error("Missing required fields");
     }
 

@@ -1,12 +1,11 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware";
-
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 import {
   createScannerTransaction,
   findTokenTransactions,
 } from "../services/solana/eventService";
-import { PublicKey } from "@solana/web3.js";
+
 
 /**
  * @swagger
@@ -199,20 +198,15 @@ export async function getLastTransactionController(
 ): Promise<void> {
   try {
     const { mint } = req.params;
-    // Extract necessary data from request body
 
     if (!req.user || !mint) {
       throw new Error("Missing required fields to scan item.");
     }
 
-    // const payer = await getSolanaKeypairForUser(req.user.uid);
-   
-
     const response = await findTokenTransactions(mint);
 
     res.status(200).json(response);
   } catch (error: any) {
-    // Send error response
     console.error("Error creating device:", error);
     res.status(500).json({ success: false, error: error.message });
   }

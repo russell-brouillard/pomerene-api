@@ -244,8 +244,6 @@ export async function handleFetchItemsForUser(
   res: Response
 ): Promise<void> {
   try {
-    console.log(req.user);
-
     if (!req.user) {
       // Assuming publicKey is the correct property for the wallet address
       throw new Error("Missing required fields");
