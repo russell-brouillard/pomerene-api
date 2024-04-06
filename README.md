@@ -29,3 +29,5 @@ Clone the repository:
 ```bash
 git clone git@ggithub.com:russell-brouillard/hack-api.git
 cd pomerene-api
+npm install
+npm run dev
