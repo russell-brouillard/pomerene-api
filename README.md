@@ -8,12 +8,21 @@ The Pomerene API is a robust backend service designed to integrate seamlessly wi
 
 1.0.0
 
+## API Documentation with Swagger
+
+Our API documentation is powered by Swagger, offering a detailed overview of all available endpoints, their expected parameters, and responses. Swagger's interactive documentation allows you to easily test out the API endpoints directly from your browser.
+
+For full documentation, visit: [Pomerene API Documentation](https://www.pomerene.net/api/v1/api-docs/).
+
+This resource is invaluable for developers looking to understand and integrate with the Pomerene API seamlessly.
+
+
 ## Main Features
 
 - **Solana Blockchain Integration:** Utilizes Solana libraries for token management and metadata handling.
 - **Google Cloud Integration:** Implements Google Cloud Storage and Secret Manager for enhanced security and storage solutions.
-- **Firebase Integration:** Leverages Firebase and Firebase-admin for application development and management.
-- **CORS and Environment Configuration:** Ensures secure cross-origin requests and environment-specific configuration through dotenv.
+- **Firebase Integration:** Leverages Firebase Auth for user management.
+
 
 ## Installation
 
