@@ -5,112 +5,94 @@ import {
   PublicKey,
   SystemProgram,
   Transaction,
-  TransactionInstruction,
   clusterApiUrl,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
-import {
-  ExtensionType,
-  TOKEN_2022_PROGRAM_ID,
-  getOrCreateAssociatedTokenAccount,
-  createTransferInstruction,
-  getAccountLen,
-  createInitializeAccountInstruction,
-  createEnableRequiredMemoTransfersInstruction,
-} from "@solana/spl-token";
-
-import { decode, encode } from "bs58";
-import {
-  createMetadataMint,
-  getAccountsByOwner,
-  mintToAccount,
-} from "./solanaService";
+import { encode } from "bs58";
+import { createMetadataMint, getAccountsByOwner, mintToAccount } from "./solanaService";
 import { TokenMetadata } from "@solana/spl-token-metadata";
 import { TokenObject } from "userTypes";
 
+// Constants
+const DEVNET = "devnet";
+const CONFIRMED = "confirmed";
+const SCANNER_NAME = "SCANNER";
+const SCANNER_SYMBOL = "POME";
+const METADATA_URI = "https://www.pomerene.net/api/v1/json/metadata.json";
+
 export async function createScanner(payer: Keypair, description: string) {
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+  const connection = new Connection(clusterApiUrl(DEVNET), CONFIRMED);
 
   const scannerKeypair = Keypair.generate();
-  const scannerPublic = scannerKeypair.publicKey.toString();
-  const secrect = encode(scannerKeypair.secretKey);
-  const updateAuthority = payer.publicKey;
   const mintKeypair = Keypair.generate();
-  const mint = mintKeypair.publicKey;
-  const mintAuthority = payer.publicKey;
-  const decimals = 0;
 
-  const name = "SCANNER";
-  const symbol = "POME";
-  const uri = "https://www.pomerene.net/api/v1/json/metadata.json";
-  const additionalMetadata: [string, string][] = [
-    ["secret", secrect],
-    ["description", description],
-    ["public", scannerPublic],
-  ];
+  const metaData = createTokenMetadata(scannerKeypair, description, payer);
 
-  const metaData: TokenMetadata = {
-    updateAuthority,
-    mint: mintKeypair.publicKey,
-    name,
-    symbol,
-    uri,
-    additionalMetadata,
-  };
-
-  const mintData = await createMetadataMint(
+  await createMetadataMint(
     metaData,
     payer,
-    mint,
-    mintAuthority,
-    decimals,
+    mintKeypair.publicKey,
+    payer.publicKey, // mintAuthority
+    0, // decimals
     connection,
     mintKeypair,
-    updateAuthority
+    payer.publicKey // updateAuthority
   );
 
   const tokenAccount = await mintToAccount(
     payer,
-    mint,
-    mintAuthority,
+    mintKeypair.publicKey,
+    payer.publicKey, // mintAuthority
     connection,
     scannerKeypair,
-    payer.publicKey,
-    1
+    payer.publicKey, // Owner of the new token account
+    1 // Amount to mint
   );
 
-  const amountLamports = 0.01 * LAMPORTS_PER_SOL;
+  await fundScannerAccount(connection, payer, scannerKeypair.publicKey);
 
-  const transferInstructionSOL = SystemProgram.transfer({
+  return assembleScannerData(payer, mintKeypair.publicKey, scannerKeypair, description, tokenAccount);
+}
+
+function createTokenMetadata(scannerKeypair: Keypair, description: string, payer: Keypair): TokenMetadata {
+  return {
+    updateAuthority: payer.publicKey,
+    mint: scannerKeypair.publicKey,
+    name: SCANNER_NAME,
+    symbol: SCANNER_SYMBOL,
+    uri: METADATA_URI,
+    additionalMetadata: [
+      ["secret", encode(scannerKeypair.secretKey)],
+      ["description", description],
+      ["public", scannerKeypair.publicKey.toString()],
+    ],
+  };
+}
+
+async function fundScannerAccount(connection: Connection, payer: Keypair, scannerPublicKey: PublicKey) {
+  const lamports = 0.01 * LAMPORTS_PER_SOL;
+  const transferInstruction = SystemProgram.transfer({
     fromPubkey: payer.publicKey,
-    toPubkey: scannerKeypair.publicKey,
-    lamports: amountLamports,
+    toPubkey: scannerPublicKey,
+    lamports,
   });
 
-  // Create a transaction
-  const transactionSOL = new Transaction().add(transferInstructionSOL);
+  const transaction = new Transaction().add(transferInstruction);
+  await sendAndConfirmTransaction(connection, transaction, [payer]);
+}
 
-  // Sign and send the transaction
-  const signature = await sendAndConfirmTransaction(
-    connection,
-    transactionSOL,
-    [payer]
-  );
-
+function assembleScannerData(payer: Keypair, mintPublicKey: PublicKey, scannerKeypair: Keypair, description: string, tokenAccount: PublicKey) {
   return {
-    owner: payer.publicKey,
-    mint: mint,
+    owner: payer.publicKey.toString(),
+    mint: mintPublicKey.toString(),
     scannerAccount: tokenAccount.toString(),
     scannerSecret: encode(scannerKeypair.secretKey),
-    scannerPublic: scannerPublic,
+    scannerPublic: scannerKeypair.publicKey.toString(),
     description,
   };
 }
 
 export async function fetchScanner(owner: Keypair) {
   const tokens = await getAccountsByOwner(owner);
-
-  return tokens.filter(
-    (token: TokenObject) => token.metadata.name.toLowerCase() === "scanner"
-  );
+  return tokens.filter((token: TokenObject) => token.metadata.name.toLowerCase() === SCANNER_NAME.toLowerCase());
 }

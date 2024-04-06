@@ -53,29 +53,7 @@ export async function createScannerTransaction(
     accountLen
   );
 
-  const amountLamports = 0.00001 * LAMPORTS_PER_SOL;
-
-  console.log("LAMPORTS", amountLamports + lamports)
-
-  const transferInstructionSOL = SystemProgram.transfer({
-    fromPubkey: payer.publicKey,
-    toPubkey: scannerAccount,
-    lamports: amountLamports + lamports,
-  });
-
-  // Create a transaction
-  const transactionSOL = new Transaction().add(transferInstructionSOL);
-
-  // Sign and send the transaction
-  const signature = await sendAndConfirmTransaction(
-    connection,
-    transactionSOL,
-    [payer]
-  );
-
-
-  console.log(scannerAccount);
-  console.log("SOL TRANSER", signature);
+  await fundScannerAccount(connection, payer, scannerAccount);
 
   const scannerTokenAccountKeypair = Keypair.generate();
 
@@ -114,7 +92,7 @@ export async function createScannerTransaction(
 
   console.log("Test 1");
   // Send transaction
-  const transactionSignaturememo = await sendAndConfirmTransaction(
+  await sendAndConfirmTransaction(
     connection,
     transactionMemo,
     [scannerAccountKeypair, scannerTokenAccountKeypair] // Signers
@@ -162,8 +140,6 @@ export async function createScannerTransaction(
     transferInstruction
   );
 
-  console.log("SCANNER", await getBalance(scannerAccount.toString()));
-  console.log("PAYER", await getBalance(payer.publicKey.toString()));
   const transactionSignature = await sendAndConfirmTransaction(
     connection,
     transaction,
@@ -173,7 +149,27 @@ export async function createScannerTransaction(
   return `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`;
 }
 
-/////////////////////////////////////
+async function fundScannerAccount(
+  connection: Connection,
+  payer: Keypair,
+  scannerPublicKey: PublicKey
+) {
+  const lamportsForRentExemption =
+    await connection.getMinimumBalanceForRentExemption(
+      getAccountLen([ExtensionType.MemoTransfer])
+    );
+
+  const transaction = new Transaction().add(
+    SystemProgram.transfer({
+      fromPubkey: payer.publicKey,
+      toPubkey: scannerPublicKey,
+      lamports:
+        lamportsForRentExemption + Math.round(0.00001 * LAMPORTS_PER_SOL),
+    })
+  );
+
+  await sendAndConfirmTransaction(connection, transaction, [payer]);
+}
 
 export async function findTokenTransactions(publicKeyString: string) {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
