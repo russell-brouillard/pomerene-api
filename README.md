@@ -10,11 +10,9 @@ The Pomerene API is a robust backend service designed to integrate seamlessly wi
 
 ## API Documentation with Swagger
 
-Our API documentation is powered by Swagger, offering a detailed overview of all available endpoints, their expected parameters, and responses. Swagger's interactive documentation allows you to easily test out the API endpoints directly from your browser.
+Our API documentation is powered by Swagger, offering a detailed overview of all available endpoints, their expected parameters, and responses.
 
 For full documentation, visit: [Pomerene API Documentation](https://www.pomerene.net/api/v1/api-docs/).
-
-This resource is invaluable for developers looking to understand and integrate with the Pomerene API seamlessly.
 
 
 ## Main Features
