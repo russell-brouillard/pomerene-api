@@ -1,6 +1,7 @@
-# Pomerene API
-
 ![Pomerene Logo](https://www.pomerene.net/white-logo.png)
+
+
+# Pomerene API
 
 The Pomerene API is a robust backend service designed to integrate seamlessly with blockchain technologies, particularly focusing on the Solana ecosystem. Built with Node.js and Express, this API leverages Google Cloud services and Firebase for scalable, secure applications.
 
