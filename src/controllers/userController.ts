@@ -47,8 +47,6 @@ export const getSolanaKeypair = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user.uid; // Assuming `uid` is available from decodedToken attached in authMiddleware
 
-    console.log("userId", userId);
-
     const keypair = await getSolanaKeypairForUser(userId);
 
     return res.json(keypair);
@@ -96,7 +94,6 @@ export const createUserWithSolanaKeypair = async (
   req: Request,
   res: Response
 ) => {
-  console.log("Creating user and storing Solana keypair");
   const { email, password } = req.body; // Extract email and password from request body
 
   if (!email || !password) {
@@ -252,7 +249,6 @@ export async function getUserJWTController(
   res: Response
 ): Promise<void> {
   try {
-    console.log("body", req.body);
     const email = req.body.email as string;
     const password = req.body.password as string;
 
@@ -336,7 +332,6 @@ export async function getUserByUIDController(req: Request, res: Response) {
 export async function getUserByEmailController(req: Request, res: Response) {
   const email = req.body.email as string;
 
-  console.log("email", email);
   try {
     const userRecord = await getUserByEmail(email);
     if (!userRecord) {
@@ -398,12 +393,10 @@ export async function getAllUsersController(req: Request, res: Response) {
  *         description: Failed to retrieve Solana balance.
  */
 export const getSolanaBalance = async (req: AuthRequest, res: Response) => {
-  console.log("get balence");
   if (!req.user) {
     return res.status(401).send("User is not authenticated");
   }
 
-  console.log(req.user);
   try {
     const userPublicKey = req.user.name;
 
@@ -452,8 +445,6 @@ export const getSolanaBalance = async (req: AuthRequest, res: Response) => {
  *         description: Failed to airdrop SOL.
  */
 export const airdropSOLController = async (req: AuthRequest, res: Response) => {
-
-  console.log("AIRDROP")
   if (!req.user) {
     return res.status(401).send("User is not authenticated");
   }
@@ -462,7 +453,7 @@ export const airdropSOLController = async (req: AuthRequest, res: Response) => {
 
   try {
     const sol = await airdropSol(req.user.name);
-    return res.json({ success: true , sol});
+    return res.json({ success: true, sol });
   } catch (error) {
     console.error("Error airdropping SOL:", error);
     return res.status(500).send("Failed to airdrop SOL");

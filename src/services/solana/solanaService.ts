@@ -61,7 +61,7 @@ export async function airdropSol(publicKeyString: string) {
       signature: airdropSignature,
     });
 
-    return 0.9
+    return 0.9;
   } catch (error) {
     console.error("Airdrop failed try again!:", error);
     throw error;
@@ -132,13 +132,6 @@ export async function getAccountsByOwner(owner: Keypair): Promise<any[]> {
         );
         metadataCache.set(accountData.mint, metadata);
       }
-
-      // const signatures = await connection.getSignaturesForAddress(
-      //   new PublicKey(accountInfo.pubkey),
-      //   { limit: 1 }
-      // );
-
-      // console.log(signatures);
 
       return {
         mint: accountData.mint,
@@ -268,11 +261,6 @@ export async function createMetadataMint(
     [payer, mintKeypair] // Signers
   );
 
-  console.log(
-    "\nCreate Mint Account:",
-    `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`
-  );
-
   // Retrieve mint information
   const mintInfo = await getMint(
     connection,
@@ -280,10 +268,6 @@ export async function createMetadataMint(
     "confirmed",
     TOKEN_2022_PROGRAM_ID
   );
-
-  // Retrieve and log the metadata pointer state
-  const metadataPointer = getMetadataPointerState(mintInfo);
-  console.log("\nMetadata Pointer:", JSON.stringify(metadataPointer, null, 2));
 
   return mint;
 }
@@ -320,11 +304,6 @@ export async function mintToAccount(
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
   );
 
-  console.log(
-    "\nMint Tokens:",
-    `https://solana.fm/tx/${transactionSignatureMint}?cluster=devnet-solana`
-  );
-
   return tokenAccount;
 }
 
@@ -340,11 +319,6 @@ export async function deleteItem(payer: Keypair, mint: PublicKey) {
     undefined, // Additional signers
     undefined, // Confirmation options
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
-  );
-
-  console.log(
-    "\nClose Mint Account:",
-    `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`
   );
 
   return transactionSignature;

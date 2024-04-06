@@ -1,10 +1,10 @@
 {
-  "name": "sag-tickets",
+  "name": "pomerene-api",
   "version": "1.0.0",
   "main": "dist/src/mint.js",
   "type": "commonjs",
-  "repository": "git@github.com:russell-brouillard/sag-ticket.git",
-  "author": "russell-brouillard <rbrouillard@crunchtime.com>",
+  "repository": "git@ggithub.com/russell-brouillard/hack-api.git",
+  "author": "russell-brouillard <russell@pomerene.xyz>",
   "license": "MIT",
   "scripts": {
     "build": "tsc && npm run copy-assets",
@@ -16,8 +16,6 @@
   "dependencies": {
     "@google-cloud/secret-manager": "^5.1.0",
     "@google-cloud/storage": "^7.7.0",
-    "@metaplex-foundation/mpl-bubblegum": "^3.1.2",
-    "@metaplex-foundation/mpl-token-metadata": "^3.2.0",
     "@solana/spl-account-compression": "^0.2.0",
     "@solana/spl-token": "^0.4.1",
     "@solana/spl-token-metadata": "^0.1.2",
