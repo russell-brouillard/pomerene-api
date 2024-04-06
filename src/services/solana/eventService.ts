@@ -90,15 +90,12 @@ export async function createScannerTransaction(
     enableRequiredMemoTransfersInstruction
   );
 
-  console.log("Test 1");
   // Send transaction
   await sendAndConfirmTransaction(
     connection,
     transactionMemo,
     [scannerAccountKeypair, scannerTokenAccountKeypair] // Signers
   );
-
-  console.log("Test 2");
 
   const associatedTokenAccountItem = await getOrCreateAssociatedTokenAccount(
     connection,

@@ -332,7 +332,6 @@ export async function getUserByUIDController(req: Request, res: Response) {
 export async function getUserByEmailController(req: Request, res: Response) {
   const email = req.body.email as string;
 
-  console.log("email", email);
   try {
     const userRecord = await getUserByEmail(email);
     if (!userRecord) {
