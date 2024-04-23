@@ -3,8 +3,9 @@ import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 import {
   createScannerTransaction,
-  findTokenTransactions,
 } from "../services/solana/eventService";
+import { fetchTransactions } from "../services/solana/solanaService";
+
 
 
 /**
@@ -192,18 +193,18 @@ export async function createScannerTransactionController(
  *                   type: string
  *                   description: Detailed error message.
  */
-export async function getLastTransactionController(
+export async function getTransactionController(
   req: AuthRequest,
   res: Response
 ): Promise<void> {
   try {
-    const { mint } = req.params;
+    const { address } = req.params;
 
-    if (!req.user || !mint) {
+    if (!req.user || !address) {
       throw new Error("Missing required fields to scan item.");
     }
 
-    const response = await findTokenTransactions(mint);
+    const response = await fetchTransactions(address);
 
     res.status(200).json(response);
   } catch (error: any) {
@@ -211,3 +212,6 @@ export async function getLastTransactionController(
     res.status(500).json({ success: false, error: error.message });
   }
 }
+
+
+

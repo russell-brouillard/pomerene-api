@@ -30,6 +30,8 @@ import { SplTokenAccount } from "solanaTypes";
 import { encode } from "bs58";
 import { TokenMetadata, pack } from "@solana/spl-token-metadata";
 
+const MAX_TRANSACTION_BATCH_SIZE = 10;
+
 // Function to get balance
 export async function getBalance(publicKey: string): Promise<number> {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
@@ -322,4 +324,25 @@ export async function deleteItem(payer: Keypair, mint: PublicKey) {
   );
 
   return transactionSignature;
+}
+
+export async function fetchTransactions(accountAddress: string) {
+  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+  const pubKey = new PublicKey(accountAddress);
+  const limit = 10;
+
+  const before = undefined;
+  const until = undefined;
+
+  try {
+    const options = {
+      limit,
+      before,
+      until,
+    };
+    return await connection.getConfirmedSignaturesForAddress2(pubKey, options);
+  } catch (error) {
+    console.error("Failed to fetch transaction signatures:", error);
+    throw error;
+  }
 }
