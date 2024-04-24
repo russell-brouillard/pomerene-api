@@ -9,7 +9,7 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { encode } from "bs58";
-import { createMetadataMint, getAccountsByOwner, mintToAccount } from "./solanaService";
+import { createMetadataMint, fundScannerAccount, getAccountsByOwner, mintToAccount } from "./solanaService";
 import { TokenMetadata } from "@solana/spl-token-metadata";
 import { TokenObject } from "userTypes";
 
@@ -49,7 +49,7 @@ export async function createScanner(payer: Keypair, description: string) {
     1 // Amount to mint
   );
 
-  await fundScannerAccount(connection, payer, scannerKeypair.publicKey);
+  await fundScannerAccount(connection, payer, scannerKeypair.publicKey, 0.01 * LAMPORTS_PER_SOL);
 
   return assembleScannerData(payer, mintKeypair.publicKey, scannerKeypair, description, tokenAccount);
 }
@@ -69,17 +69,7 @@ function createTokenMetadata(scannerKeypair: Keypair, description: string, payer
   };
 }
 
-async function fundScannerAccount(connection: Connection, payer: Keypair, scannerPublicKey: PublicKey) {
-  const lamports = 0.01 * LAMPORTS_PER_SOL;
-  const transferInstruction = SystemProgram.transfer({
-    fromPubkey: payer.publicKey,
-    toPubkey: scannerPublicKey,
-    lamports,
-  });
 
-  const transaction = new Transaction().add(transferInstruction);
-  await sendAndConfirmTransaction(connection, transaction, [payer]);
-}
 
 function assembleScannerData(payer: Keypair, mintPublicKey: PublicKey, scannerKeypair: Keypair, description: string, tokenAccount: PublicKey) {
   return {

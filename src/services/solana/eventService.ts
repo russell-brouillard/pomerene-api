@@ -1,6 +1,7 @@
 import {
   ExtensionType,
   TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
   createEnableRequiredMemoTransfersInstruction,
   createInitializeAccountInstruction,
   createTransferInstruction,
@@ -46,56 +47,7 @@ export async function createScannerTransaction(
   const scannerAccountKeypair = Keypair.fromSecretKey(decode(scannerSecret));
   const scannerAccount = scannerAccountKeypair.publicKey;
 
-  // Size of Token Account with extension
-  const accountLen = getAccountLen([ExtensionType.MemoTransfer]);
-  // Minimum lamports required for Token Account
-  const lamports = await connection.getMinimumBalanceForRentExemption(
-    accountLen
-  );
-
   await fundScannerAccount(connection, payer, scannerAccount);
-
-  const scannerTokenAccountKeypair = Keypair.generate();
-
-  // Instruction to invoke System Program to create new account
-  const createAccountInstructionMemo = SystemProgram.createAccount({
-    fromPubkey: scannerAccount, // Account that will transfer lamports to created account
-    newAccountPubkey: scannerTokenAccountKeypair.publicKey, // Address of the account to create
-    space: accountLen, // Amount of bytes to allocate to the created account
-    lamports, // Amount of lamports transferred to created account
-    programId: TOKEN_2022_PROGRAM_ID, // Program assigned as owner of created account
-  });
-
-  // Instruction to initialize Token Account data
-  const initializeAccountInstructionMemo = createInitializeAccountInstruction(
-    scannerTokenAccountKeypair.publicKey, // Token Account Address
-    itemMint, // Mint Account
-    scannerAccount, // Token Account Owner
-    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
-  );
-
-  // Instruction to initialize the MemoTransfer Extension
-  const enableRequiredMemoTransfersInstruction =
-    createEnableRequiredMemoTransfersInstruction(
-      scannerTokenAccountKeypair.publicKey, // Token Account address
-      scannerAccount, // Token Account Owner
-      undefined, // Additional signers
-      TOKEN_2022_PROGRAM_ID // Token Program ID
-    );
-
-  // Add instructions to new transaction
-  const transactionMemo = new Transaction().add(
-    createAccountInstructionMemo,
-    initializeAccountInstructionMemo,
-    enableRequiredMemoTransfersInstruction
-  );
-
-  // Send transaction
-  await sendAndConfirmTransaction(
-    connection,
-    transactionMemo,
-    [scannerAccountKeypair, scannerTokenAccountKeypair] // Signers
-  );
 
   const associatedTokenAccountItem = await getOrCreateAssociatedTokenAccount(
     connection,
@@ -108,15 +60,16 @@ export async function createScannerTransaction(
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
   ).then((ata) => ata.address);
 
-  // Instruction to transfer tokens
-  const transferInstruction = createTransferInstruction(
-    associatedTokenAccountItem, // Source Token Account
-    scannerTokenAccountKeypair.publicKey, // Destination Token Account
-    itemAccount.publicKey, // Source Token Account owner
-    1, // Amount
-    undefined, // Additional signers
+  const scannerTokenAccount = await getOrCreateAssociatedTokenAccount(
+    connection,
+    scannerAccountKeypair,
+    itemMint,
+    scannerAccountKeypair.publicKey,
+    false, // Skip owner check
+    undefined, // Optional keypair, default to Associated Token Account
+    undefined, // Confirmation options
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
-  );
+  ).then((ata) => ata.address);
 
   // Instruction to add memo
   const memoInstruction = new TransactionInstruction({
@@ -127,9 +80,19 @@ export async function createScannerTransaction(
         isWritable: true,
       },
     ],
-    data: Buffer.from(JSON.stringify(message), "utf-8"),
+    data: Buffer.from(JSON.stringify(`${itemAccount.publicKey}:${scannerAccountKeypair.publicKey}:${message}`), "utf-8"),
     programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
   });
+
+  // Instruction to transfer tokens
+  const transferInstruction = createTransferInstruction(
+    associatedTokenAccountItem, // Source Token Account
+    scannerTokenAccount, // Destination Token Account
+    itemAccount.publicKey, // Source Token Account owner
+    1, // Amount
+    undefined, // Additional signers
+    TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+  );
 
   // Add instructions to new transaction
   const transaction = new Transaction().add(
@@ -143,7 +106,7 @@ export async function createScannerTransaction(
     [scannerAccountKeypair, itemAccount] // Signers
   );
 
-  return `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`;
+  return `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`;
 }
 
 async function fundScannerAccount(
@@ -168,21 +131,42 @@ async function fundScannerAccount(
   await sendAndConfirmTransaction(connection, transaction, [payer]);
 }
 
-export async function findTokenTransactions(publicKeyString: string) {
+export async function fetchTransactions(accountAddress: string) {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-  const publicKey = new PublicKey(publicKeyString);
+  const pubKey = new PublicKey(accountAddress);
+  const limit = 10;
 
-  // Fetch the signatures of the last N transactions. Adjust 'limit' as needed.
-  const signatures = await connection.getSignaturesForAddress(publicKey, {
-    limit: 10,
-  });
+  const before = undefined;
+  const until = undefined;
 
-  // Fetch the actual transactions using the signatures
-  const transactions = await Promise.all(
-    signatures.map((signatureInfo) =>
-      connection.getTransaction(signatureInfo.signature)
-    )
-  );
-
-  return transactions.filter((tx) => tx !== null); // Filter out any null transactions
+  try {
+    const options = {
+      limit,
+      before,
+      until,
+    };
+    return await connection.getConfirmedSignaturesForAddress2(pubKey, options);
+  } catch (error) {
+    console.error("Failed to fetch transaction signatures:", error);
+    throw error;
+  }
 }
+
+// export async function findTokenTransactions(publicKeyString: string) {
+//   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+//   const publicKey = new PublicKey(publicKeyString);
+
+//   // Fetch the signatures of the last N transactions. Adjust 'limit' as needed.
+//   const signatures = await connection.getSignaturesForAddress(publicKey, {
+//     limit: 10,
+//   });
+
+//   // Fetch the actual transactions using the signatures
+//   const transactions = await Promise.all(
+//     signatures.map((signatureInfo) =>
+//       connection.getTransaction(signatureInfo.signature)
+//     )
+//   );
+
+//   return transactions.filter((tx) => tx !== null); // Filter out any null transactions
+// }

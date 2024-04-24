@@ -326,23 +326,19 @@ export async function deleteItem(payer: Keypair, mint: PublicKey) {
   return transactionSignature;
 }
 
-export async function fetchTransactions(accountAddress: string) {
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-  const pubKey = new PublicKey(accountAddress);
-  const limit = 10;
+export async function fundScannerAccount(
+  connection: Connection,
+  payer: Keypair,
+  scannerPublicKey: PublicKey,
+  lamports: number
+) {
+  // const lamports = 0.01 * LAMPORTS_PER_SOL;
+  const transferInstruction = SystemProgram.transfer({
+    fromPubkey: payer.publicKey,
+    toPubkey: scannerPublicKey,
+    lamports,
+  });
 
-  const before = undefined;
-  const until = undefined;
-
-  try {
-    const options = {
-      limit,
-      before,
-      until,
-    };
-    return await connection.getConfirmedSignaturesForAddress2(pubKey, options);
-  } catch (error) {
-    console.error("Failed to fetch transaction signatures:", error);
-    throw error;
-  }
+  const transaction = new Transaction().add(transferInstruction);
+  await sendAndConfirmTransaction(connection, transaction, [payer]);
 }

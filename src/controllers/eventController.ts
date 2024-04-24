@@ -3,10 +3,8 @@ import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 import {
   createScannerTransaction,
+  fetchTransactions,
 } from "../services/solana/eventService";
-import { fetchTransactions } from "../services/solana/solanaService";
-
-
 
 /**
  * @swagger
@@ -212,6 +210,3 @@ export async function getTransactionController(
     res.status(500).json({ success: false, error: error.message });
   }
 }
-
-
-
