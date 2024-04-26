@@ -20,7 +20,8 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { decode } from "bs58";
-import { getAccountsByOwner, getBalance } from "./solanaService";
+import { getTokensByOwner } from "./solanaService";
+import { fetchItem } from "./itemService";
 
 /**
  * Creates a transaction for a scanner to interact with an item, transferring tokens.
@@ -40,7 +41,7 @@ export async function createScannerTransaction(
 
   const itemAccount = Keypair.fromSecretKey(decode(itemSecret));
 
-  const itemMint = await getAccountsByOwner(itemAccount).then(
+  const itemMint = await getTokensByOwner(itemAccount).then(
     (parsedAccounts: any) => new PublicKey(decode(parsedAccounts[0].mint))
   );
 
@@ -80,7 +81,12 @@ export async function createScannerTransaction(
         isWritable: true,
       },
     ],
-    data: Buffer.from(JSON.stringify(`${itemAccount.publicKey}:${scannerAccountKeypair.publicKey}:${message}`), "utf-8"),
+    data: Buffer.from(
+      JSON.stringify(
+        `${itemAccount.publicKey},${scannerAccountKeypair.publicKey},${message}`
+      ),
+      "utf-8"
+    ),
     programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
   });
 
@@ -131,10 +137,12 @@ async function fundScannerAccount(
   await sendAndConfirmTransaction(connection, transaction, [payer]);
 }
 
-export async function fetchTransactions(accountAddress: string) {
+export async function fetchTransactions(
+  accountAddress: string,
+  limit: number = 10
+) {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
   const pubKey = new PublicKey(accountAddress);
-  const limit = 10;
 
   const before = undefined;
   const until = undefined;
@@ -145,28 +153,40 @@ export async function fetchTransactions(accountAddress: string) {
       before,
       until,
     };
-    return await connection.getConfirmedSignaturesForAddress2(pubKey, options);
+    const res = await connection.getConfirmedSignaturesForAddress2(
+      pubKey,
+      options
+    );
+
+    return res.filter((sig) => sig.memo !== null);
   } catch (error) {
     console.error("Failed to fetch transaction signatures:", error);
     throw error;
   }
 }
 
-// export async function findTokenTransactions(publicKeyString: string) {
-//   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-//   const publicKey = new PublicKey(publicKeyString);
+export async function fetchItemsTransaction(owner: Keypair) {
+  const data = await fetchItem(owner);
 
-//   // Fetch the signatures of the last N transactions. Adjust 'limit' as needed.
-//   const signatures = await connection.getSignaturesForAddress(publicKey, {
-//     limit: 10,
-//   });
+  const publicKeys: string[] = [];
 
-//   // Fetch the actual transactions using the signatures
-//   const transactions = await Promise.all(
-//     signatures.map((signatureInfo) =>
-//       connection.getTransaction(signatureInfo.signature)
-//     )
-//   );
+  console.log(data);
 
-//   return transactions.filter((tx) => tx !== null); // Filter out any null transactions
-// }
+  // Extract public keys from data
+  data.forEach((tx: any) => {
+    const publicEntry = tx.metadata.additionalMetadata.find(
+      (entry: any) => entry[0] === "public"
+    );
+    if (publicEntry) {
+      publicKeys.push(publicEntry[1]);
+    }
+  });
+
+  // Use Promise.all to fetch all transactions concurrently
+  const results = await Promise.all(
+    publicKeys.map((key) => fetchTransactions(key, 1))
+  );
+
+  // Filter out any empty results and flatten the array
+  return results.filter((result) => result && result.length > 0).flat();
+}

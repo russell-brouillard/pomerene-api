@@ -13,8 +13,7 @@ import { auth } from "../google/firebase";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { ListUsersResult } from "firebase-admin/lib/auth/base-auth";
 import { decode, encode } from "bs58";
-import { getAccountsByOwner } from "../solana/solanaService";
-import { TokenObject } from "userTypes";
+
 
 export async function createUserAndStoreSolanaKeypair(
   email: string,

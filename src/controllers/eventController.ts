@@ -4,6 +4,7 @@ import { getSolanaKeypairForUser } from "../services/users/usersServices";
 import {
   createScannerTransaction,
   fetchTransactions,
+  fetchItemsTransaction,
 } from "../services/solana/eventService";
 
 /**
@@ -208,5 +209,29 @@ export async function getTransactionController(
   } catch (error: any) {
     console.error("Error creating device:", error);
     res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+
+export async function getItemTransactionController(
+  req: AuthRequest,
+  res: Response
+) {
+  try {
+    if (!req.user) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    const owner = await getSolanaKeypairForUser(req.user.uid);
+
+    const transaction = await fetchItemsTransaction(owner);
+
+    res.status(200).json({
+      transaction
+    });
+  } catch (error) {
+    console.error("Failed to fetch scanner transaction:", error);
+    res.status(500).json({ success: false, error: "Internal server error." });
   }
 }

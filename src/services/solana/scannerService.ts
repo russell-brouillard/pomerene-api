@@ -9,7 +9,7 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { encode } from "bs58";
-import { createMetadataMint, fundScannerAccount, getAccountsByOwner, mintToAccount } from "./solanaService";
+import { createMetadataMint, fundScannerAccount, getTokensByOwner, mintToAccount } from "./solanaService";
 import { TokenMetadata } from "@solana/spl-token-metadata";
 import { TokenObject } from "userTypes";
 
@@ -83,6 +83,6 @@ function assembleScannerData(payer: Keypair, mintPublicKey: PublicKey, scannerKe
 }
 
 export async function fetchScanner(owner: Keypair) {
-  const tokens = await getAccountsByOwner(owner);
+  const tokens = await getTokensByOwner(owner);
   return tokens.filter((token: TokenObject) => token.metadata.name.toLowerCase() === SCANNER_NAME.toLowerCase());
 }

@@ -70,25 +70,7 @@ export async function airdropSol(publicKeyString: string) {
   }
 }
 
-export async function getSPLTokens(
-  publicKey: string
-): Promise<SplTokenAccount[]> {
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-  const ownerPublicKey = new PublicKey(publicKey);
 
-  // Fetch all SPL Token accounts for the specified wallet
-  const { value: tokenAccounts } =
-    await connection.getParsedTokenAccountsByOwner(ownerPublicKey, {
-      programId: TOKEN_2022_PROGRAM_ID,
-    });
-
-  // Process and return the token accounts data
-  return tokenAccounts.map((account) => ({
-    mint: account.account.data.parsed.info.mint,
-    owner: account.account.data.parsed.info.owner,
-    tokenAmount: account.account.data.parsed.info.tokenAmount.uiAmount,
-  }));
-}
 
 export function generateSolanaKeypair(): {
   publicKey: string;
@@ -106,7 +88,7 @@ export function generateSolanaKeypair(): {
   };
 }
 
-export async function getAccountsByOwner(owner: Keypair): Promise<any[]> {
+export async function getTokensByOwner(owner: Keypair): Promise<any[]> {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
   // Fetch all token accounts for the owner

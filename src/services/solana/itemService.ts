@@ -13,7 +13,7 @@ import { encode } from "bs58";
 import {
   createMetadataMint,
   fundScannerAccount,
-  getAccountsByOwner,
+  getTokensByOwner,
   mintToAccount,
 } from "./solanaService";
 import { TokenObject } from "userTypes";
@@ -178,8 +178,8 @@ export async function createItem(
   };
 }
 
-export async function fetchItem(owner: Keypair) {
-  const tokens = await getAccountsByOwner(owner);
+export async function fetchItem(owner: Keypair):Promise<any> {
+  const tokens = await getTokensByOwner(owner);
 
   console.log("tokens", tokens);
 
