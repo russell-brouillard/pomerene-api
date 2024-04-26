@@ -178,7 +178,7 @@ export async function createItem(
   };
 }
 
-export async function fetchItem(owner: Keypair):Promise<any> {
+export async function fetchItems(owner: Keypair):Promise<any> {
   const tokens = await getTokensByOwner(owner);
 
   console.log("tokens", tokens);

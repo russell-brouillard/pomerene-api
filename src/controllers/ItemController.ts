@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createItem, fetchItem } from "../services/solana/itemService";
+import { createItem, fetchItems } from "../services/solana/itemService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 import { PublicKey } from "@solana/web3.js";
@@ -251,7 +251,7 @@ export async function handleFetchItemsForUser(
 
     const owner = await getSolanaKeypairForUser(req.user.uid);
 
-    const items = await fetchItem(owner); // Using publicKey from the user object
+    const items = await fetchItems(owner); // Using publicKey from the user object
 
     res.status(200).json({ success: true, items });
   } catch (error: any) {

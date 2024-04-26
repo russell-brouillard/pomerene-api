@@ -82,7 +82,7 @@ function assembleScannerData(payer: Keypair, mintPublicKey: PublicKey, scannerKe
   };
 }
 
-export async function fetchScanner(owner: Keypair) {
+export async function fetchScanners(owner: Keypair) {
   const tokens = await getTokensByOwner(owner);
   return tokens.filter((token: TokenObject) => token.metadata.name.toLowerCase() === SCANNER_NAME.toLowerCase());
 }

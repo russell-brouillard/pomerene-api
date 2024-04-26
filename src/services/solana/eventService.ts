@@ -21,7 +21,8 @@ import {
 } from "@solana/web3.js";
 import { decode } from "bs58";
 import { getTokensByOwner } from "./solanaService";
-import { fetchItem } from "./itemService";
+import { fetchItems } from "./itemService";
+import { fetchScanners } from "./scannerService";
 
 /**
  * Creates a transaction for a scanner to interact with an item, transferring tokens.
@@ -39,9 +40,9 @@ export async function createScannerTransaction(
 ): Promise<string> {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-  const itemAccount = Keypair.fromSecretKey(decode(itemSecret));
+  const itemAccountKeyPair = Keypair.fromSecretKey(decode(itemSecret));
 
-  const itemMint = await getTokensByOwner(itemAccount).then(
+  const itemMint = await getTokensByOwner(itemAccountKeyPair).then(
     (parsedAccounts: any) => new PublicKey(decode(parsedAccounts[0].mint))
   );
 
@@ -54,7 +55,7 @@ export async function createScannerTransaction(
     connection,
     scannerAccountKeypair, // Payer to create Token Account
     itemMint, // Mint Account address
-    itemAccount.publicKey, // Token Account owner
+    itemAccountKeyPair.publicKey, // Token Account owner
     false, // Skip owner check
     undefined, // Optional keypair, default to Associated Token Account
     undefined, // Confirmation options
@@ -83,7 +84,7 @@ export async function createScannerTransaction(
     ],
     data: Buffer.from(
       JSON.stringify(
-        `${itemAccount.publicKey},${scannerAccountKeypair.publicKey},${message}`
+        `${itemAccountKeyPair.publicKey},${scannerAccountKeypair.publicKey},${message}`
       ),
       "utf-8"
     ),
@@ -94,8 +95,8 @@ export async function createScannerTransaction(
   const transferInstruction = createTransferInstruction(
     associatedTokenAccountItem, // Source Token Account
     scannerTokenAccount, // Destination Token Account
-    itemAccount.publicKey, // Source Token Account owner
-    1, // Amount
+    itemAccountKeyPair.publicKey, // Source Token Account owner
+    0, // Amount
     undefined, // Additional signers
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
   );
@@ -109,7 +110,7 @@ export async function createScannerTransaction(
   const transactionSignature = await sendAndConfirmTransaction(
     connection,
     transaction,
-    [scannerAccountKeypair, itemAccount] // Signers
+    [scannerAccountKeypair, itemAccountKeyPair] // Signers
   );
 
   return `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`;
@@ -166,7 +167,33 @@ export async function fetchTransactions(
 }
 
 export async function fetchItemsTransaction(owner: Keypair) {
-  const data = await fetchItem(owner);
+  const data = await fetchItems(owner);
+
+  const publicKeys: string[] = [];
+
+  console.log(data);
+
+  // Extract public keys from data
+  data.forEach((tx: any) => {
+    const publicEntry = tx.metadata.additionalMetadata.find(
+      (entry: any) => entry[0] === "public"
+    );
+    if (publicEntry) {
+      publicKeys.push(publicEntry[1]);
+    }
+  });
+
+  // Use Promise.all to fetch all transactions concurrently
+  const results = await Promise.all(
+    publicKeys.map((key) => fetchTransactions(key, 1))
+  );
+
+  // Filter out any empty results and flatten the array
+  return results.filter((result) => result && result.length > 0).flat();
+}
+
+export async function fetchScannersTransaction(owner: Keypair) {
+  const data = await fetchScanners(owner);
 
   const publicKeys: string[] = [];
 

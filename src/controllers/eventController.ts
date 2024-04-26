@@ -212,7 +212,6 @@ export async function getTransactionController(
   }
 }
 
-
 export async function getItemTransactionController(
   req: AuthRequest,
   res: Response
@@ -227,9 +226,7 @@ export async function getItemTransactionController(
 
     const transaction = await fetchItemsTransaction(owner);
 
-    res.status(200).json({
-      transaction
-    });
+    res.status(200).json(transaction);
   } catch (error) {
     console.error("Failed to fetch scanner transaction:", error);
     res.status(500).json({ success: false, error: "Internal server error." });

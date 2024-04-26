@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { createScanner, fetchScanner } from "../services/solana/scannerService";
+import { createScanner, fetchScanners } from "../services/solana/scannerService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 
@@ -186,7 +186,7 @@ export async function handleFetchScannerForUser(
 
     const owner = await getSolanaKeypairForUser(req.user.uid);
 
-    const scanners = await fetchScanner(owner); // Using publicKey from the user object
+    const scanners = await fetchScanners(owner); // Using publicKey from the user object
 
     res.status(200).json({ success: true, scanners });
   } catch (error: any) {
