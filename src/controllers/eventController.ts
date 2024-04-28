@@ -5,6 +5,9 @@ import {
   createScannerTransaction,
   fetchTransactions,
   fetchItemsTransaction,
+  fetchScannersTransaction,
+  fetchItemsForMap,
+  fetchScannersForMap,
 } from "../services/solana/eventService";
 
 /**
@@ -225,6 +228,63 @@ export async function getItemTransactionController(
     const owner = await getSolanaKeypairForUser(req.user.uid);
 
     const transaction = await fetchItemsTransaction(owner);
+
+    res.status(200).json(transaction);
+  } catch (error) {
+    console.error("Failed to fetch scanner transaction:", error);
+    res.status(500).json({ success: false, error: "Internal server error." });
+  }
+}
+
+export async function getMapItemsController(req: AuthRequest, res: Response) {
+  try {
+    if (!req.user) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    const owner = await getSolanaKeypairForUser(req.user.uid);
+
+    const mapItems = await fetchItemsForMap(owner);
+
+    res.status(200).json(mapItems);
+  } catch (error) {
+    console.error("Failed to fetch scanner transaction:", error);
+    res.status(500).json({ success: false, error: "Internal server error." });
+  }
+}
+
+export async function getMapScannersController(req: AuthRequest, res: Response) {
+  try {
+    if (!req.user) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    const owner = await getSolanaKeypairForUser(req.user.uid);
+
+    const mapItems = await fetchScannersForMap(owner);
+
+    res.status(200).json(mapItems);
+  } catch (error) {
+    console.error("Failed to fetch scanner transaction:", error);
+    res.status(500).json({ success: false, error: "Internal server error." });
+  }
+}
+
+export async function getScannerTransactionController(
+  req: AuthRequest,
+  res: Response
+) {
+  try {
+    if (!req.user) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    const owner = await getSolanaKeypairForUser(req.user.uid);
+
+    const transaction = await fetchScannersTransaction(owner);
 
     res.status(200).json(transaction);
   } catch (error) {

@@ -3,7 +3,10 @@ import { authMiddleware } from "../middleware/authMiddleware";
 import {
   createScannerTransactionController,
   getItemTransactionController,
+  getMapItemsController,
+  getScannerTransactionController,
   getTransactionController,
+  getMapScannersController,
 } from "../controllers/eventController";
 
 const router = express.Router();
@@ -11,11 +14,12 @@ const router = express.Router();
 // Scanner endpoints
 // router.post("/create", authMiddleware, createScannerController);
 router.post("/scan", authMiddleware, createScannerTransactionController);
+router.get('/scanners', authMiddleware, getScannerTransactionController); 
+router.get('/items', authMiddleware, getItemTransactionController);  
+router.get('/map/items', authMiddleware, getMapItemsController); 
+router.get('/map/scanners', authMiddleware, getMapScannersController);
+router.get('/:address', authMiddleware, getTransactionController);  
 
-router.get('/items', authMiddleware, getItemTransactionController);  // Create an item transaction
-router.get('/item/:address', authMiddleware, getTransactionController);  // Retrieve item transaction by some identifier
 
-// router.get('/scanner', authMiddleware, getScannerTransactionController);
-// router.get('/scanner/:id', authMiddleware, getTransactionController);
 
 export default router;

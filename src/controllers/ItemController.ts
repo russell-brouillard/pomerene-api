@@ -3,7 +3,7 @@ import { createItem, fetchItems } from "../services/solana/itemService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 import { PublicKey } from "@solana/web3.js";
-import { deleteItem } from "../services/solana/solanaService";
+import { closeMintAccount } from "../services/solana/solanaService";
 
 /**
  * @swagger
@@ -128,49 +128,50 @@ export async function createItemController(
 //  *       500:
 //  *         description: Error deleting the item.
 //  */
-// export async function deleteItemController(
-//   req: AuthRequest,
-//   res: Response
-// ): Promise<any> {
-//   try {
-//     // Extract mint public key from URL parameters
-//     const { mint } = req.params;
-//     if (!mint) {
-//       return res
-//         .status(400)
-//         .json({ success: false, error: "Mint public key is required." });
-//     }
+export async function deleteItemController(
+  req: AuthRequest,
+  res: Response
+): Promise<any> {
+  try {
+    // Extract mint public key from URL parameters
+    const { mint, account } = req.params;
+    if (!mint) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Mint public key is required." });
+    }
 
-//     if (!req.user) {
-//       return res
-//         .status(403)
-//         .json({ success: false, error: "User not authorized." });
-//     }
+    if (!req.user) {
+      return res
+        .status(403)
+        .json({ success: false, error: "User not authorized." });
+    }
 
-//     const payer = await getSolanaKeypairForUser(req.user.uid);
+    const payer = await getSolanaKeypairForUser(req.user.uid);
 
-//     // Validate payer
-//     if (!payer) {
-//       return res.status(403).json({
-//         success: false,
-//         error: "User not authorized or payer keypair not found.",
-//       });
-//     }
+    // Validate payer
+    if (!payer) {
+      return res.status(403).json({
+        success: false,
+        error: "User not authorized or payer keypair not found.",
+      });
+    }
 
-//     // Convert mint string to PublicKey
-//     const mintPublicKey = new PublicKey(mint);
+    // Convert mint string to PublicKey
+    const mintPublicKey = new PublicKey(mint);
+    const accountPublicKey = new PublicKey(account);
 
-//     // Call deleteItem (close mint account)
-//     await deleteItem(payer, mintPublicKey);
+    // Call deleteItem (close mint account)
+    await closeMintAccount(payer, mintPublicKey, accountPublicKey);
 
-//     res
-//       .status(200)
-//       .json({ success: true, message: "Item deleted successfully." });
-//   } catch (error: any) {
-//     console.error("Error deleting item:", error.message);
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// }
+    res
+      .status(200)
+      .json({ success: true, message: "Item deleted successfully." });
+  } catch (error: any) {
+    console.error("Error deleting item:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
 
 /**
  * @swagger

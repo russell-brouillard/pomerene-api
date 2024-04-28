@@ -1,9 +1,6 @@
 import {
   ExtensionType,
   TOKEN_2022_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
-  createEnableRequiredMemoTransfersInstruction,
-  createInitializeAccountInstruction,
   createTransferInstruction,
   getAccountLen,
   getOrCreateAssociatedTokenAccount,
@@ -42,7 +39,7 @@ export async function createScannerTransaction(
 
   const itemAccountKeyPair = Keypair.fromSecretKey(decode(itemSecret));
 
-  const itemMint = await getTokensByOwner(itemAccountKeyPair).then(
+  const itemMint = await getTokensByOwner(itemAccountKeyPair.publicKey).then(
     (parsedAccounts: any) => new PublicKey(decode(parsedAccounts[0].mint))
   );
 
@@ -171,8 +168,6 @@ export async function fetchItemsTransaction(owner: Keypair) {
 
   const publicKeys: string[] = [];
 
-  console.log(data);
-
   // Extract public keys from data
   data.forEach((tx: any) => {
     const publicEntry = tx.metadata.additionalMetadata.find(
@@ -192,12 +187,95 @@ export async function fetchItemsTransaction(owner: Keypair) {
   return results.filter((result) => result && result.length > 0).flat();
 }
 
-export async function fetchScannersTransaction(owner: Keypair) {
+export async function fetchItemsForMap(owner: Keypair) {
+  const data = await fetchItems(owner);
+
+  const publicKeys: string[] = [];
+
+  // Extract public keys from data
+  data.forEach((tx: any) => {
+    const publicEntry = tx.metadata.additionalMetadata.find(
+      (entry: any) => entry[0] === "public"
+    );
+    if (publicEntry) {
+      publicKeys.push(publicEntry[1]);
+    }
+  });
+
+  // Use Promise.all to fetch all transactions concurrently
+  const results = await Promise.all(
+    publicKeys.map((key) => fetchTransactions(key, 1))
+  );
+
+  // Filter out any empty results and flatten the array
+  const transactionsItems = results
+    .filter((result) => result && result.length > 0)
+    .flat();
+
+  return transactionsItems
+    .map((item) => processMapTransaction(item))
+    .filter((item) => item);
+}
+
+export async function fetchScannersForMap(owner: Keypair) {
   const data = await fetchScanners(owner);
 
   const publicKeys: string[] = [];
 
-  console.log(data);
+  // Extract public keys from data
+  data.forEach((tx: any) => {
+    const publicEntry = tx.metadata.additionalMetadata.find(
+      (entry: any) => entry[0] === "public"
+    );
+    if (publicEntry) {
+      publicKeys.push(publicEntry[1]);
+    }
+  });
+
+  // Use Promise.all to fetch all transactions concurrently
+  const results = await Promise.all(
+    publicKeys.map((key) => fetchTransactions(key, 1))
+  );
+
+  // Filter out any empty results and flatten the array
+  const transactionsItems = results
+    .filter((result) => result && result.length > 0)
+    .flat();
+
+  console.log("transactionsItems = ", transactionsItems);
+
+  return transactionsItems
+    .map((item) => processMapTransaction(item))
+    .filter((item) => item);
+}
+
+function processMapTransaction(item: any) {
+  const memo = item.memo;
+  const input = memo.substring(memo.indexOf('"') + 1, memo.lastIndexOf('"'));
+  const parts = input.split(",");
+
+  if (parts.length !== 4) return null;
+
+  const [itemPublicKey, scannerPublicKey, lat, lon] = parts;
+  const latitude = parseFloat(lat.split(":")[1]);
+  const longitude = parseFloat(lon.split(":")[1]);
+  const timestamp = item.blockTime;
+  const sig = item.signature;
+
+  return {
+    latitude,
+    longitude,
+    itemPublicKey,
+    scannerPublicKey,
+    timestamp,
+    sig,
+  };
+}
+
+export async function fetchScannersTransaction(owner: Keypair) {
+  const data = await fetchScanners(owner);
+
+  const publicKeys: string[] = [];
 
   // Extract public keys from data
   data.forEach((tx: any) => {

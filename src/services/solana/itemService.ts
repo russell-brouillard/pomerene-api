@@ -45,9 +45,6 @@ export async function createItem(
   const itemPublic = itemKeyPair.publicKey.toString();
   const mintKeypair = Keypair.generate();
 
-  console.log("itemKeyPair", itemKeyPair.publicKey.toString());
-  console.log("mintKeypair", mintKeypair.publicKey.toString());
-
   // Define authorities
   const updateAuthority = payer.publicKey;
   const mintAuthority = payer.publicKey;
@@ -82,25 +79,15 @@ export async function createItem(
     updateAuthority
   );
 
-  console.log("mint!!!");
-
-  // const itemAccountPublic = await getOrCreateAssociatedTokenAccount(
-  //   connection,
-  //   payer, // Payer to create Token Account
-  //   mint, // Mint Account address
-  //   itemKeyPair.publicKey, // Token Account owner
-  //   false, // Skip owner check
-  //   undefined, // Optional keypair, default to Associated Token Account
-  //   undefined, // Confirmation options
-  //   TOKEN_2022_PROGRAM_ID // Token Extension Program ID
-  // ).then((a) => a.address);
-
   // Size of Token Account with extension
   const accountLen = getAccountLen([ExtensionType.MemoTransfer]);
   // Minimum lamports required for Token Account
   const lamports = await connection.getMinimumBalanceForRentExemption(
     accountLen
   );
+
+  
+
 
   const memoAccountKeyPair = Keypair.generate();
 
@@ -146,9 +133,7 @@ export async function createItem(
 
   // SEND NEW TOKENS
 
-  console.log("memo!!!");
-
-  await mintToAccount(
+  const tokenAccount = await mintToAccount(
     payer,
     mint,
     mintAuthority,
@@ -158,30 +143,28 @@ export async function createItem(
     1
   );
 
-  const tokenAccount = await mintToAccount(
+  const tokenAccountMint = await mintToAccount(
     payer,
     mint,
     mintAuthority,
     connection,
     itemKeyPair,
     itemKeyPair.publicKey,
-    100
+    0
   );
 
   return {
     owner: payer.publicKey,
     mint: mint,
-    tokenAccount: memoAccountKeyPair.publicKey.toString(),
+    tokenAccount: tokenAccount.toString(),
     itemSecret: encode(itemKeyPair.secretKey),
     itemPublic: itemPublic,
     description,
   };
 }
 
-export async function fetchItems(owner: Keypair):Promise<any> {
-  const tokens = await getTokensByOwner(owner);
-
-  console.log("tokens", tokens);
+export async function fetchItems(owner: Keypair): Promise<any> {
+  const tokens = await getTokensByOwner(owner.publicKey);
 
   return tokens.filter(
     (token: TokenObject) =>
