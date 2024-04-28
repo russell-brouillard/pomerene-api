@@ -242,8 +242,6 @@ export async function fetchScannersForMap(owner: Keypair) {
     .filter((result) => result && result.length > 0)
     .flat();
 
-  console.log("transactionsItems = ", transactionsItems);
-
   return transactionsItems
     .map((item) => processMapTransaction(item))
     .filter((item) => item);
