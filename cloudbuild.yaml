@@ -12,26 +12,16 @@ steps:
     entrypoint: "npm"
     args: ["run", "build"]
     env:
-      - "CORS_ORIGIN=https://www.pomerene.net" 
+      - "CORS_ORIGIN=https://www.pomerene.net"
 
-  # Step to fetch and prepare Google Cloud credentials
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        echo $SERVICE_ACCOUNT_KEY | base64 --decode > /workspace/gcloud-service-key.json
-        export GOOGLE_APPLICATION_CREDENTIALS=/workspace/gcloud-service-key.json
-
-      
   # Step 3: Deploy to Google App Engine
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "gcloud"
     args:
       - app
       - deploy
-      - '--version'
-      - '$BUILD_ID'
+      - "--version"
+      - "$BUILD_ID"
       - "--project=$PROJECT_ID"
       - "--quiet" # Add this flag to prevent prompts during deployment
       # - "dispatch.yaml"
