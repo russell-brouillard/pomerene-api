@@ -46,4 +46,4 @@ temp/
 # Build files
 dist/
 
-src/secrets
+src/secrets/
