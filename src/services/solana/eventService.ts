@@ -242,12 +242,16 @@ export async function fetchScannersForMap(owner: Keypair) {
     .filter((result) => result && result.length > 0)
     .flat();
 
+   
+
   return transactionsItems
     .map((item) => processMapTransaction(item))
     .filter((item) => item);
 }
 
 function processMapTransaction(item: any) {
+
+  console.log(item);
   const memo = item.memo;
   const input = memo.substring(memo.indexOf('"') + 1, memo.lastIndexOf('"'));
   const parts = input.split(",");
@@ -255,8 +259,8 @@ function processMapTransaction(item: any) {
   if (parts.length !== 4) return null;
 
   const [itemPublicKey, scannerPublicKey, lat, lon] = parts;
-  const latitude = parseFloat(lat.split(":")[1]);
-  const longitude = parseFloat(lon.split(":")[1]);
+  const latitude = parseFloat(lat);
+  const longitude = parseFloat(lon);
   const timestamp = item.blockTime;
   const sig = item.signature;
 
