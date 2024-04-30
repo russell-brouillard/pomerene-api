@@ -9,7 +9,7 @@ export async function getFirebaseAdmin() {
 
   try {
     console.log("Initializing Firebase Admin");
-    const secretVersionName = `projects/pomerene-416519/secrets/api-firebase-admin-key/versions/latest`;
+    const secretVersionName = `projects/${process.env.PROJECT_ID}/secrets/api-firebase-admin-key/versions/latest`;
     const [accessResponse] =
       await secretManagerServiceClient.accessSecretVersion({
         name: secretVersionName,

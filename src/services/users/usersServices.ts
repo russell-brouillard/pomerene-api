@@ -81,7 +81,7 @@ export async function getSolanaKeypairForUser(
   userId: string
 ): Promise<Keypair> {
   const secretId = `solana-keypair-${userId}`;
-  const secretVersionName = `projects/pomerene-416519/secrets/${secretId}/versions/latest`;
+  const secretVersionName = `projects/${process.env.PROJECT_ID}/secrets/${secretId}/versions/latest`;
 
   try {
     const [accessResponse] =
