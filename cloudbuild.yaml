@@ -13,8 +13,8 @@ steps:
     args: ["run", "build"]
     env:
       - "CORS_ORIGIN=https://www.pomerene.net" 
+      - 'GOOGLE_APPLICATION_CREDENTIALS=projects/$PROJECT_ID/secrets/api-firebase-admin-key/versions/latest'
       
-
   # Step 3: Deploy to Google App Engine
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "gcloud"

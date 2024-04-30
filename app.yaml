@@ -1,6 +1,6 @@
 runtime: nodejs20
 env: standard
-service: api
+service: default
 
 handlers:
   - url: /.*

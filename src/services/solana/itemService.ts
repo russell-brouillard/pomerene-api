@@ -12,7 +12,6 @@ import { TokenMetadata } from "@solana/spl-token-metadata";
 import { encode } from "bs58";
 import {
   createMetadataMint,
-  fundScannerAccount,
   getTokensByOwner,
   mintToAccount,
 } from "./solanaService";
@@ -23,7 +22,6 @@ import {
   createEnableRequiredMemoTransfersInstruction,
   createInitializeAccountInstruction,
   getAccountLen,
-  getOrCreateAssociatedTokenAccount,
 } from "@solana/spl-token";
 
 export async function createItem(
