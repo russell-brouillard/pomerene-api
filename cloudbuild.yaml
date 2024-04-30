@@ -13,7 +13,16 @@ steps:
     args: ["run", "build"]
     env:
       - "CORS_ORIGIN=https://www.pomerene.net" 
-      - 'GOOGLE_APPLICATION_CREDENTIALS=projects/$PROJECT_ID/secrets/api-firebase-admin-key/versions/latest'
+
+  # Step to fetch and prepare Google Cloud credentials
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        echo $SERVICE_ACCOUNT_KEY | base64 --decode > /workspace/gcloud-service-key.json
+        export GOOGLE_APPLICATION_CREDENTIALS=/workspace/gcloud-service-key.json
+
       
   # Step 3: Deploy to Google App Engine
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
