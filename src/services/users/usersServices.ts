@@ -49,7 +49,7 @@ export async function createUserAndStoreSolanaKeypair(
 
     // Store the Solana keypair in Google Cloud Secret Manager
     const secretId = `solana-keypair-${userRecord.uid}`;
-    const parent = `projects/pomerene-416519`;
+    const parent = `projects/${process.env.GOOGLE_CLOUD_PROJECT}`;
     const [secret] = await secretManagerServiceClient.createSecret({
       parent,
       secretId,
