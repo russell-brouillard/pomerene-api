@@ -12,6 +12,9 @@ export const authMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
+  if (req.method === "OPTIONS") {
+    return next(); // Allow OPTIONS requests through
+  }
   const authorizationHeader = req.headers.authorization;
 
   if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
