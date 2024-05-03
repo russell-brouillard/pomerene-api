@@ -21,7 +21,7 @@ steps:
       - app
       - deploy
       - "--version"
-      - "$BUILD_ID"
+      - "russell"
       - "--project=$PROJECT_ID"
       - "--quiet" # Add this flag to prevent prompts during deployment
-      - "dispatch.yaml"
+      # - "dispatch.yaml"
