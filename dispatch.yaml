@@ -1,6 +1,6 @@
 dispatch:
-  - url: "www.pomerene.net/api/v1/*"
-    service: api
+  - url: "dev.pomerene.net/api/v1/*"
+    service: default
 
-  - url: "www.pomerene.net/*"
+  - url: "dev.pomerene.net/*"
     service: web

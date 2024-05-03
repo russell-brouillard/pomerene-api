@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { createItem, fetchItem } from "../services/solana/itemService";
+import { createItem, fetchItems } from "../services/solana/itemService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSolanaKeypairForUser } from "../services/users/usersServices";
 import { PublicKey } from "@solana/web3.js";
-import { deleteItem } from "../services/solana/solanaService";
+import { closeMintAccount } from "../services/solana/solanaService";
 
 /**
  * @swagger
@@ -109,32 +109,32 @@ export async function createItemController(
   }
 }
 
-/**
- * @swagger
- * /api/v1/item/delete/{mint}:
- *   delete:
- *     summary: Deletes an item by closing its mint account.
- *     tags: [Item]
- *     parameters:
- *       - in: path
- *         name: mint
- *         required: true
- *         schema:
- *           type: string
- *         description: The public key of the mint to be deleted.
- *     responses:
- *       200:
- *         description: Item deleted successfully.
- *       500:
- *         description: Error deleting the item.
- */
+// /**
+//  * @swagger
+//  * /api/v1/item/delete/{mint}:
+//  *   delete:
+//  *     summary: Deletes an item by closing its mint account.
+//  *     tags: [Item]
+//  *     parameters:
+//  *       - in: path
+//  *         name: mint
+//  *         required: true
+//  *         schema:
+//  *           type: string
+//  *         description: The public key of the mint to be deleted.
+//  *     responses:
+//  *       200:
+//  *         description: Item deleted successfully.
+//  *       500:
+//  *         description: Error deleting the item.
+//  */
 export async function deleteItemController(
   req: AuthRequest,
   res: Response
 ): Promise<any> {
   try {
     // Extract mint public key from URL parameters
-    const { mint } = req.params;
+    const { mint, account } = req.params;
     if (!mint) {
       return res
         .status(400)
@@ -159,9 +159,10 @@ export async function deleteItemController(
 
     // Convert mint string to PublicKey
     const mintPublicKey = new PublicKey(mint);
+    const accountPublicKey = new PublicKey(account);
 
     // Call deleteItem (close mint account)
-    await deleteItem(payer, mintPublicKey);
+    await closeMintAccount(payer, mintPublicKey, accountPublicKey);
 
     res
       .status(200)
@@ -251,7 +252,7 @@ export async function handleFetchItemsForUser(
 
     const owner = await getSolanaKeypairForUser(req.user.uid);
 
-    const items = await fetchItem(owner); // Using publicKey from the user object
+    const items = await fetchItems(owner); // Using publicKey from the user object
 
     res.status(200).json({ success: true, items });
   } catch (error: any) {

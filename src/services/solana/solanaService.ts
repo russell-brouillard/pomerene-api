@@ -19,14 +19,14 @@ import {
   createInitializeMintCloseAuthorityInstruction,
   createInitializeMintInstruction,
   createUpdateFieldInstruction,
-  getMetadataPointerState,
   getMint,
   getMintLen,
-  getOrCreateAssociatedTokenAccount,
   getTokenMetadata,
   mintTo,
+  burn,
+  getOrCreateAssociatedTokenAccount,
 } from "@solana/spl-token";
-import { SplTokenAccount } from "solanaTypes";
+
 import { encode } from "bs58";
 import { TokenMetadata, pack } from "@solana/spl-token-metadata";
 
@@ -68,26 +68,6 @@ export async function airdropSol(publicKeyString: string) {
   }
 }
 
-export async function getSPLTokens(
-  publicKey: string
-): Promise<SplTokenAccount[]> {
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-  const ownerPublicKey = new PublicKey(publicKey);
-
-  // Fetch all SPL Token accounts for the specified wallet
-  const { value: tokenAccounts } =
-    await connection.getParsedTokenAccountsByOwner(ownerPublicKey, {
-      programId: TOKEN_2022_PROGRAM_ID,
-    });
-
-  // Process and return the token accounts data
-  return tokenAccounts.map((account) => ({
-    mint: account.account.data.parsed.info.mint,
-    owner: account.account.data.parsed.info.owner,
-    tokenAmount: account.account.data.parsed.info.tokenAmount.uiAmount,
-  }));
-}
-
 export function generateSolanaKeypair(): {
   publicKey: string;
   privateKey: string;
@@ -104,16 +84,13 @@ export function generateSolanaKeypair(): {
   };
 }
 
-export async function getAccountsByOwner(owner: Keypair): Promise<any[]> {
+export async function getTokensByOwner(owner: PublicKey): Promise<any[]> {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
   // Fetch all token accounts for the owner
-  const accounts = await connection.getParsedTokenAccountsByOwner(
-    owner.publicKey,
-    {
-      programId: TOKEN_2022_PROGRAM_ID,
-    }
-  );
+  const accounts = await connection.getParsedTokenAccountsByOwner(owner, {
+    programId: TOKEN_2022_PROGRAM_ID,
+  });
 
   // Cache for metadata to avoid fetching the same data multiple times
   const metadataCache = new Map<string, any>();
@@ -136,6 +113,9 @@ export async function getAccountsByOwner(owner: Keypair): Promise<any[]> {
       return {
         mint: accountData.mint,
         owner: accountData.owner,
+        tokenAccount: accountInfo.pubkey,
+        itemPublic: metadata.additionalMetadata[2][1],
+        itemSecret: metadata.additionalMetadata[0][1],
         tokenAmount: accountData.tokenAmount.uiAmount,
         metadata,
         //lastTokenTransaction
@@ -307,19 +287,53 @@ export async function mintToAccount(
   return tokenAccount;
 }
 
-export async function deleteItem(payer: Keypair, mint: PublicKey) {
+export async function closeMintAccount(
+  payer: Keypair,
+  mint: PublicKey,
+  account: PublicKey
+) {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+  const burnConfirmMint = await burn(
+    connection,
+    payer,
+    account,
+    mint,
+    payer.publicKey,
+    1,
+    undefined,
+    undefined,
+    TOKEN_2022_PROGRAM_ID
+  );
+
+  const closeAuthority = payer.publicKey;
 
   const transactionSignature = await closeAccount(
     connection,
     payer, // Transaction fee payer
     mint, // Mint Account address
     payer.publicKey, // Account to receive lamports from closed account
-    payer.publicKey, // Close Authority for Mint Account
+    closeAuthority, // Close Authority for Mint Account
     undefined, // Additional signers
     undefined, // Confirmation options
     TOKEN_2022_PROGRAM_ID // Token Extension Program ID
   );
-
   return transactionSignature;
+}
+
+export async function fundScannerAccount(
+  connection: Connection,
+  payer: Keypair,
+  scannerPublicKey: PublicKey,
+  lamports: number
+) {
+  // const lamports = 0.01 * LAMPORTS_PER_SOL;
+  const transferInstruction = SystemProgram.transfer({
+    fromPubkey: payer.publicKey,
+    toPubkey: scannerPublicKey,
+    lamports,
+  });
+
+  const transaction = new Transaction().add(transferInstruction);
+  await sendAndConfirmTransaction(connection, transaction, [payer]);
 }
