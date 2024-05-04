@@ -24,4 +24,4 @@ steps:
       - "$BUILD_ID"
       - "--project=$PROJECT_ID"
       - "--quiet" # Add this flag to prevent prompts during deployment
-      - "dispatch.yaml"
+      # - "dispatch.yaml"
