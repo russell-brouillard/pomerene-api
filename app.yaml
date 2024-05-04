@@ -2,6 +2,10 @@ runtime: nodejs20
 env: standard
 service: default
 
+memcache:
+  size_gb: 1 # Set the desired Memcached cache size (default is 1GB)
+  cache_node_count: 1 # Set the number of Memcached instances (default is 1)
+
 handlers:
   - url: /.*
     script: auto
