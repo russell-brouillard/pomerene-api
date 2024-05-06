@@ -171,7 +171,7 @@ export interface ItemTokenAccount {
 
 export async function fetchItems(owner: Keypair): Promise<ItemTokenAccount[]> {
   const ownerAddress = owner.publicKey.toString();
-  const cacheKey = `tokenAccounts-${ownerAddress}`;
+  const cacheKey = `itemTokenAccounts-${ownerAddress}`;
 
   // Attempt to get cached data first
   let cachedTokens = await getCache(cacheKey);
@@ -226,7 +226,7 @@ export async function getItemsByOwner(
         lastTransaction:
           lastTransaction && lastTransaction.length > 0
             ? lastTransaction[0]
-            : [],
+            : null,
       };
     })
   );

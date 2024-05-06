@@ -156,7 +156,7 @@ export async function getScannersByOwner(
         lastTransaction:
           lastTransaction && lastTransaction.length > 0
             ? lastTransaction[0]
-            : [],
+            : null,
       };
     })
   );
