@@ -249,7 +249,7 @@ export async function getMapItemsController(req: AuthRequest, res: Response) {
 
     res.status(200).json(mapItems);
   } catch (error) {
-    console.error("Failed to fetch scanner transaction:", error);
+    console.error("Failed to fetch items for map:", error);
     res.status(500).json({ success: false, error: "Internal server error." });
   }
 }

@@ -18,7 +18,7 @@ import {
 } from "@solana/web3.js";
 import { decode } from "bs58";
 import { getTokensByOwner } from "./solanaService";
-import { fetchItems } from "./itemService";
+import { ItemTokenAccount, fetchItems } from "./itemService";
 import { fetchScanners } from "./scannerService";
 
 /**
@@ -142,6 +142,8 @@ export async function fetchTransactions(
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
   const pubKey = new PublicKey(accountAddress);
 
+  console.log("Fetching transactions for account:", accountAddress);
+
   const before = undefined;
   const until = undefined;
 
@@ -164,23 +166,11 @@ export async function fetchTransactions(
 }
 
 export async function fetchItemsTransaction(owner: Keypair) {
-  const data = await fetchItems(owner);
-
-  const publicKeys: string[] = [];
-
-  // Extract public keys from data
-  data.forEach((tx: any) => {
-    const publicEntry = tx.metadata.additionalMetadata.find(
-      (entry: any) => entry[0] === "public"
-    );
-    if (publicEntry) {
-      publicKeys.push(publicEntry[1]);
-    }
-  });
+  const items = await fetchItems(owner);
 
   // Use Promise.all to fetch all transactions concurrently
   const results = await Promise.all(
-    publicKeys.map((key) => fetchTransactions(key, 1))
+    items.map((item) => fetchTransactions(item.tokenAccount, 1))
   );
 
   // Filter out any empty results and flatten the array
@@ -188,23 +178,11 @@ export async function fetchItemsTransaction(owner: Keypair) {
 }
 
 export async function fetchItemsForMap(owner: Keypair) {
-  const data = await fetchItems(owner);
-
-  const publicKeys: string[] = [];
-
-  // Extract public keys from data
-  data.forEach((tx: any) => {
-    const publicEntry = tx.metadata.additionalMetadata.find(
-      (entry: any) => entry[0] === "public"
-    );
-    if (publicEntry) {
-      publicKeys.push(publicEntry[1]);
-    }
-  });
+  const items: ItemTokenAccount[] = await fetchItems(owner);
 
   // Use Promise.all to fetch all transactions concurrently
   const results = await Promise.all(
-    publicKeys.map((key) => fetchTransactions(key, 1))
+    items.map((item) => fetchTransactions(item.tokenAccount, 1))
   );
 
   // Filter out any empty results and flatten the array
@@ -242,15 +220,12 @@ export async function fetchScannersForMap(owner: Keypair) {
     .filter((result) => result && result.length > 0)
     .flat();
 
-   
-
   return transactionsItems
     .map((item) => processMapTransaction(item))
     .filter((item) => item);
 }
 
 function processMapTransaction(item: any) {
-
   console.log(item);
   const memo = item.memo;
   const input = memo.substring(memo.indexOf('"') + 1, memo.lastIndexOf('"'));

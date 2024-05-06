@@ -27,6 +27,7 @@ export async function getFirebaseAdmin() {
     // Explicitly initialize the Firebase app
     const app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
+      databaseURL: process.env.FIREBASE_DATABASE_URL,
     });
 
     console.log("Firebase Admin Initialized Successfully");

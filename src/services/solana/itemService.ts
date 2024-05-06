@@ -7,15 +7,11 @@ import {
   clusterApiUrl,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
-import Memcached from "memcached";
+import { auth } from "firebase-admin";
 import { TokenMetadata } from "@solana/spl-token-metadata";
 import { encode } from "bs58";
-import {
-  createMetadataMint,
-  getTokensByOwner,
-  mintToAccount,
-} from "./solanaService";
-import { TokenObject } from "userTypes";
+import { createMetadataMint, mintToAccount } from "./solanaService";
+
 import {
   ExtensionType,
   TOKEN_2022_PROGRAM_ID,
@@ -24,6 +20,8 @@ import {
   getAccountLen,
   getTokenMetadata,
 } from "@solana/spl-token";
+import { getFirebaseAdmin } from "../google/firebase";
+import { fetchTransactions } from "./eventService";
 
 export async function createItem(
   payer: Keypair,
@@ -159,123 +157,135 @@ export async function createItem(
   };
 }
 
-// Create a Memcached client instance
-const memcached = new Memcached("localhost:11211");
-
-// Cache keys
-const TOKEN_ACCOUNTS_CACHE_KEY = "tokenAccounts";
-const METADATA_CACHE_PREFIX = "metadata";
-
-interface TokenAccount {
+export interface ItemTokenAccount {
   mint: string;
   owner: PublicKey;
-  tokenAccount: PublicKey;
-  itemPublic: string;
-  itemSecret: string;
+  tokenAccount: string;
+  public: string | undefined;
+  secret: string | undefined;
   tokenAmount: number;
-  itemDescription: string;
-  type: string;
+  description: string | undefined;
+  type: string | undefined;
+  lastTransaction: any;
 }
 
-export async function fetchItems(owner: Keypair): Promise<TokenAccount[]> {
-  const tokens = await getItemsByOwner(owner.publicKey);
-  return tokens.filter(
-    (token: TokenAccount) => token.type === "item" && token.tokenAmount > 0
-  );
+export async function fetchItems(owner: Keypair): Promise<ItemTokenAccount[]> {
+  const ownerAddress = owner.publicKey.toString();
+  const cacheKey = `tokenAccounts-${ownerAddress}`;
+
+  // Attempt to get cached data first
+  let cachedTokens = await getCache(cacheKey);
+
+  if (cachedTokens && cachedTokens.length > 0) {
+    console.log("Returning cached data");
+    // Update the cache in the background without waiting for it to complete
+    updateCache(owner, cacheKey).catch((error) =>
+      console.error("Cache update failed", error)
+    );
+    return cachedTokens;
+  }
+
+  // If no cache or cache is empty, fetch from blockchain and update cache
+  return updateCache(owner, cacheKey);
 }
 
 export async function getItemsByOwner(
   owner: PublicKey
-): Promise<TokenAccount[]> {
+): Promise<ItemTokenAccount[]> {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-
-  // Check if token accounts are cached
-  const cachedTokenAccounts = await getCachedData<TokenAccount[]>(
-    TOKEN_ACCOUNTS_CACHE_KEY,
-    owner.toString()
-  );
-  if (cachedTokenAccounts) {
-    return cachedTokenAccounts;
-  }
 
   // Fetch all token accounts for the owner
   const accounts = await connection.getParsedTokenAccountsByOwner(owner, {
     programId: TOKEN_2022_PROGRAM_ID,
   });
 
-  // Process each account in parallel, leveraging the cache for metadata
+  // Process each account in parallel
   const parsedAccounts = await Promise.all(
     accounts.value.map(async (accountInfo) => {
       const accountData = accountInfo.account.data.parsed.info;
-      const metadata = await getCachedMetadata(accountData.mint);
+
+      const metadata = await getTokenMetadata(
+        connection,
+        new PublicKey(accountData.mint)
+      );
+
+      let lastTransaction = await fetchTransactions(
+        metadata!.additionalMetadata[2][1],
+        1
+      );
 
       return {
         mint: accountData.mint,
         owner: accountData.owner,
-        tokenAccount: accountInfo.pubkey,
-        itemPublic: metadata.additionalMetadata[2][1],
-        itemSecret: metadata.additionalMetadata[0][1],
+        tokenAccount: accountInfo.pubkey.toString(),
+        public: metadata?.additionalMetadata[2][1],
+        secret: metadata?.additionalMetadata[0][1],
         tokenAmount: accountData.tokenAmount.uiAmount,
-        itemDescription: metadata.additionalMetadata[1][1],
-        type: metadata.name.toLowerCase(),
+        description: metadata?.additionalMetadata[1][1],
+        type: metadata?.name.toLowerCase(),
+        lastTransaction:
+          lastTransaction && lastTransaction.length > 0
+            ? lastTransaction[0]
+            : [],
       };
     })
   );
 
-  // Cache token accounts
-  await cacheData(TOKEN_ACCOUNTS_CACHE_KEY, owner.toString(), parsedAccounts);
-
   return parsedAccounts;
 }
 
-async function getCachedData<T>(
-  cacheKey: string,
-  id: string
-): Promise<T | null> {
-  return new Promise((resolve, reject) => {
-    memcached.get(
-      `${cacheKey}:${id}`,
-      (err: Error | null, data: string | null) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(data ? JSON.parse(data) : null);
-        }
-      }
-    );
-  });
-}
+async function getCache(cacheKey: string) {
+  const firebase = await getFirebaseAdmin();
 
-async function getCachedMetadata(mint: string): Promise<any> {
-  const cachedMetadata = await getCachedData<any>(METADATA_CACHE_PREFIX, mint);
-  if (cachedMetadata) {
-    return cachedMetadata;
+  if (!firebase) {
+    throw new Error("Failed to get Firebase admin");
   }
-
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-  const metadata = await getTokenMetadata(connection, new PublicKey(mint));
-  await cacheData(METADATA_CACHE_PREFIX, mint, metadata);
-  return metadata;
+  try {
+    const doc = await firebase
+      .firestore()
+      .collection("cache")
+      .doc(cacheKey)
+      .get();
+    if (doc.exists) {
+      return doc.data()?.tokens;
+    }
+  } catch (error) {
+    console.error("Error getting cache:", error);
+  }
+  return null;
 }
 
-async function cacheData<T>(
-  cacheKey: string,
-  id: string,
-  data: T,
-  lifetime: number = 36000
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    memcached.set(
-      `${cacheKey}:${id}`,
-      JSON.stringify(data),
-      lifetime,
-      (err: Error | null) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-    );
-  });
+async function updateCache(
+  owner: Keypair,
+  cacheKey: string
+): Promise<ItemTokenAccount[]> {
+  const tokens = await getItemsByOwner(owner.publicKey);
+  const filteredTokens = tokens.filter(
+    (token: ItemTokenAccount) => token.type === "item" && token.tokenAmount > 0
+  );
+
+  console.log("Fetched data from blockchain");
+  console.log(filteredTokens);
+
+  // Cache the newly fetched data
+  await setCache(cacheKey, filteredTokens);
+  return filteredTokens;
+}
+
+async function setCache(cacheKey: string, tokens: ItemTokenAccount[]) {
+  const firebase = await getFirebaseAdmin();
+
+  if (!firebase) {
+    throw new Error("Failed to get Firebase admin");
+  }
+  try {
+    await firebase
+      .firestore()
+      .collection("cache")
+      .doc(cacheKey)
+      .set({ tokens });
+    console.log("Cache updated");
+  } catch (error) {
+    console.error("Error setting cache:", error);
+  }
 }
