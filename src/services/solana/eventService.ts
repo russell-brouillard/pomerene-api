@@ -168,7 +168,7 @@ export async function fetchItemsTransaction(owner: Keypair) {
 
   // Use Promise.all to fetch all transactions concurrently
   const results = await Promise.all(
-    items.map((item) => fetchTransactions(item.tokenAccount, 1))
+    items.map((item:ItemTokenAccount) => fetchTransactions(item.tokenAccount, 1))
   );
 
   // Filter out any empty results and flatten the array

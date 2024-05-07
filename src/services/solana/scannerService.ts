@@ -125,7 +125,7 @@ export async function fetchScanners(
   owner: Keypair
 ): Promise<ScannerTokenAccount[]> {
   const ownerAddress = owner.publicKey.toString();
-  const cacheKey = `scannerTokenAccount-${ownerAddress}`;
+  const cacheKey = ownerAddress;
 
   // Attempt to get cached data first
   let cachedTokens = await getCache(cacheKey);
@@ -196,7 +196,7 @@ async function getCache(cacheKey: string) {
   try {
     const doc = await firebase
       .firestore()
-      .collection("cache")
+      .collection("scanners")
       .doc(cacheKey)
       .get();
     if (doc.exists) {
@@ -232,7 +232,7 @@ async function setCache(cacheKey: string, tokens: ScannerTokenAccount[]) {
   try {
     await firebase
       .firestore()
-      .collection("cache")
+      .collection("scanners")
       .doc(cacheKey)
       .set({ tokens });
   } catch (error) {
