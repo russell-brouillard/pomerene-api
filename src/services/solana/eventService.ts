@@ -18,7 +18,7 @@ import {
 } from "@solana/web3.js";
 import { decode } from "bs58";
 import { getTokensByOwner } from "./solanaService";
-import { ItemTokenAccount, fetchItems } from "./itemService";
+import { ItemTokenAccount, fetchItemsByOwner } from "./itemService";
 import { fetchScanners } from "./scannerService";
 
 /**
@@ -142,8 +142,6 @@ export async function fetchTransactions(
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
   const pubKey = new PublicKey(accountAddress);
 
-  console.log("Fetching transactions for account:", accountAddress);
-
   const before = undefined;
   const until = undefined;
 
@@ -166,7 +164,7 @@ export async function fetchTransactions(
 }
 
 export async function fetchItemsTransaction(owner: Keypair) {
-  const items = await fetchItems(owner);
+  const items = await fetchItemsByOwner(owner);
 
   // Use Promise.all to fetch all transactions concurrently
   const results = await Promise.all(
@@ -177,23 +175,23 @@ export async function fetchItemsTransaction(owner: Keypair) {
   return results.filter((result) => result && result.length > 0).flat();
 }
 
-export async function fetchItemsForMap(owner: Keypair) {
-  const items: ItemTokenAccount[] = await fetchItems(owner);
+// export async function fetchItemsForMap(owner: Keypair) {
+//   const items: ItemTokenAccount[] = await fetchItems(owner);
 
-  // Use Promise.all to fetch all transactions concurrently
-  const results = await Promise.all(
-    items.map((item) => fetchTransactions(item.tokenAccount, 1))
-  );
+//   // Use Promise.all to fetch all transactions concurrently
+//   const results = await Promise.all(
+//     items.map((item) => fetchTransactions(item.tokenAccount, 1))
+//   );
 
-  // Filter out any empty results and flatten the array
-  const transactionsItems = results
-    .filter((result) => result && result.length > 0)
-    .flat();
+//   // Filter out any empty results and flatten the array
+//   const transactionsItems = results
+//     .filter((result) => result && result.length > 0)
+//     .flat();
 
-  return transactionsItems
-    .map((item) => processMapTransaction(item))
-    .filter((item) => item);
-}
+//   return transactionsItems
+//     .map((item) => processMapTransaction(item))
+//     .filter((item) => item);
+// }
 
 export async function fetchScannersForMap(owner: Keypair) {
   const data = await fetchScanners(owner);
@@ -226,7 +224,6 @@ export async function fetchScannersForMap(owner: Keypair) {
 }
 
 function processMapTransaction(item: any) {
-  console.log(item);
   const memo = item.memo;
   const input = memo.substring(memo.indexOf('"') + 1, memo.lastIndexOf('"'));
   const parts = input.split(",");

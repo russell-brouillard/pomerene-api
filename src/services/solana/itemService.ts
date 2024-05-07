@@ -169,15 +169,16 @@ export interface ItemTokenAccount {
   lastTransaction: any;
 }
 
-export async function fetchItems(owner: Keypair): Promise<ItemTokenAccount[]> {
+export async function fetchItemsByOwner(
+  owner: Keypair
+): Promise<ItemTokenAccount[]> {
   const ownerAddress = owner.publicKey.toString();
-  const cacheKey = `itemTokenAccounts-${ownerAddress}`;
+  const cacheKey = ownerAddress;
 
   // Attempt to get cached data first
   let cachedTokens = await getCache(cacheKey);
 
   if (cachedTokens && cachedTokens.length > 0) {
-    console.log("Returning cached data");
     // Update the cache in the background without waiting for it to complete
     updateCache(owner, cacheKey).catch((error) =>
       console.error("Cache update failed", error)
@@ -243,7 +244,7 @@ async function getCache(cacheKey: string) {
   try {
     const doc = await firebase
       .firestore()
-      .collection("cache")
+      .collection("items")
       .doc(cacheKey)
       .get();
     if (doc.exists) {
@@ -264,9 +265,6 @@ async function updateCache(
     (token: ItemTokenAccount) => token.type === "item" && token.tokenAmount > 0
   );
 
-  console.log("Fetched data from blockchain");
-  console.log(filteredTokens);
-
   // Cache the newly fetched data
   await setCache(cacheKey, filteredTokens);
   return filteredTokens;
@@ -281,10 +279,9 @@ async function setCache(cacheKey: string, tokens: ItemTokenAccount[]) {
   try {
     await firebase
       .firestore()
-      .collection("cache")
+      .collection("items")
       .doc(cacheKey)
       .set({ tokens });
-    console.log("Cache updated");
   } catch (error) {
     console.error("Error setting cache:", error);
   }

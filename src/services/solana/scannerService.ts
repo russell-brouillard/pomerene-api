@@ -9,7 +9,12 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { encode } from "bs58";
-import { createMetadataMint, fundScannerAccount, getTokensByOwner, mintToAccount } from "./solanaService";
+import {
+  createMetadataMint,
+  fundScannerAccount,
+  getTokensByOwner,
+  mintToAccount,
+} from "./solanaService";
 import { TokenMetadata } from "@solana/spl-token-metadata";
 import { TokenObject } from "userTypes";
 import { getFirebaseAdmin } from "../google/firebase";
@@ -52,12 +57,27 @@ export async function createScanner(payer: Keypair, description: string) {
     1 // Amount to mint
   );
 
-  await fundScannerAccount(connection, payer, scannerKeypair.publicKey, 0.01 * LAMPORTS_PER_SOL);
+  await fundScannerAccount(
+    connection,
+    payer,
+    scannerKeypair.publicKey,
+    0.01 * LAMPORTS_PER_SOL
+  );
 
-  return assembleScannerData(payer, mintKeypair.publicKey, scannerKeypair, description, tokenAccount);
+  return assembleScannerData(
+    payer,
+    mintKeypair.publicKey,
+    scannerKeypair,
+    description,
+    tokenAccount
+  );
 }
 
-function createTokenMetadata(scannerKeypair: Keypair, description: string, payer: Keypair): TokenMetadata {
+function createTokenMetadata(
+  scannerKeypair: Keypair,
+  description: string,
+  payer: Keypair
+): TokenMetadata {
   return {
     updateAuthority: payer.publicKey,
     mint: scannerKeypair.publicKey,
@@ -72,9 +92,13 @@ function createTokenMetadata(scannerKeypair: Keypair, description: string, payer
   };
 }
 
-
-
-function assembleScannerData(payer: Keypair, mintPublicKey: PublicKey, scannerKeypair: Keypair, description: string, tokenAccount: PublicKey) {
+function assembleScannerData(
+  payer: Keypair,
+  mintPublicKey: PublicKey,
+  scannerKeypair: Keypair,
+  description: string,
+  tokenAccount: PublicKey
+) {
   return {
     owner: payer.publicKey.toString(),
     mint: mintPublicKey.toString(),
@@ -84,8 +108,6 @@ function assembleScannerData(payer: Keypair, mintPublicKey: PublicKey, scannerKe
     description,
   };
 }
-
-
 
 export interface ScannerTokenAccount {
   mint: string;
@@ -99,7 +121,9 @@ export interface ScannerTokenAccount {
   lastTransaction: any;
 }
 
-export async function fetchScanners(owner: Keypair): Promise<ScannerTokenAccount[]> {
+export async function fetchScanners(
+  owner: Keypair
+): Promise<ScannerTokenAccount[]> {
   const ownerAddress = owner.publicKey.toString();
   const cacheKey = `scannerTokenAccount-${ownerAddress}`;
 
@@ -107,7 +131,6 @@ export async function fetchScanners(owner: Keypair): Promise<ScannerTokenAccount
   let cachedTokens = await getCache(cacheKey);
 
   if (cachedTokens && cachedTokens.length > 0) {
-    console.log("Returning cached data");
     // Update the cache in the background without waiting for it to complete
     updateCache(owner, cacheKey).catch((error) =>
       console.error("Cache update failed", error)
@@ -191,11 +214,9 @@ async function updateCache(
 ): Promise<ScannerTokenAccount[]> {
   const tokens = await getScannersByOwner(owner.publicKey);
   const filteredTokens = tokens.filter(
-    (token: ScannerTokenAccount) => token.type === "scanner" && token.tokenAmount > 0
+    (token: ScannerTokenAccount) =>
+      token.type === "scanner" && token.tokenAmount > 0
   );
-
-  console.log("Fetched data from blockchain");
-  console.log(filteredTokens);
 
   // Cache the newly fetched data
   await setCache(cacheKey, filteredTokens);
@@ -214,9 +235,7 @@ async function setCache(cacheKey: string, tokens: ScannerTokenAccount[]) {
       .collection("cache")
       .doc(cacheKey)
       .set({ tokens });
-    console.log("Cache updated");
   } catch (error) {
     console.error("Error setting cache:", error);
   }
 }
-
