@@ -3,10 +3,8 @@ import { authMiddleware } from "../middleware/authMiddleware";
 import {
   createScannerTransactionController,
   getItemTransactionController,
-  getMapItemsController,
   getScannerTransactionController,
   getTransactionController,
-  getMapScannersController,
 } from "../controllers/eventController";
 
 const router = express.Router();
@@ -16,8 +14,6 @@ const router = express.Router();
 router.post("/scan", authMiddleware, createScannerTransactionController);
 router.get('/scanners', authMiddleware, getScannerTransactionController); 
 router.get('/items', authMiddleware, getItemTransactionController);  
-router.get('/map/items', authMiddleware, getMapItemsController); 
-router.get('/map/scanners', authMiddleware, getMapScannersController);
 router.get('/:address', authMiddleware, getTransactionController);  
 
 
