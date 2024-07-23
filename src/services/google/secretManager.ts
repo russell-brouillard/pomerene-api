@@ -1,6 +1,11 @@
-// src/googleCloud.ts
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 
-const secretManagerServiceClient = new SecretManagerServiceClient();
+export const secretManagerServiceClient = new SecretManagerServiceClient();
 
-export { secretManagerServiceClient };
+export async function loadSecret(name: string): Promise<string> {
+  const [version] = await secretManagerServiceClient.accessSecretVersion({
+    name,
+  });
+
+  return version.payload?.data?.toString() || "";
+}

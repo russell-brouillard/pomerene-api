@@ -1,23 +1,30 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { FirebaseOptions, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { loadSecret } from "./secretManager";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyA2tdOulU73ADVdPhrnxQYt570L4ZBRQFQ",
-  authDomain: "pomerene-dev.firebaseapp.com",
-  projectId: "pomerene-dev",
-  storageBucket: "pomerene-dev.appspot.com",
-  messagingSenderId: "844147711427",
-  appId: "1:844147711427:web:2386f0061923f540bdf176",
-  measurementId: "G-6T3CY94SZB",
-};
+let appWeb: ReturnType<typeof getAuth> | null = null;
 
-// Initialize Firebase
-const appWeb = initializeApp(firebaseConfig);
+async function loadFirebaseWebSecret(): Promise<FirebaseOptions> {
+  const secretVersionName = `projects/1043799128332/secrets/api-firebase-web-key/versions/latest`;
+  const secretString = await loadSecret(secretVersionName);
 
-export const authWeb = getAuth(appWeb);
+  return JSON.parse(secretString);
+}
+
+export async function initializeFirebaseWeb() {
+  if (appWeb) {
+    return appWeb;
+  }
+
+  try {
+    const firebaseWebSecret = await loadFirebaseWebSecret();
+    const firebaseApp = initializeApp(firebaseWebSecret);
+
+    console.log("Firebase web initialized successfully");
+    appWeb = getAuth(firebaseApp);
+    return appWeb;
+  } catch (err) {
+    console.error("Failed to initialize Firebase Web", err);
+    throw new Error("Firebase Web initialization failed");
+  }
+}

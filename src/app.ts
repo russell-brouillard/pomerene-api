@@ -4,16 +4,23 @@ import routes from "./routes/allRoutes";
 import cors from "cors";
 import path from "path";
 import { getFirebaseAdmin } from "./services/google/firebase";
+import { initializeFirebaseWeb } from "./services/google/firebaseWeb";
 
 dotenv.config();
 
-getFirebaseAdmin()
-  .then((firebase) => {
+async function startServer() {
+  try {
+    // Initialize Firebase Admin
+    await getFirebaseAdmin();
+
+    // Initialize Firebase Web
+    await initializeFirebaseWeb();
+
     const app = express();
 
     app.use(
       cors({
-        origin: [`${process.env.CORS_ORIGIN}`,`${process.env.CORS_ORIGIN}/`],
+        origin: [`${process.env.CORS_ORIGIN}`, `${process.env.CORS_ORIGIN}/`],
       })
     );
 
@@ -30,8 +37,10 @@ getFirebaseAdmin()
       console.log(`Server is running at http://localhost:${PORT}/api/v1/`);
       console.log(`API docs are running at http://localhost:${PORT}/api-docs`);
     });
-  })
-  .catch((error) => {
-    console.error("Failed to initialize Firebase Admin:", error);
+  } catch (error) {
+    console.error("Failed to initialize Firebase services:", error);
     process.exit(1);
-  });
+  }
+}
+
+startServer();

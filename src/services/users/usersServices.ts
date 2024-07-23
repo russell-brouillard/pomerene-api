@@ -2,18 +2,15 @@
 
 import { secretManagerServiceClient } from "../google/secretManager";
 import { Keypair } from "@solana/web3.js";
-import { authWeb } from "../google/firebaseWeb";
-import {
-  User,
-  UserCredential,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+
+import { UserCredential, signInWithEmailAndPassword } from "firebase/auth";
 import { CreateUserAndStoreSolanaKeypairResult } from "solanaTypes";
 
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { ListUsersResult } from "firebase-admin/lib/auth/base-auth";
 import { decode, encode } from "bs58";
 import { getFirebaseAdmin } from "../google/firebase";
+import { initializeFirebaseWeb } from "../google/firebaseWeb";
 
 export async function createUserAndStoreSolanaKeypair(
   email: string,
@@ -24,7 +21,7 @@ export async function createUserAndStoreSolanaKeypair(
 
     const firebase = await getFirebaseAdmin();
     if (!firebase) {
-      throw new Error('Failed to get Firebase admin');
+      throw new Error("Failed to get Firebase admin");
     }
 
     const userRecord = await firebase.auth().createUser({
@@ -109,6 +106,8 @@ export async function getUser(
 ): Promise<UserCredential | null> {
   try {
     // Sign in the user with email and password
+
+    const authWeb = await initializeFirebaseWeb();
     const userCredential: UserCredential = await signInWithEmailAndPassword(
       authWeb,
       email,
@@ -128,7 +127,7 @@ export async function getUserByUID(uid: string): Promise<UserRecord | null> {
   try {
     const firebase = await getFirebaseAdmin();
     if (!firebase) {
-      throw new Error('Failed to get Firebase admin');
+      throw new Error("Failed to get Firebase admin");
     }
     const userRecord = await firebase.auth().getUser(uid);
     return userRecord;
@@ -147,7 +146,7 @@ export async function getUserByEmail(
 
     const firebase = await getFirebaseAdmin();
     if (!firebase) {
-      throw new Error('Failed to get Firebase admin');
+      throw new Error("Failed to get Firebase admin");
     }
     const userRecord = await firebase.auth().getUserByEmail(email);
     return userRecord;
@@ -163,7 +162,7 @@ export async function getAllUsers(): Promise<UserRecord[]> {
     // Fetch all users from Firebase Auth
     const firebase = await getFirebaseAdmin();
     if (!firebase) {
-      throw new Error('Failed to get Firebase admin');
+      throw new Error("Failed to get Firebase admin");
     }
     const listUsersResult: ListUsersResult = await firebase.auth().listUsers();
     const users: UserRecord[] = listUsersResult.users;

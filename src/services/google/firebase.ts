@@ -1,22 +1,16 @@
 import * as admin from "firebase-admin";
-import { secretManagerServiceClient } from "./secretManager";
+import { loadSecret } from "./secretManager";
 
 export async function getFirebaseAdmin() {
-  // Check if an instance already exists
   if (admin.apps.length > 0) {
     return admin.apps[0];
   }
 
   try {
     console.log("Initializing Firebase Admin");
-    const secretVersionName = `projects/${process.env.GOOGLE_CLOUD_PROJECT}/secrets/api-firebase-admin-key/versions/latest`;
+    const secretVersionName = `projects/1043799128332/secrets/api-firebase-admin-key/versions/latest`;
 
-    const [accessResponse] =
-      await secretManagerServiceClient.accessSecretVersion({
-        name: secretVersionName,
-      });
-
-    const secretKeyString = accessResponse.payload?.data?.toString();
+    const secretKeyString = await loadSecret(secretVersionName);
 
     if (!secretKeyString) {
       throw new Error("Firebase service account key not found");
@@ -24,7 +18,6 @@ export async function getFirebaseAdmin() {
 
     const serviceAccount = JSON.parse(secretKeyString);
 
-    // Explicitly initialize the Firebase app
     const app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       databaseURL: process.env.FIREBASE_DATABASE_URL,
@@ -34,6 +27,6 @@ export async function getFirebaseAdmin() {
     return app;
   } catch (error) {
     console.error("Failed to initialize Firebase Admin:", error);
-    throw error; // Rethrow to handle the error upstream
+    throw error;
   }
 }
