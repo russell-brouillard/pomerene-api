@@ -16,6 +16,7 @@
   "dependencies": {
     "@google-cloud/secret-manager": "^5.1.0",
     "@google-cloud/storage": "^7.7.0",
+    "@mysten/sui": "^1.5.0",
     "@solana/spl-account-compression": "^0.2.0",
     "@solana/spl-token": "^0.4.6",
     "@solana/spl-token-metadata": "^0.1.2",

@@ -9,6 +9,7 @@ import {
   // fetchItemsForMap,
   fetchScannersForMap,
 } from "../services/solana/eventService";
+import { createSuiScannerTransaction } from "../services/sui/eventService";
 
 /**
  * @swagger
@@ -105,6 +106,32 @@ export async function createScannerTransactionController(
 
     const response = await createScannerTransaction(
       payer,
+      scannerSecret,
+      itemSecret,
+      message
+    );
+
+    res.status(200).json(response);
+  } catch (error: any) {
+    // Send error response
+    console.error("Error creating device:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function createSuiScannerTransactionController(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    // Extract necessary data from request body
+    const { scannerSecret, itemSecret, message } = req.body;
+
+    if (!itemSecret || !scannerSecret || !message) {
+      throw new Error("Missing required fields to scan item.");
+    }
+
+    const response = await createSuiScannerTransaction(
       scannerSecret,
       itemSecret,
       message
