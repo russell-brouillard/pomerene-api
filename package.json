@@ -10,6 +10,7 @@
     "build": "tsc && npm run copy-assets",
     "start": "node dist/app.js",
     "local": "nodemon --exec ts-node src/app.ts",
+    "gcloud-login": "gcloud auth application-default login",
     "watch": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/app.ts",
     "copy-assets": "mkdir -p dist/public && cp -r src/public/* dist/public/"
   },

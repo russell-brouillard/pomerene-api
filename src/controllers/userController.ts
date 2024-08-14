@@ -10,6 +10,10 @@ import {
   getUserByUID,
 } from "../services/users/usersServices";
 import { airdropSol, getBalance } from "../services/solana/solanaService";
+import {
+  getNewSuiSecretKeyString,
+  getSuiMoney,
+} from "../services/sui/suiService";
 
 /**
  * @swagger
@@ -53,6 +57,40 @@ export const getSolanaKeypair = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error("Error retrieving Solana keypair:", error);
     return res.status(500).send("Failed to retrieve Solana keypair");
+  }
+};
+
+export const getSuiKeypairController = async (req: Request, res: Response) => {
+  console.log("getSuiKeypairController");
+  try {
+    const key = getNewSuiSecretKeyString();
+
+    return res.status(200).json({ status: "success", key });
+  } catch (error) {
+    console.error("Error retrieving Sui keypair:", error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Failed to retrieve Sui keypair" });
+  }
+};
+
+export const getSuiMoneyController = async (req: Request, res: Response) => {
+  try {
+    const { address } = req.body;
+
+    if (!address) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Address is required" });
+    }
+
+    const result = await getSuiMoney(address);
+    return res.status(200).json({ status: "success", data: result });
+  } catch (error) {
+    console.error("Error retrieving Sui money:", error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Failed to retrieve Sui money" });
   }
 };
 
@@ -459,3 +497,6 @@ export const airdropSOLController = async (req: AuthRequest, res: Response) => {
     return res.status(500).send("Failed to airdrop SOL");
   }
 };
+function getNewSuiKKeyString() {
+  throw new Error("Function not implemented.");
+}

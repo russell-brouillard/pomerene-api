@@ -6,12 +6,17 @@ import {
   getAllUsersController,
   getSolanaBalance,
   getSolanaKeypair,
+  getSuiKeypairController,
+  getSuiMoneyController,
   getUserByEmailController,
   getUserByUIDController,
   getUserJWTController,
 } from "../controllers/userController";
 
 const router = express.Router();
+
+router.get("/sui/keypair", getSuiKeypairController);
+router.post("/sui/faucet", getSuiMoneyController);
 
 // User endpoints
 router.get("/balance", authMiddleware, getSolanaBalance);

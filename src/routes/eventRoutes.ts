@@ -17,7 +17,7 @@ router.get('/sol/scanners', authMiddleware, getScannerTransactionController);
 router.get('sol//items', authMiddleware, getItemTransactionController);  
 router.get('/sol/:address', authMiddleware, getTransactionController);  
 
-router.post("/sui/scan", authMiddleware, createSuiScannerTransactionController);
+router.post("/sui/scan", createSuiScannerTransactionController);
 // router.get('/sui/scanners', authMiddleware, getScannerTransactionController); 
 // router.get('sui//items', authMiddleware, getItemTransactionController);  
 // router.get('/sui/:address', authMiddleware, getTransactionController);  
