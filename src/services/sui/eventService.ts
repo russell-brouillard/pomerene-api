@@ -66,15 +66,15 @@ export async function createSuiScannerTransaction(
 
   tx.moveCall({
     package:
-      "0xae4274c8e70b3742679d3e0ce3b3d7a39fe1a3ff9962af826bb3d7e9c6267f8e",
+      "0x47efced7dd35aac26a52ded022419b510edc804da10cd17a801f144098f2bda2",
     module: "pomerene",
     function: "mint_to_sender",
     arguments: [
       tx.pure.string("Pome"),
-      tx.pure.string("Pome"),
       tx.pure.string("https://www.pomerene.net/white-small.png"),
       tx.pure.address(scannerKeypair.getPublicKey().toSuiAddress()),
-      tx.pure.address(itemKeypair.getPublicKey().toSuiAddress())
+      tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
+      tx.pure.string("hello world"),
     ],
   });
 
