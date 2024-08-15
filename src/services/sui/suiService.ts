@@ -30,7 +30,7 @@ export function getNewSuiSecretKeyString(): string {
 }
 
 // Function to get Sui money for an address
-export async function getSuiMoney(address: string) {
+export async function getSuiMoney(address: string):Promise<any> {
   const recipient = getSuiKeypairFromSecret(address)
     .getPublicKey()
     .toSuiAddress();
