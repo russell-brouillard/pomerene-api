@@ -83,17 +83,17 @@ export async function createScanNFT(
   const tx = new Transaction();
   tx.moveCall({
     package:
-      "0xf1c5c1d220e5cd1e619d583ff73f88e7a407f53d22b915368e3fce0d607630b8", // Replace with your package address
+      "0x9849aded27ee0d880364bd935e5a2d9479d6636d8609384a5e00df65bbc14ec4", // Replace with your package address
     module: "pomerene",
     function: "mint_to_sender", // Assume this function exists to mint your NFT
     arguments: [
-      tx.pure.string("PomeNew"),
+      tx.pure.string("TEST"),
       tx.pure.string("https://www.pomerene.net/white-small.png"),
     
       tx.pure.address(toHEX(scannerKeypair.getPublicKey().toRawBytes())),
       tx.pure.address(toHEX(itemKeypair.getPublicKey().toRawBytes())),
-      tx.pure.string(scannerKeypair.getPublicKey().toSuiAddress()),
-      tx.pure.string(itemKeypair.getPublicKey().toSuiAddress()),
+      tx.pure.address(scannerKeypair.getPublicKey().toSuiAddress()),
+      tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
       tx.pure.string(message),
       tx.pure.string(combinedSignature),
     ],
