@@ -6,6 +6,7 @@ import {
   getItemTransactionController,
   getScannerTransactionController,
   getTransactionController,
+  validateSuiScannerTransactionController,
 } from "../controllers/eventController";
 
 const router = express.Router();
@@ -18,8 +19,10 @@ router.get('sol//items', authMiddleware, getItemTransactionController);
 router.get('/sol/:address', authMiddleware, getTransactionController);  
 
 router.post("/sui/scan", createSuiScannerTransactionController);
+router.post("/sui/validate", validateSuiScannerTransactionController);
 // router.get('/sui/scanners', authMiddleware, getScannerTransactionController); 
 // router.get('sui//items', authMiddleware, getItemTransactionController);  
 // router.get('/sui/:address', authMiddleware, getTransactionController);  
+
 
 export default router;

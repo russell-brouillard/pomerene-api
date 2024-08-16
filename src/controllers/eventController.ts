@@ -9,7 +9,10 @@ import {
   // fetchItemsForMap,
   fetchScannersForMap,
 } from "../services/solana/eventService";
-import { createSuiScannerTransaction } from "../services/sui/eventService";
+import {
+  createSuiScannerTransaction,
+  validateGPSDataFromNFT,
+} from "../services/sui/eventService";
 
 /**
  * @swagger
@@ -142,6 +145,19 @@ export async function createSuiScannerTransactionController(
     // Send error response
     console.error("Error creating device:", error);
     res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function validateSuiScannerTransactionController(
+  req: Request,
+  res: Response
+) {
+  try {
+    const { nftId } = req.body;
+    const isValid = await validateGPSDataFromNFT(nftId);
+    res.status(200).json(isValid);
+  } catch (error: any) {
+    console.error(error.message);
   }
 }
 

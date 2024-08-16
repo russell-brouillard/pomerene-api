@@ -124,7 +124,7 @@ export async function createScanNFT(
   return nftId;
 }
 
-async function validateGPSDataFromNFT(nftId: string) {
+export async function validateGPSDataFromNFT(nftId: string): Promise<any> {
   const rpcUrl = getFullnodeUrl("devnet");
   const client = new SuiClient({ url: rpcUrl });
 
@@ -164,7 +164,7 @@ async function validateGPSDataFromNFT(nftId: string) {
       isValid,
       itemAddress: content.itemAddress,
       scannerAddress: content.scannerAddress,
-      nftId
+      nftId,
     };
   } else {
     throw new Error(`No content found for NFT with ID: ${nftId}`);
