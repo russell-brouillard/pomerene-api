@@ -27,9 +27,7 @@ export async function createSuiScannerTransaction(
     client
   );
 
-  const valid = validateGPSDataFromNFT(nftId);
-
-  return valid;
+  return nftId;
 }
 
 export async function signGPSData(
@@ -83,7 +81,7 @@ export async function createScanNFT(
   const tx = new Transaction();
   tx.moveCall({
     package:
-      "0xad34ad03809c5e750623639a8ab774f1a865debb2ddc30601ca5d3ac48454597", // Replace with your package address
+      "0x2ab3480a5e8bc3644d57fce2707106b47b27c7cef5e7406d6ebaa0bb0be73790", // Replace with your package address
     module: "pomerene",
     function: "scan", // Assume this function exists to mint your NFT
     arguments: [
