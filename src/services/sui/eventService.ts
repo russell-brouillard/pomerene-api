@@ -27,7 +27,7 @@ export async function createSuiScannerTransaction(
     client
   );
 
-  const valid = validateGPSDataFromNFT(client, nftId);
+  const valid = validateGPSDataFromNFT(nftId);
 
   return valid;
 }
@@ -42,13 +42,6 @@ export async function signGPSData(
 
   const scannerPublicKey = scannerKeypair.getPublicKey();
   const itemPublicKey = itemKeypair.getPublicKey();
-
-  console.log("Order during signing:");
-  console.log(
-    "Scanner Public Key:",
-    scannerKeypair.getPublicKey().toSuiAddress()
-  );
-  console.log("Item Public Key:", itemKeypair.getPublicKey().toSuiAddress());
 
   const multiSigPublicKey = MultiSigPublicKey.fromPublicKeys({
     threshold: 1,
@@ -73,17 +66,6 @@ export async function signGPSData(
     signatureItem,
   ]);
 
-  console.log("storedSignature 1", combinedSignature);
-  console.log("encodedMessage 1", encodedMessage);
-  console.log("multiSigPublicKey 1", multiSigPublicKey);
-
-  const isValid = await multiSigPublicKey.verifyPersonalMessage(
-    encodedMessage,
-    combinedSignature
-  );
-
-  console.log("VALID? ", isValid);
-
   return combinedSignature;
 }
 
@@ -97,35 +79,33 @@ export async function createScanNFT(
   const scannerKeypair = getSuiKeypairFromSecret(scannerSecret);
   const itemKeypair = getSuiKeypairFromSecret(itemSecret);
 
-  console.log("message 1 ", message);
-  
-
-
-  console.log(scannerKeypair.getPublicKey().toRawBytes())
-  console.log(toHEX(scannerKeypair.getPublicKey().toRawBytes()))
-  console.log("DONE")
-
   // Mint an NFT and embed the message and signatures
   const tx = new Transaction();
   tx.moveCall({
     package:
-      "0xd7511cf3a30f5ad6003a6a8a58f21513351cec5b213252b78ede08fe8f673962", // Replace with your package address
+      "0x01908f2ac56d040a20d035dc3fc77002df7941e532bf53b48c8af771a6dd4410", // Replace with your package address
     module: "pomerene",
     function: "mint_to_sender", // Assume this function exists to mint your NFT
     arguments: [
-      tx.pure.string("PomeScan"),
+      tx.pure.string("PomeNew"),
       tx.pure.string("https://www.pomerene.net/white-small.png"),
+    
       tx.pure.address(toHEX(scannerKeypair.getPublicKey().toRawBytes())),
       tx.pure.address(toHEX(itemKeypair.getPublicKey().toRawBytes())),
-      tx.pure.string(message), // Embed the original message
-      tx.pure.string(combinedSignature), // Embed the combined signature
+      tx.pure.address(scannerKeypair.getPublicKey().toSuiAddress()),
+      tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
+      tx.pure.string(message),
+      tx.pure.string(combinedSignature),
     ],
   });
 
+  console.log("test 1");
   const initialResult = await client.signAndExecuteTransaction({
     transaction: tx,
     signer: scannerKeypair,
   });
+
+  console.log("test 2");
 
   // Wait for the transaction to be confirmed and processed
   const finalResult = await client.waitForTransaction({
@@ -142,11 +122,13 @@ export async function createScanNFT(
     );
   }
 
-  console.log("NFT ID: ", nftId);
   return nftId;
 }
 
-async function validateGPSDataFromNFT(client: SuiClient, nftId: string) {
+async function validateGPSDataFromNFT(nftId: string) {
+  const rpcUrl = getFullnodeUrl("devnet");
+  const client = new SuiClient({ url: rpcUrl });
+
   const nftDetails: any = await client.getObject({
     id: nftId,
     options: { showContent: true },
@@ -157,19 +139,11 @@ async function validateGPSDataFromNFT(client: SuiClient, nftId: string) {
     const message = content.message; // Assuming GPS data is stored here
     const storedSignature = content.combinedSignature; // Assuming signature is stored here
 
-    console.log("message 2", message);
-
-    const scannerPK = content.scanner;
-    const itemPK = content.item;
-
-    console.log("scannerPK ", scannerPK);
-    console.log("itemPK ", itemPK);
+    const scannerPK = content.scannerBytes;
+    const itemPK = content.itemBytes;
 
     const scannerPublicKey = new Ed25519PublicKey(fromHEX(scannerPK));
     const itemPublicKey = new Ed25519PublicKey(fromHEX(itemPK));
-
-    console.log("Scanner Public Key:", scannerPublicKey.toSuiAddress());
-    console.log("Item Public Key:", itemPublicKey.toSuiAddress());
 
     const multiSigPublicKey = MultiSigPublicKey.fromPublicKeys({
       threshold: 1,
@@ -181,17 +155,18 @@ async function validateGPSDataFromNFT(client: SuiClient, nftId: string) {
 
     const encodedMessage = new TextEncoder().encode(message);
 
-    console.log("Order during validation:");
-
-    console.log("multiSigPublicKey 2", multiSigPublicKey);
-
     // Validate the signature using the original MultiSigPublicKey
     const isValid = await multiSigPublicKey.verifyPersonalMessage(
       encodedMessage,
       storedSignature
     );
 
-    return isValid;
+    return {
+      isValid,
+      itemAddress: content.itemAddress,
+      scannerAddress: content.scannerAddress,
+      nftId
+    };
   } else {
     throw new Error(`No content found for NFT with ID: ${nftId}`);
   }
