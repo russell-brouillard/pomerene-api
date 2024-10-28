@@ -38,6 +38,9 @@ export async function signGPSData(
   const scannerKeypair = getSuiKeypairFromSecret(scannerSecret);
   const itemKeypair = getSuiKeypairFromSecret(itemSecret);
 
+  console.log("scannerKeypair", scannerKeypair.toSuiAddress());
+  console.log("itemKeypair", itemKeypair.toSuiAddress());
+
   const scannerPublicKey = scannerKeypair.getPublicKey();
   const itemPublicKey = itemKeypair.getPublicKey();
 
