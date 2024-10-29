@@ -5,7 +5,7 @@ import {
   fetchItemsByOwner,
 } from "../services/solana/itemService";
 import { AuthRequest } from "../middleware/authMiddleware";
-import { getSolanaKeypairForUser } from "../services/users/usersServices";
+import { getSuiKeypairForUser } from "../services/users/usersServices";
 import { PublicKey } from "@solana/web3.js";
 import { closeMintAccount } from "../services/solana/solanaService";
 
@@ -99,13 +99,13 @@ export async function createItemController(
       throw new Error("Missing required fields");
     }
 
-    const payer = await getSolanaKeypairForUser(req.user.uid);
+    const payer = await getSuiKeypairForUser(req.user.uid);
 
     // Call createScanner function
-    const item = await createItem(payer, description);
+    // const item = await createItem(payer, description);
 
     // Send success response with token metadata
-    res.status(200).json({ success: true, item });
+    res.status(200).json({ success: true });
   } catch (error: any) {
     // Send error response
     console.error("Error creating device:", error);
@@ -151,7 +151,7 @@ export async function deleteItemController(
         .json({ success: false, error: "User not authorized." });
     }
 
-    const payer = await getSolanaKeypairForUser(req.user.uid);
+    const payer = await getSuiKeypairForUser(req.user.uid);
 
     // Validate payer
     if (!payer) {
@@ -166,7 +166,7 @@ export async function deleteItemController(
     const accountPublicKey = new PublicKey(account);
 
     // Call deleteItem (close mint account)
-    await closeMintAccount(payer, mintPublicKey, accountPublicKey);
+    // await closeMintAccount(payer, mintPublicKey, accountPublicKey);
 
     res
       .status(200)
@@ -254,11 +254,11 @@ export async function handleFetchItemsForUser(
       throw new Error("Missing required fields");
     }
 
-    const owner = await getSolanaKeypairForUser(req.user.uid);
+    const owner = await getSuiKeypairForUser(req.user.uid);
 
-    const items = await fetchItemsByOwner(owner); // Using publicKey from the user object
+    // const items = await fetchItemsByOwner(owner); // Using publicKey from the user object
 
-    res.status(200).json({ success: true, items });
+    res.status(200).json();
   } catch (error: any) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });

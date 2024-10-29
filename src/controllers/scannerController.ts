@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { createScanner, fetchScanners } from "../services/solana/scannerService";
 import { AuthRequest } from "../middleware/authMiddleware";
-import { getSolanaKeypairForUser } from "../services/users/usersServices";
+import { getSuiKeypairForUser } from "../services/users/usersServices";
 
 /**
  * @swagger
@@ -97,11 +97,11 @@ export async function createScannerController(
       throw new Error("Missing required fields");
     }
 
-    const payer = await getSolanaKeypairForUser(req.user.uid);
+    const payer = await getSuiKeypairForUser(req.user.uid);
 
-    const scanner = await createScanner(payer, description);
+    // const scanner = await createScanner(payer, description);
 
-    res.status(200).json({ success: true, scanner });
+    res.status(200).json({ success: true });
   } catch (error: any) {
     console.error("Error creating device:", error);
     res.status(500).json({ success: false, error: error.message });
@@ -184,11 +184,11 @@ export async function handleFetchScannerForUser(
       throw new Error("Missing required fields");
     }
 
-    const owner = await getSolanaKeypairForUser(req.user.uid);
+    const owner = await getSuiKeypairForUser(req.user.uid);
 
-    const scanners = await fetchScanners(owner); // Using publicKey from the user object
+    // const scanners = await fetchScanners(owner); // Using publicKey from the user object
 
-    res.status(200).json({ success: true, scanners });
+    res.status(200).json({ success: true });
   } catch (error: any) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });

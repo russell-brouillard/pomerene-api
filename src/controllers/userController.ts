@@ -4,13 +4,13 @@ import { AuthRequest } from "../middleware/authMiddleware";
 import {
   createUserAndStoreSolanaKeypair,
   getAllUsers,
-  getSolanaKeypairForUser,
+  getSuiKeypairForUser,
   getUser,
   getUserByEmail,
   getUserByUID,
 } from "../services/users/usersServices";
-import { airdropSol, getBalance } from "../services/solana/solanaService";
 import {
+  getBalance,
   getNewSuiSecretKeyString,
   getSuiMoney,
 } from "../services/sui/suiService";
@@ -51,7 +51,7 @@ export const getSolanaKeypair = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user.uid; // Assuming `uid` is available from decodedToken attached in authMiddleware
 
-    const keypair = await getSolanaKeypairForUser(userId);
+    const keypair = await getSuiKeypairForUser(userId);
 
     return res.json(keypair);
   } catch (error) {
@@ -74,17 +74,17 @@ export const getSuiKeypairController = async (req: Request, res: Response) => {
   }
 };
 
-export const getSuiMoneyController = async (req: Request, res: Response) => {
+export const getSuiMoneyController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  if (!req.user) {
+    return res.status(401).send("User is not authenticated");
+  }
+
+  console.log("test ", req.user.name);
   try {
-    const { address } = req.body;
-
-    if (!address) {
-      return res
-        .status(400)
-        .json({ status: "error", message: "Address is required" });
-    }
-
-    const result = await getSuiMoney(address);
+    const result = await getSuiMoney(req.user.name);
     return res.status(200).json({ status: "success", data: result });
   } catch (error) {
     console.error("Error retrieving Sui money:", error);
@@ -430,7 +430,7 @@ export async function getAllUsersController(req: Request, res: Response) {
  *       500:
  *         description: Failed to retrieve Solana balance.
  */
-export const getSolanaBalance = async (req: AuthRequest, res: Response) => {
+export const getSuiBalance = async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).send("User is not authenticated");
   }
@@ -482,19 +482,19 @@ export const getSolanaBalance = async (req: AuthRequest, res: Response) => {
  *       500:
  *         description: Failed to airdrop SOL.
  */
-export const airdropSOLController = async (req: AuthRequest, res: Response) => {
+export const airdropSuiController = async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).send("User is not authenticated");
   }
 
-  req.body;
+  console.log("test ", req.user.name);
 
   try {
-    const sol = await airdropSol(req.user.name);
-    return res.json({ success: true, sol });
+    const sui = await getSuiMoney(req.user.name);
+    return res.json({ success: true, sui });
   } catch (error) {
-    console.error("Error airdropping SOL:", error);
-    return res.status(500).send("Failed to airdrop SOL");
+    console.error("Error airdropping Sui:", error);
+    return res.status(500).send("Failed to airdrop Sui");
   }
 };
 function getNewSuiKKeyString() {

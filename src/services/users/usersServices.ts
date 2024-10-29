@@ -1,16 +1,16 @@
 //src/services/google/users.ts
 
 import { secretManagerServiceClient } from "../google/secretManager";
-import { Keypair } from "@solana/web3.js";
-
 import { UserCredential, signInWithEmailAndPassword } from "firebase/auth";
 import { CreateUserAndStoreSolanaKeypairResult } from "solanaTypes";
-
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { ListUsersResult } from "firebase-admin/lib/auth/base-auth";
-import { decode, encode } from "bs58";
+
 import { getFirebaseAdmin } from "../google/firebase";
 import { initializeFirebaseWeb } from "../google/firebaseWeb";
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { Keypair } from "@mysten/sui/dist/cjs/cryptography";
+import { getSuiKeypairFromSecret } from "../sui/suiService";
 
 export async function createUserAndStoreSolanaKeypair(
   email: string,
@@ -30,22 +30,14 @@ export async function createUserAndStoreSolanaKeypair(
     });
 
     // Generate a new Solana keypair
-    const keypair = Keypair.generate();
-
-    const secretKeyString = encode(keypair.secretKey);
-
-    const publicKey = keypair.publicKey.toString();
-
-    if (!publicKey || !secretKeyString) {
-      throw new Error("Failed to generate Solana keypair");
-    }
+    const keypair = new Ed25519Keypair();
 
     await firebase.auth().updateUser(userRecord.uid, {
-      displayName: publicKey,
+      displayName: keypair.getPublicKey().toSuiAddress(),
     });
 
     // Store the Solana keypair in Google Cloud Secret Manager
-    const secretId = `solana-keypair-${userRecord.uid}`;
+    const secretId = `sui-keypair-${userRecord.uid}`;
     const parent = `projects/${process.env.GOOGLE_CLOUD_PROJECT}`;
     const [secret] = await secretManagerServiceClient.createSecret({
       parent,
@@ -60,13 +52,13 @@ export async function createUserAndStoreSolanaKeypair(
     const [version] = await secretManagerServiceClient.addSecretVersion({
       parent: secret.name,
       payload: {
-        data: Buffer.from(secretKeyString, "utf8"),
+        data: Buffer.from(keypair.getSecretKey(), "utf8"),
       },
     });
 
     return {
       firebaseUserId: userRecord.uid,
-      solanaPublic: publicKey,
+      solanaPublic: keypair.getPublicKey().toSuiAddress(),
     };
   } catch (error) {
     console.error("Error creating user and storing Solana keypair:", error);
@@ -74,10 +66,8 @@ export async function createUserAndStoreSolanaKeypair(
   }
 }
 
-export async function getSolanaKeypairForUser(
-  userId: string
-): Promise<Keypair> {
-  const secretId = `solana-keypair-${userId}`;
+export async function getSuiKeypairForUser(userId: string): Promise<Keypair> {
+  const secretId = `sui-keypair-${userId}`;
   const secretVersionName = `projects/${process.env.GOOGLE_CLOUD_PROJECT}/secrets/${secretId}/versions/latest`;
 
   try {
@@ -87,11 +77,11 @@ export async function getSolanaKeypairForUser(
       });
     const secretKeyString = accessResponse.payload?.data?.toString();
     if (!secretKeyString) {
-      throw new Error("Solana keypair not found for user");
+      throw new Error("Sui keypair not found for user");
     }
 
     // Create a Keypair instance from the Uint8Array secret key
-    const keypair = Keypair.fromSecretKey(decode(secretKeyString));
+    const keypair = getSuiKeypairFromSecret(secretKeyString);
 
     return keypair;
   } catch (error) {

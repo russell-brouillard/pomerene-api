@@ -1,7 +1,10 @@
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { fromHEX, fromB64 } from "@mysten/sui/utils";
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
-import { getFaucetHost, requestSuiFromFaucetV0 } from "@mysten/sui/faucet";
+
+import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
+import { getFaucetHost, requestSuiFromFaucetV1 } from "@mysten/sui/faucet";
+import { MIST_PER_SUI } from "@mysten/sui/utils";
 
 // Function to get Sui Keypair from various secret key formats
 export function getSuiKeypairFromSecret(secret: string | Uint8Array) {
@@ -30,15 +33,27 @@ export function getNewSuiSecretKeyString(): string {
 }
 
 // Function to get Sui money for an address
-export async function getSuiMoney(address: string):Promise<any> {
-  const recipient = getSuiKeypairFromSecret(address)
-    .getPublicKey()
-    .toSuiAddress();
-
+export async function getSuiMoney(recipient: string): Promise<any> {
   console.log("Recipient Sui Address:", recipient);
 
-  return await requestSuiFromFaucetV0({
+  return await requestSuiFromFaucetV1({
     host: getFaucetHost("devnet"),
     recipient,
   });
+}
+
+export async function getBalance(address: string): Promise<number> {
+  // create a new SuiClient object pointing to the network you want to use
+  const suiClient = new SuiClient({ url: getFullnodeUrl("devnet") });
+
+  // store the JSON representation for the SUI the address owns before using faucet
+  const sui = await suiClient.getBalance({
+    owner: address,
+  });
+
+  const balance = (balance: any) => {
+    return Number.parseInt(balance.totalBalance) / Number(MIST_PER_SUI);
+  };
+
+  return balance(sui);
 }

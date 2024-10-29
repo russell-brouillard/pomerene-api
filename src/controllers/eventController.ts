@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware";
-import { getSolanaKeypairForUser } from "../services/users/usersServices";
+import { getSuiKeypairForUser } from "../services/users/usersServices";
 import {
   createScannerTransaction,
   fetchTransactions,
@@ -105,16 +105,16 @@ export async function createScannerTransactionController(
       throw new Error("Missing required fields to scan item.");
     }
 
-    const payer = await getSolanaKeypairForUser(req.user.uid);
+    const payer = await getSuiKeypairForUser(req.user.uid);
 
-    const response = await createScannerTransaction(
-      payer,
-      scannerSecret,
-      itemSecret,
-      message
-    );
+    // const response = await createScannerTransaction(
+    //   payer,
+    //   scannerSecret,
+    //   itemSecret,
+    //   message
+    // );
 
-    res.status(200).json(response);
+    res.status(200).json();
   } catch (error: any) {
     // Send error response
     console.error("Error creating device:", error);
@@ -268,11 +268,11 @@ export async function getItemTransactionController(
       throw new Error("Missing required fields");
     }
 
-    const owner = await getSolanaKeypairForUser(req.user.uid);
+    const owner = await getSuiKeypairForUser(req.user.uid);
 
-    const transaction = await fetchItemsTransaction(owner);
+    // const transaction = await fetchItemsTransaction(owner);
 
-    res.status(200).json(transaction);
+    res.status(200).json();
   } catch (error) {
     console.error("Failed to fetch scanner transaction:", error);
     res.status(500).json({ success: false, error: "Internal server error." });
@@ -289,11 +289,11 @@ export async function getScannerTransactionController(
       throw new Error("Missing required fields");
     }
 
-    const owner = await getSolanaKeypairForUser(req.user.uid);
+    const owner = await getSuiKeypairForUser(req.user.uid);
 
-    const transaction = await fetchScannersTransaction(owner);
+    // const transaction = await fetchScannersTransaction(owner);
 
-    res.status(200).json(transaction);
+    res.status(200).json();
   } catch (error) {
     console.error("Failed to fetch scanner transaction:", error);
     res.status(500).json({ success: false, error: "Internal server error." });

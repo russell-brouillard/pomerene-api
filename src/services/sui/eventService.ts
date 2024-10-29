@@ -1,4 +1,4 @@
-import { MultiSigPublicKey, MultiSigSigner } from "@mysten/sui/multisig";
+import { MultiSigPublicKey } from "@mysten/sui/multisig";
 import { Transaction } from "@mysten/sui/transactions";
 import { getSuiKeypairFromSecret } from "./suiService";
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
