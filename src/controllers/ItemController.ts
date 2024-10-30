@@ -1,13 +1,10 @@
 import { Request, Response } from "express";
-import {
-  createItem,
-  fetchAllItems,
-  fetchItemsByOwner,
-} from "../services/solana/itemService";
+import { fetchAllItems } from "../services/solana/itemService";
 import { AuthRequest } from "../middleware/authMiddleware";
-import { getSolanaKeypairForUser } from "../services/users/usersServices";
+import { getSuiKeypairForUser } from "../services/users/usersServices";
 import { PublicKey } from "@solana/web3.js";
 import { closeMintAccount } from "../services/solana/solanaService";
+import { createItem, deleteItem, fetchItemsByOwner } from "../services/sui/itemService";
 
 /**
  * @swagger
@@ -99,7 +96,9 @@ export async function createItemController(
       throw new Error("Missing required fields");
     }
 
-    const payer = await getSolanaKeypairForUser(req.user.uid);
+    const payer = await getSuiKeypairForUser(req.user.uid);
+
+    console.log("Payer ", payer);
 
     // Call createScanner function
     const item = await createItem(payer, description);
@@ -138,12 +137,7 @@ export async function deleteItemController(
 ): Promise<any> {
   try {
     // Extract mint public key from URL parameters
-    const { mint, account } = req.params;
-    if (!mint) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Mint public key is required." });
-    }
+    const { itemObjectId } = req.params;
 
     if (!req.user) {
       return res
@@ -151,26 +145,11 @@ export async function deleteItemController(
         .json({ success: false, error: "User not authorized." });
     }
 
-    const payer = await getSolanaKeypairForUser(req.user.uid);
+    const owner = await getSuiKeypairForUser(req.user.uid);
 
-    // Validate payer
-    if (!payer) {
-      return res.status(403).json({
-        success: false,
-        error: "User not authorized or payer keypair not found.",
-      });
-    }
+    const del = deleteItem(owner, itemObjectId);
 
-    // Convert mint string to PublicKey
-    const mintPublicKey = new PublicKey(mint);
-    const accountPublicKey = new PublicKey(account);
-
-    // Call deleteItem (close mint account)
-    await closeMintAccount(payer, mintPublicKey, accountPublicKey);
-
-    res
-      .status(200)
-      .json({ success: true, message: "Item deleted successfully." });
+    res.status(200).json({ success: true, message: del });
   } catch (error: any) {
     console.error("Error deleting item:", error.message);
     res.status(500).json({ success: false, error: error.message });
@@ -254,11 +233,11 @@ export async function handleFetchItemsForUser(
       throw new Error("Missing required fields");
     }
 
-    const owner = await getSolanaKeypairForUser(req.user.uid);
+    const owner = await getSuiKeypairForUser(req.user.uid);
 
     const items = await fetchItemsByOwner(owner); // Using publicKey from the user object
 
-    res.status(200).json({ success: true, items });
+    res.status(200).json(items);
   } catch (error: any) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });

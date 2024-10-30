@@ -28,6 +28,13 @@ async function startServer() {
     app.use(express.urlencoded({ extended: true }));
     app.use("/api/v1", express.static(path.join(__dirname, "public")));
 
+    // Health check endpoint
+    app.get("/api/v1/health", (req, res) => {
+      res
+        .status(200)
+        .json({ status: "UP", timestamp: new Date().toISOString() });
+    });
+
     // Mount routes
     app.use("/api/v1/", routes);
 

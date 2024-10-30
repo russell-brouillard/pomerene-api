@@ -1,7 +1,12 @@
 import { Response } from "express";
-import { createScanner, fetchScanners } from "../services/solana/scannerService";
+
 import { AuthRequest } from "../middleware/authMiddleware";
-import { getSolanaKeypairForUser } from "../services/users/usersServices";
+import { getSuiKeypairForUser } from "../services/users/usersServices";
+import {
+  createScanner,
+  deleteScanner,
+  fetchScannersByOwner,
+} from "../services/sui/scannerService";
 
 /**
  * @swagger
@@ -97,7 +102,7 @@ export async function createScannerController(
       throw new Error("Missing required fields");
     }
 
-    const payer = await getSolanaKeypairForUser(req.user.uid);
+    const payer = await getSuiKeypairForUser(req.user.uid);
 
     const scanner = await createScanner(payer, description);
 
@@ -184,13 +189,38 @@ export async function handleFetchScannerForUser(
       throw new Error("Missing required fields");
     }
 
-    const owner = await getSolanaKeypairForUser(req.user.uid);
+    const owner = await getSuiKeypairForUser(req.user.uid);
 
-    const scanners = await fetchScanners(owner); // Using publicKey from the user object
+    const scanners = await fetchScannersByOwner(owner); // Using publicKey from the user object
 
     res.status(200).json({ success: true, scanners });
   } catch (error: any) {
     console.error("Error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function deleteScannerController(
+  req: AuthRequest,
+  res: Response
+): Promise<any> {
+  try {
+    // Extract mint public key from URL parameters
+    const { scannerObjectId } = req.params;
+
+    if (!req.user) {
+      return res
+        .status(403)
+        .json({ success: false, error: "User not authorized." });
+    }
+
+    const owner = await getSuiKeypairForUser(req.user.uid);
+
+    const del = deleteScanner(owner, scannerObjectId);
+
+    res.status(200).json({ success: true, message: del });
+  } catch (error: any) {
+    console.error("Error deleting item:", error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 }

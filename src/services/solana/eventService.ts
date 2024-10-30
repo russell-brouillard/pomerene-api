@@ -18,7 +18,7 @@ import {
 } from "@solana/web3.js";
 import { decode } from "bs58";
 import { getTokensByOwner } from "./solanaService";
-import { ItemTokenAccount, fetchItemsByOwner } from "./itemService";
+
 import { fetchScanners } from "./scannerService";
 
 /**
@@ -163,17 +163,7 @@ export async function fetchTransactions(
   }
 }
 
-export async function fetchItemsTransaction(owner: Keypair) {
-  const items = await fetchItemsByOwner(owner);
 
-  // Use Promise.all to fetch all transactions concurrently
-  const results = await Promise.all(
-    items.map((item:ItemTokenAccount) => fetchTransactions(item.tokenAccount, 1))
-  );
-
-  // Filter out any empty results and flatten the array
-  return results.filter((result) => result && result.length > 0).flat();
-}
 
 // export async function fetchItemsForMap(owner: Keypair) {
 //   const items: ItemTokenAccount[] = await fetchItems(owner);

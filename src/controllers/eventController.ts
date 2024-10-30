@@ -1,14 +1,18 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware";
-import { getSolanaKeypairForUser } from "../services/users/usersServices";
+import { getSuiKeypairForUser } from "../services/users/usersServices";
 import {
   createScannerTransaction,
   fetchTransactions,
-  fetchItemsTransaction,
+ 
   fetchScannersTransaction,
   // fetchItemsForMap,
   fetchScannersForMap,
 } from "../services/solana/eventService";
+import {
+  createSuiScannerTransaction,
+  validateGPSDataFromNFT,
+} from "../services/sui/eventService";
 
 /**
  * @swagger
@@ -101,10 +105,36 @@ export async function createScannerTransactionController(
       throw new Error("Missing required fields to scan item.");
     }
 
-    const payer = await getSolanaKeypairForUser(req.user.uid);
+    const payer = await getSuiKeypairForUser(req.user.uid);
 
-    const response = await createScannerTransaction(
-      payer,
+    // const response = await createScannerTransaction(
+    //   payer,
+    //   scannerSecret,
+    //   itemSecret,
+    //   message
+    // );
+
+    res.status(200).json();
+  } catch (error: any) {
+    // Send error response
+    console.error("Error creating device:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function createSuiScannerTransactionController(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    // Extract necessary data from request body
+    const { scannerSecret, itemSecret, message } = req.body;
+
+    if (!itemSecret || !scannerSecret || !message) {
+      throw new Error("Missing required fields to scan item.");
+    }
+
+    const response = await createSuiScannerTransaction(
       scannerSecret,
       itemSecret,
       message
@@ -115,6 +145,19 @@ export async function createScannerTransactionController(
     // Send error response
     console.error("Error creating device:", error);
     res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function validateSuiScannerTransactionController(
+  req: Request,
+  res: Response
+) {
+  try {
+    const { nftId } = req.body;
+    const isValid = await validateGPSDataFromNFT(nftId);
+    res.status(200).json(isValid);
+  } catch (error: any) {
+    console.error(error.message);
   }
 }
 
@@ -225,11 +268,11 @@ export async function getItemTransactionController(
       throw new Error("Missing required fields");
     }
 
-    const owner = await getSolanaKeypairForUser(req.user.uid);
+    const owner = await getSuiKeypairForUser(req.user.uid);
 
-    const transaction = await fetchItemsTransaction(owner);
+    // const transaction = await fetchItemsTransaction(owner);
 
-    res.status(200).json(transaction);
+    res.status(200).json();
   } catch (error) {
     console.error("Failed to fetch scanner transaction:", error);
     res.status(500).json({ success: false, error: "Internal server error." });
@@ -246,11 +289,11 @@ export async function getScannerTransactionController(
       throw new Error("Missing required fields");
     }
 
-    const owner = await getSolanaKeypairForUser(req.user.uid);
+    const owner = await getSuiKeypairForUser(req.user.uid);
 
-    const transaction = await fetchScannersTransaction(owner);
+    // const transaction = await fetchScannersTransaction(owner);
 
-    res.status(200).json(transaction);
+    res.status(200).json();
   } catch (error) {
     console.error("Failed to fetch scanner transaction:", error);
     res.status(500).json({ success: false, error: "Internal server error." });

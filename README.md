@@ -31,4 +31,5 @@ Clone the repository:
 git clone git@ggithub.com:russell-brouillard/hack-api.git
 cd pomerene-api
 npm install
+gcloud auth application-default login
 npm run dev

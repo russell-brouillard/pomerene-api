@@ -10,12 +10,14 @@
     "build": "tsc && npm run copy-assets",
     "start": "node dist/app.js",
     "local": "nodemon --exec ts-node src/app.ts",
+    "gcloud-login": "gcloud auth application-default login",
     "watch": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/app.ts",
     "copy-assets": "mkdir -p dist/public && cp -r src/public/* dist/public/"
   },
   "dependencies": {
     "@google-cloud/secret-manager": "^5.1.0",
     "@google-cloud/storage": "^7.7.0",
+    "@mysten/sui": "^1.13.0",
     "@solana/spl-account-compression": "^0.2.0",
     "@solana/spl-token": "^0.4.6",
     "@solana/spl-token-metadata": "^0.1.2",

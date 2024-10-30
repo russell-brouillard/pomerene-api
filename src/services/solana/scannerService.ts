@@ -28,51 +28,6 @@ const SCANNER_NAME = "SCANNER";
 const SCANNER_SYMBOL = "POME";
 const METADATA_URI = "https://www.pomerene.net/api/v1/json/metadata.json";
 
-export async function createScanner(payer: Keypair, description: string) {
-  const connection = new Connection(clusterApiUrl(DEVNET), CONFIRMED);
-
-  const scannerKeypair = Keypair.generate();
-  const mintKeypair = Keypair.generate();
-
-  const metaData = createTokenMetadata(scannerKeypair, description, payer);
-
-  await createMetadataMint(
-    metaData,
-    payer,
-    mintKeypair.publicKey,
-    payer.publicKey, // mintAuthority
-    0, // decimals
-    connection,
-    mintKeypair,
-    payer.publicKey // updateAuthority
-  );
-
-  const tokenAccount = await mintToAccount(
-    payer,
-    mintKeypair.publicKey,
-    payer.publicKey, // mintAuthority
-    connection,
-    scannerKeypair,
-    payer.publicKey, // Owner of the new token account
-    1 // Amount to mint
-  );
-
-  await fundScannerAccount(
-    connection,
-    payer,
-    scannerKeypair.publicKey,
-    0.01 * LAMPORTS_PER_SOL
-  );
-
-  return assembleScannerData(
-    payer,
-    mintKeypair.publicKey,
-    scannerKeypair,
-    description,
-    tokenAccount
-  );
-}
-
 function createTokenMetadata(
   scannerKeypair: Keypair,
   description: string,
