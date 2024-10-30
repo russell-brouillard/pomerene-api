@@ -4,6 +4,7 @@ import { AuthRequest } from "../middleware/authMiddleware";
 import { getSuiKeypairForUser } from "../services/users/usersServices";
 import {
   createScanner,
+  deleteScanner,
   fetchScannersByOwner,
 } from "../services/sui/scannerService";
 
@@ -105,7 +106,7 @@ export async function createScannerController(
 
     const scanner = await createScanner(payer, description);
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, scanner });
   } catch (error: any) {
     console.error("Error creating device:", error);
     res.status(500).json({ success: false, error: error.message });
@@ -195,6 +196,31 @@ export async function handleFetchScannerForUser(
     res.status(200).json({ success: true, scanners });
   } catch (error: any) {
     console.error("Error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function deleteScannerController(
+  req: AuthRequest,
+  res: Response
+): Promise<any> {
+  try {
+    // Extract mint public key from URL parameters
+    const { scannerObjectId } = req.params;
+
+    if (!req.user) {
+      return res
+        .status(403)
+        .json({ success: false, error: "User not authorized." });
+    }
+
+    const owner = await getSuiKeypairForUser(req.user.uid);
+
+    const del = deleteScanner(owner, scannerObjectId);
+
+    res.status(200).json({ success: true, message: del });
+  } catch (error: any) {
+    console.error("Error deleting item:", error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 }

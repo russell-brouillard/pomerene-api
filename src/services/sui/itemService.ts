@@ -96,9 +96,7 @@ export async function deleteItem(
     module: "item",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
-    arguments: [
-      tx.object(itemObjectId), // Pass the object reference to the burn function
-    ],
+    arguments: [tx.object(itemObjectId)],
     // Specify the type arguments if any (not needed in this case)
     typeArguments: [],
   });
