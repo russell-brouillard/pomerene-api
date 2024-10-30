@@ -1,7 +1,11 @@
 import { Response } from "express";
-import { createScanner, fetchScanners } from "../services/solana/scannerService";
+
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSuiKeypairForUser } from "../services/users/usersServices";
+import {
+  createScanner,
+  fetchScannersByOwner,
+} from "../services/sui/scannerService";
 
 /**
  * @swagger
@@ -99,7 +103,7 @@ export async function createScannerController(
 
     const payer = await getSuiKeypairForUser(req.user.uid);
 
-    // const scanner = await createScanner(payer, description);
+    const scanner = await createScanner(payer, description);
 
     res.status(200).json({ success: true });
   } catch (error: any) {
@@ -186,9 +190,9 @@ export async function handleFetchScannerForUser(
 
     const owner = await getSuiKeypairForUser(req.user.uid);
 
-    // const scanners = await fetchScanners(owner); // Using publicKey from the user object
+    const scanners = await fetchScannersByOwner(owner); // Using publicKey from the user object
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, scanners });
   } catch (error: any) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });

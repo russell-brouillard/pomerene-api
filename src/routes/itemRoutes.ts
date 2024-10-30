@@ -11,7 +11,7 @@ const router = express.Router();
 
 // Item endpoints
 router.post("/create", authMiddleware, createItemController);
-router.delete("/:mint/:account", authMiddleware, deleteItemController);
+router.delete("/:itemObjectId", authMiddleware, deleteItemController);
 router.get("/user", authMiddleware, handleFetchItemsForUser);
 router.get("/explore", handleFetchItems);
 

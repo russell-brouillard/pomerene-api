@@ -76,3 +76,53 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
 
   return valid;
 }
+
+export async function deleteItem(
+  signer: Ed25519Keypair,
+  itemObjectId: string
+): Promise<string> {
+  // Initialize the Sui client pointing to the devnet
+  const client = new SuiClient({
+    url: getFullnodeUrl("devnet"),
+  });
+
+  // Create a new transaction
+  const tx = new Transaction();
+
+  // Add the burn Move call to the transaction
+  tx.moveCall({
+    package:
+      "0x147d1e39eca47e6b047d1e8e415d837794fc67133ba752eae6d4069a7a5b838e",
+    module: "item",
+    function: "burn",
+    // The burn function expects the ItemNFT object, which we pass as a reference
+    arguments: [
+      tx.object(itemObjectId), // Pass the object reference to the burn function
+    ],
+    // Specify the type arguments if any (not needed in this case)
+    typeArguments: [],
+  });
+
+  console.log(`Attempting to burn ItemNFT with Object ID: ${itemObjectId}`);
+
+  try {
+    // Sign and execute the transaction
+    const result = await client.signAndExecuteTransaction({
+      signer,
+      transaction: tx,
+      options: {
+        // Optional: Adjust transaction options as needed
+        showEffects: true,
+        showEvents: true,
+      },
+    });
+
+    console.log("Transaction Result:", result);
+
+    // Return the transaction digest for reference
+    return result.digest;
+  } catch (error) {
+    console.error("Error burning ItemNFT:", error);
+    throw error;
+  }
+}
