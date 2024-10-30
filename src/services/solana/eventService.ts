@@ -18,7 +18,7 @@ import {
 } from "@solana/web3.js";
 import { decode } from "bs58";
 import { getTokensByOwner } from "./solanaService";
-import { ItemTokenAccount, fetchItemsByOwner } from "./itemService";
+
 import { fetchScanners } from "./scannerService";
 
 /**

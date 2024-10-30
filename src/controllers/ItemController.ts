@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
 import {
   fetchAllItems,
-  fetchItemsByOwner,
 } from "../services/solana/itemService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSuiKeypairForUser } from "../services/users/usersServices";
 import { PublicKey } from "@solana/web3.js";
 import { closeMintAccount } from "../services/solana/solanaService";
-import { createItem } from "../services/sui/itemService";
+import { createItem, fetchItemsByOwner } from "../services/sui/itemService";
 
 /**
  * @swagger
@@ -107,7 +106,7 @@ export async function createItemController(
     const item = await createItem(payer, description);
 
     // Send success response with token metadata
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, item });
   } catch (error: any) {
     // Send error response
     console.error("Error creating device:", error);
@@ -258,9 +257,9 @@ export async function handleFetchItemsForUser(
 
     const owner = await getSuiKeypairForUser(req.user.uid);
 
-    // const items = await fetchItemsByOwner(owner); // Using publicKey from the user object
+    const items = await fetchItemsByOwner(owner); // Using publicKey from the user object
 
-    res.status(200).json();
+    res.status(200).json(items);
   } catch (error: any) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });

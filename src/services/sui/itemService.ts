@@ -1,4 +1,8 @@
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
+import {
+  getFullnodeUrl,
+  PaginatedObjectsResponse,
+  SuiClient,
+} from "@mysten/sui/client";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Transaction } from "@mysten/sui/transactions";
 
@@ -27,6 +31,8 @@ export async function createItem(
     ],
   });
 
+  console.log("test ", itemKeypair.getPublicKey().toSuiAddress());
+
   const result = await client.signAndExecuteTransaction({
     signer,
     transaction: tx,
@@ -35,4 +41,38 @@ export async function createItem(
   console.log({ result });
 
   return itemKeypair.getSecretKey();
+}
+
+export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
+  const client = new SuiClient({
+    url: getFullnodeUrl("devnet"),
+  });
+
+  const myObjects = await client.getOwnedObjects({
+    owner: owner.getPublicKey().toSuiAddress(),
+  });
+
+  const test = await Promise.all(
+    myObjects.data.map(async (obj) => {
+      const item = await client.getObject({
+        id: obj.data?.objectId!,
+        options: { showContent: true },
+      });
+
+      const t: any = item.data?.content;
+
+      if (
+        t?.type ===
+        "0x147d1e39eca47e6b047d1e8e415d837794fc67133ba752eae6d4069a7a5b838e::item::ItemNFT"
+      ) {
+        return t.fields;
+      }
+      return null; // Explicitly return null for non-matching types
+    })
+  );
+
+  // Filter out null or undefined entries
+  const valid = test.filter(Boolean);
+
+  return valid;
 }
