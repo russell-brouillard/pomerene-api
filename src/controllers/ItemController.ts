@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import {
-  createItem,
   fetchAllItems,
   fetchItemsByOwner,
 } from "../services/solana/itemService";
@@ -8,6 +7,7 @@ import { AuthRequest } from "../middleware/authMiddleware";
 import { getSuiKeypairForUser } from "../services/users/usersServices";
 import { PublicKey } from "@solana/web3.js";
 import { closeMintAccount } from "../services/solana/solanaService";
+import { createItem } from "../services/sui/itemService";
 
 /**
  * @swagger
@@ -101,8 +101,10 @@ export async function createItemController(
 
     const payer = await getSuiKeypairForUser(req.user.uid);
 
+    console.log("Payer ", payer);
+
     // Call createScanner function
-    // const item = await createItem(payer, description);
+    const item = await createItem(payer, description);
 
     // Send success response with token metadata
     res.status(200).json({ success: true });

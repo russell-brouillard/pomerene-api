@@ -4,7 +4,7 @@ import { getSuiKeypairForUser } from "../services/users/usersServices";
 import {
   createScannerTransaction,
   fetchTransactions,
-  fetchItemsTransaction,
+ 
   fetchScannersTransaction,
   // fetchItemsForMap,
   fetchScannersForMap,

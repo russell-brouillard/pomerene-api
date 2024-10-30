@@ -3,7 +3,7 @@ import { Transaction } from "@mysten/sui/transactions";
 import { getSuiKeypairFromSecret } from "./suiService";
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
-import { fromHEX, toHEX } from "@mysten/sui/utils";
+import { fromHex, toHex } from "@mysten/sui/utils";
 
 export async function createSuiScannerTransaction(
   scannerSecret: string,
@@ -90,8 +90,8 @@ export async function createScanNFT(
     arguments: [
       tx.pure.string("SCAN"),
       tx.pure.string("https://www.pomerene.net/white-small.png"),
-      tx.pure.address(toHEX(scannerKeypair.getPublicKey().toRawBytes())),
-      tx.pure.address(toHEX(itemKeypair.getPublicKey().toRawBytes())),
+      tx.pure.address(toHex(scannerKeypair.getPublicKey().toRawBytes())),
+      tx.pure.address(toHex(itemKeypair.getPublicKey().toRawBytes())),
       tx.pure.address(scannerKeypair.getPublicKey().toSuiAddress()),
       tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
       tx.pure.string(message),
@@ -142,8 +142,8 @@ export async function validateGPSDataFromNFT(nftId: string): Promise<any> {
     const scannerPK = content.scannerBytes;
     const itemPK = content.itemBytes;
 
-    const scannerPublicKey = new Ed25519PublicKey(fromHEX(scannerPK));
-    const itemPublicKey = new Ed25519PublicKey(fromHEX(itemPK));
+    const scannerPublicKey = new Ed25519PublicKey(fromHex(scannerPK));
+    const itemPublicKey = new Ed25519PublicKey(fromHex(itemPK));
 
     const multiSigPublicKey = MultiSigPublicKey.fromPublicKeys({
       threshold: 1,

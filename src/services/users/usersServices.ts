@@ -8,8 +8,8 @@ import { ListUsersResult } from "firebase-admin/lib/auth/base-auth";
 
 import { getFirebaseAdmin } from "../google/firebase";
 import { initializeFirebaseWeb } from "../google/firebaseWeb";
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
-import { Keypair } from "@mysten/sui/dist/cjs/cryptography";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+
 import { getSuiKeypairFromSecret } from "../sui/suiService";
 
 export async function createUserAndStoreSolanaKeypair(
@@ -66,7 +66,9 @@ export async function createUserAndStoreSolanaKeypair(
   }
 }
 
-export async function getSuiKeypairForUser(userId: string): Promise<Keypair> {
+export async function getSuiKeypairForUser(
+  userId: string
+): Promise<Ed25519Keypair> {
   const secretId = `sui-keypair-${userId}`;
   const secretVersionName = `projects/${process.env.GOOGLE_CLOUD_PROJECT}/secrets/${secretId}/versions/latest`;
 

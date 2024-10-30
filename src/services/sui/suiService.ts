@@ -1,5 +1,5 @@
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
-import { fromHEX, fromB64 } from "@mysten/sui/utils";
+import { fromHex, fromBase64 } from "@mysten/sui/utils";
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
 
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
@@ -12,14 +12,14 @@ export function getSuiKeypairFromSecret(secret: string | Uint8Array) {
     // Determine if the string is HEX or Bech32 encoded
     if (secret.startsWith("0x")) {
       // HEX encoded
-      return Ed25519Keypair.fromSecretKey(fromHEX(secret));
+      return Ed25519Keypair.fromSecretKey(fromHex(secret));
     } else if (secret.startsWith("suiprivkey")) {
       // Bech32 encoded
       const { secretKey } = decodeSuiPrivateKey(secret);
       return Ed25519Keypair.fromSecretKey(secretKey);
     } else {
       // Assuming Base64 encoding as fallback
-      return Ed25519Keypair.fromSecretKey(fromB64(secret));
+      return Ed25519Keypair.fromSecretKey(fromBase64(secret));
     }
   } else {
     // Handle Uint8Array directly
