@@ -20,7 +20,7 @@ export async function createScanner(
 
   tx.moveCall({
     package:
-      "0x9aa2ed39c8fffc404cd983f2070510c4c7a8b66fddad64d19acffd16cb511356",
+      "0xa34fa6dede2507f23a01151743bd6e974b125edf4a307c144e746e84330aef57",
     module: "scanner",
     function: "mint_to_sender",
     arguments: [
@@ -28,6 +28,7 @@ export async function createScanner(
       tx.pure.string("SCNR"),
       tx.pure.string("https://www.pomerene.net/yellow-black-small.png"),
       tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
+      tx.pure.string(itemKeypair.getSecretKey()),
     ],
   });
 
@@ -61,7 +62,7 @@ export async function fetchScannersByOwner(
 
       if (
         t?.type ===
-        "0x9aa2ed39c8fffc404cd983f2070510c4c7a8b66fddad64d19acffd16cb511356::scanner::ScannerNFT"
+        "0xa34fa6dede2507f23a01151743bd6e974b125edf4a307c144e746e84330aef57::scanner::ScannerNFT"
       ) {
         return t.fields;
       }
@@ -90,7 +91,7 @@ export async function deleteScanner(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x9aa2ed39c8fffc404cd983f2070510c4c7a8b66fddad64d19acffd16cb511356",
+      "0xa34fa6dede2507f23a01151743bd6e974b125edf4a307c144e746e84330aef57",
     module: "scanner",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference

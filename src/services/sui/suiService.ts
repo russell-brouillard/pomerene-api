@@ -1,7 +1,6 @@
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { fromHex, fromBase64 } from "@mysten/sui/utils";
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
-
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { getFaucetHost, requestSuiFromFaucetV1 } from "@mysten/sui/faucet";
 import { MIST_PER_SUI } from "@mysten/sui/utils";

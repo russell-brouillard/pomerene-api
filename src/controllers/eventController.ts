@@ -2,14 +2,6 @@ import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSuiKeypairForUser } from "../services/users/usersServices";
 import {
-  createScannerTransaction,
-  fetchTransactions,
- 
-  fetchScannersTransaction,
-  // fetchItemsForMap,
-  fetchScannersForMap,
-} from "../services/solana/eventService";
-import {
   createSuiScannerTransaction,
   validateGPSDataFromNFT,
 } from "../services/sui/eventService";
@@ -249,9 +241,9 @@ export async function getTransactionController(
       throw new Error("Missing required fields to scan item.");
     }
 
-    const response = await fetchTransactions(address);
+    // const response = await fetchTransactions(address);
 
-    res.status(200).json(response);
+    res.status(200).json();
   } catch (error: any) {
     console.error("Error creating device:", error);
     res.status(500).json({ success: false, error: error.message });
