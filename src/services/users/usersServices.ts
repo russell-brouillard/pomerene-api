@@ -87,7 +87,7 @@ export async function getSuiKeypairForUser(
 
     return keypair;
   } catch (error) {
-    console.error("Error retrieving Solana keypair for user:", error);
+    console.error("Error retrieving Sui keypair for user:", error);
     throw error; // Rethrow the error to handle it in the controller
   }
 }
