@@ -104,9 +104,9 @@ export async function createScannerController(
 
     const payer = await getSuiKeypairForUser(req.user.uid);
 
-    const scanner = await createScanner(payer, description);
+    const scanners = await createScanner(payer, description);
 
-    res.status(200).json({ success: true, scanner });
+    res.status(200).json({ success: true, scanners });
   } catch (error: any) {
     console.error("Error creating device:", error);
     res.status(500).json({ success: false, error: error.message });
