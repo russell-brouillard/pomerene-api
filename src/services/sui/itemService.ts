@@ -31,14 +31,10 @@ export async function createItem(
     ],
   });
 
-  console.log("test ", itemKeypair.getPublicKey().toSuiAddress());
-
   const result = await client.signAndExecuteTransaction({
     signer,
     transaction: tx,
   });
-
-  console.log({ result });
 
   return itemKeypair.getSecretKey();
 }
@@ -101,8 +97,6 @@ export async function deleteItem(
     typeArguments: [],
   });
 
-  console.log(`Attempting to burn ItemNFT with Object ID: ${itemObjectId}`);
-
   try {
     // Sign and execute the transaction
     const result = await client.signAndExecuteTransaction({
@@ -114,8 +108,6 @@ export async function deleteItem(
         showEvents: true,
       },
     });
-
-    console.log("Transaction Result:", result);
 
     // Return the transaction digest for reference
     return result.digest;

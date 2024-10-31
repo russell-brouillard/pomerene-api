@@ -34,8 +34,6 @@ export function getNewSuiSecretKeyString(): string {
 
 // Function to get Sui money for an address
 export async function getSuiMoney(recipient: string): Promise<any> {
-  console.log("Recipient Sui Address:", recipient);
-
   return await requestSuiFromFaucetV1({
     host: getFaucetHost("devnet"),
     recipient,

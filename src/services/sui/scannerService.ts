@@ -31,14 +31,10 @@ export async function createScanner(
     ],
   });
 
-  console.log("test ", itemKeypair.getPublicKey().toSuiAddress());
-
   const result = await client.signAndExecuteTransaction({
     signer,
     transaction: tx,
   });
-
-  console.log({ result });
 
   return itemKeypair.getSecretKey();
 }
@@ -62,8 +58,6 @@ export async function fetchScannersByOwner(
       });
 
       const t: any = item.data?.content;
-
-      console.log("t ", t);
 
       if (
         t?.type ===
@@ -100,15 +94,10 @@ export async function deleteScanner(
     module: "scanner",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
-    arguments: [
-      tx.object(scannerObjectId), 
-     
-    ],
+    arguments: [tx.object(scannerObjectId)],
     // Specify the type arguments if any (not needed in this case)
     typeArguments: [],
   });
-
-  console.log(`Attempting to burn ItemNFT with Object ID: ${scannerObjectId}`);
 
   try {
     // Sign and execute the transaction
@@ -121,8 +110,6 @@ export async function deleteScanner(
         showEvents: true,
       },
     });
-
-    console.log("Transaction Result:", result);
 
     // Return the transaction digest for reference
     return result.digest;

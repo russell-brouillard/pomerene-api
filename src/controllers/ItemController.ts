@@ -4,7 +4,11 @@ import { AuthRequest } from "../middleware/authMiddleware";
 import { getSuiKeypairForUser } from "../services/users/usersServices";
 import { PublicKey } from "@solana/web3.js";
 import { closeMintAccount } from "../services/solana/solanaService";
-import { createItem, deleteItem, fetchItemsByOwner } from "../services/sui/itemService";
+import {
+  createItem,
+  deleteItem,
+  fetchItemsByOwner,
+} from "../services/sui/itemService";
 
 /**
  * @swagger
@@ -97,8 +101,6 @@ export async function createItemController(
     }
 
     const payer = await getSuiKeypairForUser(req.user.uid);
-
-    console.log("Payer ", payer);
 
     // Call createScanner function
     const item = await createItem(payer, description);

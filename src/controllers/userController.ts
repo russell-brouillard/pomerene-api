@@ -61,7 +61,6 @@ export const getSolanaKeypair = async (req: AuthRequest, res: Response) => {
 };
 
 export const getSuiKeypairController = async (req: Request, res: Response) => {
-  console.log("getSuiKeypairController");
   try {
     const key = getNewSuiSecretKeyString();
 
@@ -82,7 +81,6 @@ export const getSuiMoneyController = async (
     return res.status(401).send("User is not authenticated");
   }
 
-  console.log("test ", req.user.name);
   try {
     const result = await getSuiMoney(req.user.name);
     return res.status(200).json({ status: "success", data: result });
@@ -486,8 +484,6 @@ export const airdropSuiController = async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).send("User is not authenticated");
   }
-
-  console.log("test ", req.user.name);
 
   try {
     const sui = await getSuiMoney(req.user.name);

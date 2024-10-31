@@ -26,7 +26,7 @@ export async function fetchAllItems(): Promise<ItemTokenAccount[]> {
 
     const snapshot = await firebase.firestore().collection("items").get(); // Correctly retrieve documents
     if (!snapshot.empty) {
-      console.log(snapshot.docs.map((doc) => doc.data().tokens));
+     
 
       return snapshot.docs.flatMap(
         (doc) => doc.data().tokens as ItemTokenAccount[]

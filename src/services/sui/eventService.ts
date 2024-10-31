@@ -99,13 +99,10 @@ export async function createScanNFT(
     ],
   });
 
-  console.log("test 1");
   const initialResult = await client.signAndExecuteTransaction({
     transaction: tx,
     signer: scannerKeypair,
   });
-
-  console.log("test 2");
 
   // Wait for the transaction to be confirmed and processed
   const finalResult = await client.waitForTransaction({
