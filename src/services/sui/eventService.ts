@@ -2,12 +2,13 @@ import { MultiSigPublicKey } from "@mysten/sui/multisig";
 import { Transaction } from "@mysten/sui/transactions";
 import { getSuiKeypairFromSecret } from "./suiService";
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
-import { Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
+import { Ed25519Keypair, Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
 import { fromHex, toHex } from "@mysten/sui/utils";
 
 export async function createSuiScannerTransaction(
   scannerSecret: string,
   itemSecret: string,
+  payer: Ed25519Keypair,
   message: string
 ) {
   const rpcUrl = getFullnodeUrl("devnet");
@@ -16,6 +17,7 @@ export async function createSuiScannerTransaction(
   const combinedSignature = await signGPSData(
     scannerSecret,
     itemSecret,
+    payer,
     message
   );
 
@@ -24,7 +26,8 @@ export async function createSuiScannerTransaction(
     itemSecret,
     message,
     combinedSignature,
-    client
+    client,
+    payer
   );
 
   return nftId;
@@ -33,6 +36,7 @@ export async function createSuiScannerTransaction(
 export async function signGPSData(
   scannerSecret: string,
   itemSecret: string,
+  payerKeypair: Ed25519Keypair,
   message: string
 ) {
   const scannerKeypair = getSuiKeypairFromSecret(scannerSecret);
@@ -43,12 +47,14 @@ export async function signGPSData(
 
   const scannerPublicKey = scannerKeypair.getPublicKey();
   const itemPublicKey = itemKeypair.getPublicKey();
+  const payerPublicKey = payerKeypair.getPublicKey();
 
   const multiSigPublicKey = MultiSigPublicKey.fromPublicKeys({
     threshold: 1,
     publicKeys: [
       { publicKey: scannerPublicKey, weight: 1 },
       { publicKey: itemPublicKey, weight: 1 },
+      { publicKey: payerPublicKey, weight: 1 },
     ],
   });
 
@@ -61,10 +67,15 @@ export async function signGPSData(
   const signatureItem = (await itemKeypair.signPersonalMessage(encodedMessage))
     .signature;
 
+  const signaturePayer = (
+    await payerKeypair.signPersonalMessage(encodedMessage)
+  ).signature;
+
   // Optionally, combine the signatures if using a multi-signature scheme
   const combinedSignature = multiSigPublicKey.combinePartialSignatures([
     signatureScanner,
     signatureItem,
+    signaturePayer,
   ]);
 
   return combinedSignature;
@@ -75,7 +86,8 @@ export async function createScanNFT(
   itemSecret: string,
   message: string,
   combinedSignature: string,
-  client: SuiClient
+  client: SuiClient,
+  payerKeypair: Ed25519Keypair
 ): Promise<string> {
   const scannerKeypair = getSuiKeypairFromSecret(scannerSecret);
   const itemKeypair = getSuiKeypairFromSecret(itemSecret);
@@ -89,7 +101,7 @@ export async function createScanNFT(
     function: "scan", // Assume this function exists to mint your NFT
     arguments: [
       tx.pure.string("SCAN"),
-      tx.pure.string("https://www.pomerene.net/white-small.png"),
+      tx.pure.string("https://www.pomerene.net/green-small.png"),
       tx.pure.address(toHex(scannerKeypair.getPublicKey().toRawBytes())),
       tx.pure.address(toHex(itemKeypair.getPublicKey().toRawBytes())),
       tx.pure.address(scannerKeypair.getPublicKey().toSuiAddress()),
@@ -101,7 +113,7 @@ export async function createScanNFT(
 
   const initialResult = await client.signAndExecuteTransaction({
     transaction: tx,
-    signer: scannerKeypair,
+    signer: payerKeypair,
   });
 
   // Wait for the transaction to be confirmed and processed

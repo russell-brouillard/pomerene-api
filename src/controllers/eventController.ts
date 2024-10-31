@@ -122,13 +122,16 @@ export async function createSuiScannerTransactionController(
     // Extract necessary data from request body
     const { scannerSecret, itemSecret, message } = req.body;
 
-    if (!itemSecret || !scannerSecret || !message) {
+    if (!itemSecret || !scannerSecret || !message || !req.user) {
       throw new Error("Missing required fields to scan item.");
     }
+
+    const payer = await getSuiKeypairForUser(req.user.uid);
 
     const response = await createSuiScannerTransaction(
       scannerSecret,
       itemSecret,
+      payer,
       message
     );
 
