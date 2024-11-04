@@ -1,29 +1,11 @@
-import {
-  Connection,
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-  clusterApiUrl,
-  sendAndConfirmTransaction,
-} from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
 import { encode } from "bs58";
-import {
-  createMetadataMint,
-  fundScannerAccount,
-  getTokensByOwner,
-  mintToAccount,
-} from "./solanaService";
 import { TokenMetadata } from "@solana/spl-token-metadata";
-import { TokenObject } from "userTypes";
 import { getFirebaseAdmin } from "../google/firebase";
 import { TOKEN_2022_PROGRAM_ID, getTokenMetadata } from "@solana/spl-token";
-import { fetchTransactions } from "./eventService";
 
 // Constants
-const DEVNET = "devnet";
-const CONFIRMED = "confirmed";
+
 const SCANNER_NAME = "SCANNER";
 const SCANNER_SYMBOL = "POME";
 const METADATA_URI = "https://www.pomerene.net/api/v1/json/metadata.json";
@@ -99,7 +81,7 @@ export async function fetchScanners(
 
 export async function getScannersByOwner(
   owner: PublicKey
-): Promise<ScannerTokenAccount[]> {
+): Promise<any[]> {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
   // Fetch all token accounts for the owner
@@ -117,10 +99,10 @@ export async function getScannersByOwner(
         new PublicKey(accountData.mint)
       );
 
-      let lastTransaction = await fetchTransactions(
-        metadata!.additionalMetadata[2][1],
-        1
-      );
+      // let lastTransaction = await fetchTransactions(
+      //   metadata!.additionalMetadata[2][1],
+      //   1
+      // );
 
       return {
         mint: accountData.mint,
@@ -131,10 +113,10 @@ export async function getScannersByOwner(
         secret: metadata?.additionalMetadata[0][1],
         tokenAmount: accountData.tokenAmount.uiAmount,
         type: metadata?.name.toLowerCase(),
-        lastTransaction:
-          lastTransaction && lastTransaction.length > 0
-            ? lastTransaction[0]
-            : null,
+        // lastTransaction:
+        //   lastTransaction && lastTransaction.length > 0
+        //     ? lastTransaction[0]
+        //     : null,
       };
     })
   );
