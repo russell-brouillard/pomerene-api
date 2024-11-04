@@ -116,3 +116,77 @@ export async function deleteItem(
     throw error;
   }
 }
+
+export async function fetchItemsLocationsByOwner(
+  owner: Ed25519Keypair
+): Promise<{ name: string; message: string }[]> {
+  // Fetch items owned by the given owner
+  const items = await fetchItemsByOwner(owner);
+  console.log("Items:", items);
+
+  const client = new SuiClient({
+    url: getFullnodeUrl("devnet"),
+  });
+
+  // Fetch scans for each item
+  const scans = await Promise.all(
+    items.map(async (item) => {
+      return await client.getOwnedObjects({
+        owner: item.itemAddress,
+      });
+    })
+  );
+
+  console.log("Scans:", scans);
+
+  // Filter out scans with no data and fetch locations
+  const locations:any = await Promise.all(
+    scans.map(async (scan, index) => {
+      // Skip if scan has no data
+      if (!scan.data || scan.data.length === 0) {
+        console.log(`No scan data found for item: ${items[index].name}`);
+        return null;
+      }
+
+      try {
+        const lastScan = scan.data[scan.data.length - 1];
+        if (!lastScan.data?.objectId) {
+          console.log(
+            `No object ID found for scan in item: ${items[index].name}`
+          );
+          return null;
+        }
+
+        return await client.getObject({
+          id: lastScan.data.objectId,
+          options: { showContent: true },
+        });
+      } catch (error) {
+        console.error(
+          `Error fetching location for item ${items[index].name}:`,
+          error
+        );
+        return null;
+      }
+    })
+  );
+
+  console.log("Locations:", locations);
+
+  // Pair each item's name with its corresponding location message
+  const pairedData = items.map((item, index) => {
+    const location = locations[index];
+    let message = "No location data available";
+
+    if (location?.data?.content?.fields?.message) {
+      message = location.data.content.fields.message;
+    }
+
+    return {
+      name: item.name,
+      message: message,
+    };
+  });
+
+  return pairedData;
+}
