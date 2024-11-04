@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { fetchAllItems } from "../services/solana/itemService";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { getSuiKeypairForUser } from "../services/users/usersServices";
 
@@ -246,19 +245,7 @@ export async function handleFetchItemsForUser(
   }
 }
 
-export async function handleFetchItems(
-  req: Request,
-  res: Response
-): Promise<void> {
-  try {
-    const items = await fetchAllItems(); // Using publicKey from the user object
 
-    res.status(200).json({ success: true, items });
-  } catch (error: any) {
-    console.error("Error:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-}
 
 export async function handleFetchItemsLastLocation(
   req: AuthRequest,

@@ -119,3 +119,88 @@ export async function deleteScanner(
     throw error;
   }
 }
+
+
+export async function fetchScannersLocationsByOwner(
+  owner: Ed25519Keypair
+): Promise<{ name: string; message: string }[]> {
+  // Fetch items owned by the given owner
+  const scanners = await fetchScannersByOwner(owner);
+  console.log("Scanners:", scanners);
+
+  const client = new SuiClient({
+    url: getFullnodeUrl("devnet"),
+  });
+
+  // Fetch scans for each item
+  const scans = await Promise.all(
+    scanners.map(async (scanner) => {
+      return await client.getOwnedObjects({
+        owner: scanner.scannerAddress,
+      });
+    })
+  );
+
+  console.log("Scans:", scans);
+
+  // Filter out scans with no data and fetch locations
+  const locations:any = await Promise.all(
+    scans.map(async (scan, index) => {
+      // Skip if scan has no data
+      if (!scan.data || scan.data.length === 0) {
+        console.log(`No scan data found for item: ${scanners[index].name}`);
+        return null;
+      }
+
+      try {
+        
+        const sortedScans = scan.data
+        .filter(scan => scan.data?.version) // ensure version exists
+        .sort((a, b) => {
+          const versionA = parseInt(a.data?.version || '0');
+          const versionB = parseInt(b.data?.version || '0');
+          return versionB - versionA; // sort in descending order
+        });
+
+        console.log("sscan:", scan.data);
+        if (!sortedScans[0].data?.objectId) {
+          console.log(
+            `No object ID found for scan in item: ${scanners[index].name}`
+          );
+          return null;
+        }
+
+        return await client.getObject({
+          id: sortedScans[0].data.objectId,
+          options: { showContent: true },
+        });
+      } catch (error) {
+        console.error(
+          `Error fetching location for item ${scanners[index].name}:`,
+          error
+        );
+        return null;
+      }
+    })
+  );
+
+  console.log("Locations:", locations);
+
+  // Pair each item's name with its corresponding location message
+  const pairedData = scanners.map((item, index) => {
+    const location = locations[index];
+    let message = "No location data available";
+
+    if (location?.data?.content?.fields?.message) {
+      message = location.data.content.fields.message;
+    }
+
+    return {
+      name: item.name,
+      message: message,
+    };
+  });
+
+  return pairedData;
+}
+

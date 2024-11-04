@@ -4,7 +4,6 @@ import {
   createItemController,
   deleteItemController,
   handleFetchItemsForUser,
-  handleFetchItems,
   handleFetchItemsLastLocation,
 } from "../controllers/ItemController";
 
@@ -14,7 +13,7 @@ const router = express.Router();
 router.post("/create", authMiddleware, createItemController);
 router.delete("/:itemObjectId", authMiddleware, deleteItemController);
 router.get("/user", authMiddleware, handleFetchItemsForUser);
-router.get("/explore", handleFetchItems);
+// router.get("/explore", handleFetchItems);
 
 router.get("/map", authMiddleware, handleFetchItemsLastLocation);
 

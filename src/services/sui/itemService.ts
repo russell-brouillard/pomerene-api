@@ -140,7 +140,7 @@ export async function fetchItemsLocationsByOwner(
   console.log("Scans:", scans);
 
   // Filter out scans with no data and fetch locations
-  const locations:any = await Promise.all(
+  const locations: any = await Promise.all(
     scans.map(async (scan, index) => {
       // Skip if scan has no data
       if (!scan.data || scan.data.length === 0) {
@@ -149,8 +149,15 @@ export async function fetchItemsLocationsByOwner(
       }
 
       try {
-        const lastScan = scan.data[scan.data.length - 1];
-        if (!lastScan.data?.objectId) {
+        const sortedScans = scan.data
+          .filter((scan) => scan.data?.version) // ensure version exists
+          .sort((a, b) => {
+            const versionA = parseInt(a.data?.version || "0");
+            const versionB = parseInt(b.data?.version || "0");
+            return versionB - versionA; // sort in descending order
+          });
+
+        if (!sortedScans[0].data?.objectId) {
           console.log(
             `No object ID found for scan in item: ${items[index].name}`
           );
@@ -158,7 +165,7 @@ export async function fetchItemsLocationsByOwner(
         }
 
         return await client.getObject({
-          id: lastScan.data.objectId,
+          id: sortedScans[0].data.objectId,
           options: { showContent: true },
         });
       } catch (error) {

@@ -6,6 +6,7 @@ import {
   createScanner,
   deleteScanner,
   fetchScannersByOwner,
+  fetchScannersLocationsByOwner,
 } from "../services/sui/scannerService";
 
 /**
@@ -221,6 +222,28 @@ export async function deleteScannerController(
     res.status(200).json({ success: true, message: del });
   } catch (error: any) {
     console.error("Error deleting item:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+
+export async function handleFetchScannersLastLocation(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    if (!req.user) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    const owner = await getSuiKeypairForUser(req.user.uid);
+
+    const items = await fetchScannersLocationsByOwner(owner); // Using publicKey from the user object
+
+    res.status(200).json(items);
+  } catch (error: any) {
+    console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 }
