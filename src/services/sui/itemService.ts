@@ -20,7 +20,7 @@ export async function createItem(
 
   tx.moveCall({
     package:
-      "0x147d1e39eca47e6b047d1e8e415d837794fc67133ba752eae6d4069a7a5b838e",
+      "0xc6b85a217806c30492c1abfba8b54c8f223792ad50f433bcd9255251ebf2d418",
     module: "item",
     function: "mint_to_sender",
     arguments: [
@@ -59,7 +59,7 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
 
       if (
         t?.type ===
-        "0x147d1e39eca47e6b047d1e8e415d837794fc67133ba752eae6d4069a7a5b838e::item::ItemNFT"
+        "0xc6b85a217806c30492c1abfba8b54c8f223792ad50f433bcd9255251ebf2d418::item::ItemNFT"
       ) {
         return t.fields;
       }
@@ -88,7 +88,7 @@ export async function deleteItem(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x147d1e39eca47e6b047d1e8e415d837794fc67133ba752eae6d4069a7a5b838e",
+      "0xc6b85a217806c30492c1abfba8b54c8f223792ad50f433bcd9255251ebf2d418",
     module: "item",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference

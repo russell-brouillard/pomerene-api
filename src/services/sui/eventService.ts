@@ -96,13 +96,13 @@ export async function createScanNFT(
   const tx = new Transaction();
   tx.moveCall({
     package:
-      "0x6a0dc56437ee025e51213c8ec994e65f9a1ccd7f1b08f77aae04df92252a7473", // Replace with your package address
+      "0x29ee7dd32e2bb5d45d4fdc3a6b23244daf708fff68ae5f2fc33727810676c530", // Replace with your package address
     module: "pomerene",
     function: "scan", // Assume this function exists to mint your NFT
     arguments: [
       tx.pure.string("SCAN"),
       tx.pure.string("https://www.pomerene.net/green-small.png"),
-      tx.pure.address(toHex(scannerKeypair.getPublicKey().toRawBytes())),
+     
       tx.pure.address(toHex(itemKeypair.getPublicKey().toRawBytes())),
       tx.pure.address(scannerKeypair.getPublicKey().toSuiAddress()),
       tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
@@ -121,6 +121,8 @@ export async function createScanNFT(
     digest: initialResult.digest,
     options: { showEffects: true, showEvents: true },
   });
+
+  console.log("SCAN ++> ", finalResult);
 
   // Extract the new NFT ID from the transaction response
   const nftId = finalResult.effects?.created?.[0]?.reference?.objectId;
@@ -148,7 +150,7 @@ export async function validateGPSDataFromNFT(nftId: string): Promise<any> {
     const message = content.message; // Assuming GPS data is stored here
     const storedSignature = content.combinedSignature; // Assuming signature is stored here
 
-    const scannerPK = content.scannerBytes;
+    const scannerPK = content.scannerAddress;
     const itemPK = content.itemBytes;
 
     const scannerPublicKey = new Ed25519PublicKey(fromHex(scannerPK));
