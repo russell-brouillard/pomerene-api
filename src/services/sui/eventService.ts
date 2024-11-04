@@ -96,13 +96,12 @@ export async function createScanNFT(
   const tx = new Transaction();
   tx.moveCall({
     package:
-      "0x29ee7dd32e2bb5d45d4fdc3a6b23244daf708fff68ae5f2fc33727810676c530", // Replace with your package address
+      "0x23a00f394d8b4a2413cc0f47f5ed1a676c9f0403e7030a775dce58b85c2d7053", // Replace with your package address
     module: "pomerene",
     function: "scan", // Assume this function exists to mint your NFT
     arguments: [
       tx.pure.string("SCAN"),
       tx.pure.string("https://www.pomerene.net/green-small.png"),
-     
       tx.pure.address(toHex(itemKeypair.getPublicKey().toRawBytes())),
       tx.pure.address(scannerKeypair.getPublicKey().toSuiAddress()),
       tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
