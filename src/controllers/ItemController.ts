@@ -7,6 +7,7 @@ import {
   deleteItem,
   fetchItemsByOwner,
   fetchItemsLocationsByOwner,
+  fetchLocationsByItem,
 } from "../services/sui/itemService";
 
 /**
@@ -157,73 +158,6 @@ export async function deleteItemController(
   }
 }
 
-/**
- * @swagger
- * /api/v1/item/user:
- *   get:
- *     summary: Fetch item information for a user
- *     tags: [Item]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: A list of items associated with the user
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 items:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       mint:
- *                         type: string
- *                         description: Mint address of the item.
- *                       owner:
- *                         type: string
- *                         description: Owner's wallet address.
- *                       tokenAccount:
- *                         type: string
- *                         description: Token account address for the item.
- *                       tokenAmount:
- *                         type: integer
- *                         description: Amount of tokens.
- *                       metadata:
- *                         type: object
- *                         properties:
- *                           updateAuthority:
- *                             type: string
- *                             description: Authority allowed to update the metadata.
- *                           mint:
- *                             type: string
- *                             description: Mint address of the item.
- *                           name:
- *                             type: string
- *                             description: Name of the item.
- *                           symbol:
- *                             type: string
- *                             description: Symbol of the item.
- *                           uri:
- *                             type: string
- *                             description: URI pointing to the metadata of the item.
- *                           additionalMetadata:
- *                             type: array
- *                             items:
- *                               type: array
- *                               items:
- *                                 type: string
- *                             description: Additional metadata associated with the scanner. Each entry is an array of two strings, the first being a key and the second its value.
- *                             example: [["item", "potatoes"]]
- *       400:
- *         description: Missing required fields
- *       500:
- *         description: Server error
- */
 export async function handleFetchItemsForUser(
   req: AuthRequest,
   res: Response
@@ -245,8 +179,6 @@ export async function handleFetchItemsForUser(
   }
 }
 
-
-
 export async function handleFetchItemsLastLocation(
   req: AuthRequest,
   res: Response
@@ -262,6 +194,46 @@ export async function handleFetchItemsLastLocation(
     const items = await fetchItemsLocationsByOwner(owner); // Using publicKey from the user object
 
     res.status(200).json(items);
+  } catch (error: any) {
+    console.error("Error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function fetchLocationsByItemController(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    const { itemPublicKey } = req.params;
+    if (!req.user) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    const locations = await fetchLocationsByItem(itemPublicKey); // Using publicKey from the user object
+
+    res.status(200).json(locations);
+  } catch (error: any) {
+    console.error("Error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function fetchGPSByItemController(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    const { itemPublicKey } = req.params;
+    if (!req.user) {
+      // Assuming publicKey is the correct property for the wallet address
+      throw new Error("Missing required fields");
+    }
+
+    const locations = await fetchLocationsByItem(itemPublicKey); // Using publicKey from the user object
+
+    res.status(200).json(locations);
   } catch (error: any) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });

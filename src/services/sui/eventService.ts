@@ -181,3 +181,38 @@ export async function validateGPSDataFromNFT(nftId: string): Promise<any> {
     throw new Error(`No content found for NFT with ID: ${nftId}`);
   }
 }
+
+
+export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any[]> {
+  const client = new SuiClient({
+    url: getFullnodeUrl("devnet"),
+  });
+
+  const myObjects = await client.getOwnedObjects({
+    owner: owner.getPublicKey().toSuiAddress(),
+  });
+
+  const test = await Promise.all(
+    myObjects.data.map(async (obj) => {
+      const item = await client.getObject({
+        id: obj.data?.objectId!,
+        options: { showContent: true },
+      });
+
+      const t: any = item.data?.content;
+
+      if (
+        t?.type ===
+        "0x23a00f394d8b4a2413cc0f47f5ed1a676c9f0403e7030a775dce58b85c2d7053::pomerene::PomeNFT"
+      ) {
+        return t.fields;
+      }
+      return null; // Explicitly return null for non-matching types
+    })
+  );
+
+  // Filter out null or undefined entries
+  const valid = test.filter(Boolean);
+
+  return valid;
+}

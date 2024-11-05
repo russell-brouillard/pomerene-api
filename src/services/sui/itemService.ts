@@ -3,7 +3,7 @@ import {
   PaginatedObjectsResponse,
   SuiClient,
 } from "@mysten/sui/client";
-import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import { Ed25519Keypair, Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
 import { Transaction } from "@mysten/sui/transactions";
 
 export async function createItem(
@@ -196,4 +196,44 @@ export async function fetchItemsLocationsByOwner(
   });
 
   return pairedData;
+}
+
+export async function fetchLocationsByItem(itemPublicKey: string) {
+  const client = new SuiClient({
+    url: getFullnodeUrl("devnet"),
+  });
+
+  const scans = await client.getOwnedObjects({
+    owner: itemPublicKey,
+  });
+
+  const locations = await Promise.all(
+    scans.data.map(async (obj) => {
+      const item = await client.getObject({
+        id: obj.data?.objectId!,
+        options: { showContent: true },
+      });
+
+      const t: any = item.data?.content;
+
+      if (
+        t?.type ===
+        "0x23a00f394d8b4a2413cc0f47f5ed1a676c9f0403e7030a775dce58b85c2d7053::pomerene::PomeNFT"
+      ) {
+        // Only return the message field
+        return t.fields;
+      }
+      return null;
+    })
+  );
+
+  // Filter out null values and return clean array of messages
+  return locations;
+}
+
+export async function fetchGPSByItem(itemPublicKey: string) {
+  const locations = await fetchLocationsByItem(itemPublicKey);
+
+  // Filter out null values and return clean array of messages
+  return locations.filter((location) => location !== null);
 }
