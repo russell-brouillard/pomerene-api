@@ -7,7 +7,7 @@ export async function getFirebaseAdmin() {
   }
 
   try {
-    console.log("Initializing Firebase Admin");
+    console.info("Initializing Firebase Admin");
     const secretVersionName = `projects/1043799128332/secrets/api-firebase-admin-key/versions/latest`;
 
     const secretKeyString = await loadSecret(secretVersionName);
@@ -23,7 +23,7 @@ export async function getFirebaseAdmin() {
       databaseURL: process.env.FIREBASE_DATABASE_URL,
     });
 
-    console.log("Firebase Admin Initialized Successfully");
+    console.info("Firebase Admin Initialized Successfully");
     return app;
   } catch (error) {
     console.error("Failed to initialize Firebase Admin:", error);

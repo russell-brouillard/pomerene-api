@@ -20,7 +20,7 @@ export async function initializeFirebaseWeb() {
     const firebaseWebSecret = await loadFirebaseWebSecret();
     const firebaseApp = initializeApp(firebaseWebSecret);
 
-    console.log("Firebase web initialized successfully");
+    console.info("Firebase web initialized successfully");
     appWeb = getAuth(firebaseApp);
     return appWeb;
   } catch (err) {

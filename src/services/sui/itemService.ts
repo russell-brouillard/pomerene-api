@@ -122,7 +122,6 @@ export async function fetchItemsLocationsByOwner(
 ): Promise<{ name: string; message: string }[]> {
   // Fetch items owned by the given owner
   const items = await fetchItemsByOwner(owner);
-  console.log("Items:", items);
 
   const client = new SuiClient({
     url: getFullnodeUrl("devnet"),
@@ -137,14 +136,12 @@ export async function fetchItemsLocationsByOwner(
     })
   );
 
-  console.log("Scans:", scans);
-
   // Filter out scans with no data and fetch locations
   const locations: any = await Promise.all(
     scans.map(async (scan, index) => {
       // Skip if scan has no data
       if (!scan.data || scan.data.length === 0) {
-        console.log(`No scan data found for item: ${items[index].name}`);
+        console.error(`No scan data found for item: ${items[index].name}`);
         return null;
       }
 
@@ -158,7 +155,7 @@ export async function fetchItemsLocationsByOwner(
           });
 
         if (!sortedScans[0].data?.objectId) {
-          console.log(
+          console.error(
             `No object ID found for scan in item: ${items[index].name}`
           );
           return null;
@@ -177,8 +174,6 @@ export async function fetchItemsLocationsByOwner(
       }
     })
   );
-
-  console.log("Locations:", locations);
 
   // Pair each item's name with its corresponding location message
   const pairedData = items.map((item, index) => {

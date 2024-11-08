@@ -41,8 +41,8 @@ async function startServer() {
     const PORT = process.env.PORT || 3000;
 
     app.listen(PORT, () => {
-      console.log(`Server is running at http://localhost:${PORT}/api/v1/`);
-      console.log(`API docs are running at http://localhost:${PORT}/api-docs`);
+      console.info(`Server is running at http://localhost:${PORT}/api/v1/`);
+      console.info(`API docs are running at http://localhost:${PORT}/api-docs`);
     });
   } catch (error) {
     console.error("Failed to initialize Firebase services:", error);

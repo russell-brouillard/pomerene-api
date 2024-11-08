@@ -42,9 +42,6 @@ export async function signGPSData(
   const scannerKeypair = getSuiKeypairFromSecret(scannerSecret);
   const itemKeypair = getSuiKeypairFromSecret(itemSecret);
 
-  console.log("scannerKeypair", scannerKeypair.toSuiAddress());
-  console.log("itemKeypair", itemKeypair.toSuiAddress());
-
   const scannerPublicKey = scannerKeypair.getPublicKey();
   const itemPublicKey = itemKeypair.getPublicKey();
   const payerPublicKey = payerKeypair.getPublicKey();
@@ -121,8 +118,6 @@ export async function createScanNFT(
     options: { showEffects: true, showEvents: true },
   });
 
-  console.log("SCAN ++> ", finalResult);
-
   // Extract the new NFT ID from the transaction response
   const nftId = finalResult.effects?.created?.[0]?.reference?.objectId;
 
@@ -182,8 +177,9 @@ export async function validateGPSDataFromNFT(nftId: string): Promise<any> {
   }
 }
 
-
-export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any[]> {
+export async function fetchEventsByOwner(
+  owner: Ed25519Keypair
+): Promise<any[]> {
   const client = new SuiClient({
     url: getFullnodeUrl("devnet"),
   });
