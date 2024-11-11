@@ -10,92 +10,17 @@ import {
   fetchLocationsByItem,
 } from "../services/sui/itemService";
 
-/**
- * @swagger
- * /api/v1/item/create:
- *   post:
- *     summary: Creates a new item
- *     description: This endpoint allows the creation of a new item with a description. The user must be authenticated to perform this action.
- *     tags:
- *       - Item
- *     security:
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - description
- *             properties:
- *               description:
- *                 type: string
- *                 description: The description of the item to be created.
- *     responses:
- *       200:
- *         description: Item created successfully. Returns the item object.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 item:
- *                   type: object
- *                   properties:
- *                     owner:
- *                       type: string
- *                       description: Owner's wallet address.
- *                     mint:
- *                       type: string
- *                       description: Mint address of the item.
- *                     tokenAccount:
- *                       type: string
- *                       description: Token account address for the item.
- *                     itemSecret:
- *                       type: string
- *                       description: Secret key for the item associated with the item.
- *                     description:
- *                       type: string
- *                       description: Description of the item.
- *       400:
- *         description: Missing required fields
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   description: A descriptive error message about what is missing.
- *       500:
- *         description: Internal server error due to a failure in creating the item
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   description: Detailed error message explaining the server error.
- */
+
 export async function createItemController(
   req: AuthRequest,
   res: Response
 ): Promise<void> {
   try {
     // Extract necessary data from request body
-    const { description } = req.body;
+    const { description, blobId } = req.body;
 
+
+    console.log("blod", blobId);
     if (!req.user || !description) {
       throw new Error("Missing required fields");
     }
@@ -103,7 +28,7 @@ export async function createItemController(
     const payer = await getSuiKeypairForUser(req.user.uid);
 
     // Call createScanner function
-    const item = await createItem(payer, description);
+    const item = await createItem(payer, description, blobId);
 
     // Send success response with token metadata
     res.status(200).json({ success: true, item });

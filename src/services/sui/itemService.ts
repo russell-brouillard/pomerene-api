@@ -8,7 +8,8 @@ import { Transaction } from "@mysten/sui/transactions";
 
 export async function createItem(
   signer: Ed25519Keypair,
-  description: string
+  description: string,
+  blobId: string
 ): Promise<string> {
   const client = new SuiClient({
     url: getFullnodeUrl("devnet"),
@@ -20,7 +21,7 @@ export async function createItem(
 
   tx.moveCall({
     package:
-      "0xc6b85a217806c30492c1abfba8b54c8f223792ad50f433bcd9255251ebf2d418",
+      "0x3db3b8d169a833ac8fc50f1fe6657f10823aa892f01f45eb80c71d05b092b1c9",
     module: "item",
     function: "mint_to_sender",
     arguments: [
@@ -28,6 +29,7 @@ export async function createItem(
       tx.pure.string("ITEM"),
       tx.pure.string("https://www.pomerene.net/white-small.png"),
       tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
+      tx.pure.string(blobId),
     ],
   });
 
@@ -59,7 +61,7 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
 
       if (
         t?.type ===
-        "0xc6b85a217806c30492c1abfba8b54c8f223792ad50f433bcd9255251ebf2d418::item::ItemNFT"
+        "0x3db3b8d169a833ac8fc50f1fe6657f10823aa892f01f45eb80c71d05b092b1c9::item::ItemNFT"
       ) {
         return t.fields;
       }
@@ -88,7 +90,7 @@ export async function deleteItem(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0xc6b85a217806c30492c1abfba8b54c8f223792ad50f433bcd9255251ebf2d418",
+      "0x3db3b8d169a833ac8fc50f1fe6657f10823aa892f01f45eb80c71d05b092b1c9",
     module: "item",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
@@ -213,7 +215,7 @@ export async function fetchLocationsByItem(itemPublicKey: string) {
 
       if (
         t?.type ===
-        "0x23a00f394d8b4a2413cc0f47f5ed1a676c9f0403e7030a775dce58b85c2d7053::pomerene::PomeNFT"
+        "0x3db3b8d169a833ac8fc50f1fe6657f10823aa892f01f45eb80c71d05b092b1c9::pomerene::PomeNFT"
       ) {
         // Only return the message field
         return t.fields;

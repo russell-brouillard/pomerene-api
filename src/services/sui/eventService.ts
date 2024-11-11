@@ -212,3 +212,47 @@ export async function fetchEventsByOwner(
 
   return valid;
 }
+
+export async function deleteEvent(
+  signer: Ed25519Keypair,
+  eventObjectId: string
+): Promise<string> {
+  // Initialize the Sui client pointing to the devnet
+  const client = new SuiClient({
+    url: getFullnodeUrl("devnet"),
+  });
+
+  // Create a new transaction
+  const tx = new Transaction();
+
+  // Add the burn Move call to the transaction
+  tx.moveCall({
+    package:
+      "0x23a00f394d8b4a2413cc0f47f5ed1a676c9f0403e7030a775dce58b85c2d7053",
+    module: "pomerene",
+    function: "burn",
+    // The burn function expects the ItemNFT object, which we pass as a reference
+    arguments: [tx.object(eventObjectId)],
+    // Specify the type arguments if any (not needed in this case)
+    typeArguments: [],
+  });
+
+  try {
+    // Sign and execute the transaction
+    const result = await client.signAndExecuteTransaction({
+      signer,
+      transaction: tx,
+      options: {
+        // Optional: Adjust transaction options as needed
+        showEffects: true,
+        showEvents: true,
+      },
+    });
+
+    // Return the transaction digest for reference
+    return result.digest;
+  } catch (error) {
+    console.error("Error burning ItemNFT:", error);
+    throw error;
+  }
+}
