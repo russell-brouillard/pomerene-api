@@ -3,7 +3,7 @@ import { authMiddleware } from "../middleware/authMiddleware";
 import {
   createUserWithSolanaKeypair,
   getAllUsersController,
-  getSolanaKeypair,
+  getSuiKeypair,
   getSuiBalance,
   getSuiKeypairController,
   getSuiMoneyController,
@@ -19,7 +19,7 @@ router.post("/sui/faucet", getSuiMoneyController);
 
 // User endpoints
 router.get("/balance", authMiddleware, getSuiBalance);
-router.get("/solana-keypair", authMiddleware, getSolanaKeypair);
+router.get("/solana-keypair", authMiddleware, getSuiKeypair);
 router.post("/create", createUserWithSolanaKeypair);
 router.post("/signIn", getUserJWTController);
 router.get("/email/:email", getUserByEmailController);

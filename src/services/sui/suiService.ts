@@ -1,9 +1,10 @@
-import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import { Ed25519Keypair, Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
 import { fromHex, fromBase64 } from "@mysten/sui/utils";
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { getFaucetHost, requestSuiFromFaucetV1 } from "@mysten/sui/faucet";
 import { MIST_PER_SUI } from "@mysten/sui/utils";
+import * as crypto from "crypto";
 
 // Function to get Sui Keypair from various secret key formats
 export function getSuiKeypairFromSecret(secret: string | Uint8Array) {
@@ -53,4 +54,34 @@ export async function getBalance(address: string): Promise<number> {
   };
 
   return balance(sui);
+}
+
+export function encrypt(plaintext: string, passphrase: string): string {
+  const salt = crypto.randomBytes(16);
+  const key = crypto.pbkdf2Sync(passphrase, salt, 100000, 32, "sha256");
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const encrypted = Buffer.concat([
+    cipher.update(plaintext, "utf8"),
+    cipher.final(),
+  ]);
+  const authTag = cipher.getAuthTag();
+  const encryptedBuffer = Buffer.concat([salt, iv, authTag, encrypted]);
+  return encryptedBuffer.toString("base64");
+}
+
+export function decrypt(encryptedData: string, passphrase: string): string {
+  const data = Buffer.from(encryptedData, "base64");
+  const salt = data.subarray(0, 16);
+  const iv = data.subarray(16, 28);
+  const authTag = data.subarray(28, 44);
+  const encrypted = data.subarray(44);
+  const key = crypto.pbkdf2Sync(passphrase, salt, 100000, 32, "sha256");
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+  decipher.setAuthTag(authTag);
+  const decrypted = Buffer.concat([
+    decipher.update(encrypted),
+    decipher.final(),
+  ]);
+  return decrypted.toString("utf8");
 }

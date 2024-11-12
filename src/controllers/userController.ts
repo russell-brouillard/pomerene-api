@@ -15,35 +15,7 @@ import {
   getSuiMoney,
 } from "../services/sui/suiService";
 
-/**
- * @swagger
- * /api/v1/user/solana-keypair:
- *   get:
- *     summary: Retrieves the Solana keypair for the authenticated user.
- *     tags: [User]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Solana keypair successfully retrieved.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 secretKeyArray:
- *                   type: array
- *                   items:
- *                     type: string
- *                   description: The Solana keypair associated with the user.
- *       401:
- *         description: User is not authenticated.
- *       404:
- *         description: Solana keypair not found for user.
- *       500:
- *         description: Failed to retrieve Solana keypair.
- */
-export const getSolanaKeypair = async (req: AuthRequest, res: Response) => {
+export const getSuiKeypair = async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).send("User is not authenticated");
   }

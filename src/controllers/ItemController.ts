@@ -8,8 +8,8 @@ import {
   fetchItemsByOwner,
   fetchItemsLocationsByOwner,
   fetchLocationsByItem,
+  getQrCode,
 } from "../services/sui/itemService";
-
 
 export async function createItemController(
   req: AuthRequest,
@@ -17,18 +17,17 @@ export async function createItemController(
 ): Promise<void> {
   try {
     // Extract necessary data from request body
-    const { description, blobId } = req.body;
-
+    const { name, description, blobId } = req.body;
 
     console.log("blod", blobId);
-    if (!req.user || !description) {
+    if (!req.user || !description || !name) {
       throw new Error("Missing required fields");
     }
 
     const payer = await getSuiKeypairForUser(req.user.uid);
 
     // Call createScanner function
-    const item = await createItem(payer, description, blobId);
+    const item = await createItem(payer, name, description, blobId);
 
     // Send success response with token metadata
     res.status(200).json({ success: true, item });
@@ -39,25 +38,30 @@ export async function createItemController(
   }
 }
 
-// /**
-//  * @swagger
-//  * /api/v1/item/delete/{mint}:
-//  *   delete:
-//  *     summary: Deletes an item by closing its mint account.
-//  *     tags: [Item]
-//  *     parameters:
-//  *       - in: path
-//  *         name: mint
-//  *         required: true
-//  *         schema:
-//  *           type: string
-//  *         description: The public key of the mint to be deleted.
-//  *     responses:
-//  *       200:
-//  *         description: Item deleted successfully.
-//  *       500:
-//  *         description: Error deleting the item.
-//  */
+export async function getQrCodeController(
+  req: AuthRequest,
+  res: Response
+): Promise<any> {
+  try {
+    const { itemObjectId } = req.params;
+
+    if (!req.user) {
+      return res
+        .status(403)
+        .json({ success: false, error: "User not authorized." });
+    }
+
+    const owner = await getSuiKeypairForUser(req.user.uid);
+
+    const item = await getQrCode(itemObjectId, owner);
+
+    res.status(200).json({ success: true, item });
+  } catch (error: any) {
+    console.error("Error fetching item:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
 export async function deleteItemController(
   req: AuthRequest,
   res: Response

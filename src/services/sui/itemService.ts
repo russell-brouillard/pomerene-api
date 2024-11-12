@@ -5,9 +5,11 @@ import {
 } from "@mysten/sui/client";
 import { Ed25519Keypair, Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
 import { Transaction } from "@mysten/sui/transactions";
+import { decrypt, encrypt } from "./suiService";
 
 export async function createItem(
   signer: Ed25519Keypair,
+  name: string,
   description: string,
   blobId: string
 ): Promise<string> {
@@ -19,16 +21,22 @@ export async function createItem(
 
   const tx = new Transaction();
 
+  const itemSecretKey = encrypt(
+    itemKeypair.getSecretKey(),
+    signer.getSecretKey()
+  );
+
   tx.moveCall({
     package:
-      "0x3db3b8d169a833ac8fc50f1fe6657f10823aa892f01f45eb80c71d05b092b1c9",
+      "0x58c94c1e637c6aac85323f1b8ca170bd66127fe482f701a2f55339c11dadeff7",
     module: "item",
     function: "mint_to_sender",
     arguments: [
+      tx.pure.string(name),
       tx.pure.string(description),
-      tx.pure.string("ITEM"),
       tx.pure.string("https://www.pomerene.net/white-small.png"),
       tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
+      tx.pure.string(itemSecretKey),
       tx.pure.string(blobId),
     ],
   });
@@ -61,7 +69,7 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
 
       if (
         t?.type ===
-        "0x3db3b8d169a833ac8fc50f1fe6657f10823aa892f01f45eb80c71d05b092b1c9::item::ItemNFT"
+        "0x58c94c1e637c6aac85323f1b8ca170bd66127fe482f701a2f55339c11dadeff7::item::ItemNFT"
       ) {
         return t.fields;
       }
@@ -90,7 +98,7 @@ export async function deleteItem(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x3db3b8d169a833ac8fc50f1fe6657f10823aa892f01f45eb80c71d05b092b1c9",
+      "0x58c94c1e637c6aac85323f1b8ca170bd66127fe482f701a2f55339c11dadeff7",
     module: "item",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
@@ -215,7 +223,7 @@ export async function fetchLocationsByItem(itemPublicKey: string) {
 
       if (
         t?.type ===
-        "0x3db3b8d169a833ac8fc50f1fe6657f10823aa892f01f45eb80c71d05b092b1c9::pomerene::PomeNFT"
+        "0x58c94c1e637c6aac85323f1b8ca170bd66127fe482f701a2f55339c11dadeff7::pomerene::PomeNFT"
       ) {
         // Only return the message field
         return t.fields;
@@ -233,4 +241,19 @@ export async function fetchGPSByItem(itemPublicKey: string) {
 
   // Filter out null values and return clean array of messages
   return locations.filter((location) => location !== null);
+}
+
+export async function getQrCode(itemPublicKey: string, owner: Ed25519Keypair) {
+  const client = new SuiClient({
+    url: getFullnodeUrl("devnet"),
+  });
+
+  const item: any = await client.getObject({
+    id: itemPublicKey,
+    options: { showContent: true },
+  });
+
+  const qrCode: any = item.data?.content?.fields?.qr;
+
+  return decrypt(qrCode, owner.getSecretKey());
 }
