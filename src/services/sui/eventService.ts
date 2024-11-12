@@ -99,7 +99,6 @@ export async function createScanNFT(
     arguments: [
       tx.pure.string("SCAN"),
       tx.pure.string("https://www.pomerene.net/green-small.png"),
-      tx.pure.address(toHex(itemKeypair.getPublicKey().toRawBytes())),
       tx.pure.address(scannerKeypair.getPublicKey().toSuiAddress()),
       tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
       tx.pure.string(message),
