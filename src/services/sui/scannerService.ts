@@ -8,7 +8,9 @@ import { Transaction } from "@mysten/sui/transactions";
 
 export async function createScanner(
   signer: Ed25519Keypair,
-  description: string
+  name: string,
+  description: string,
+  blobId: string
 ): Promise<string> {
   const client = new SuiClient({
     url: getFullnodeUrl("devnet"),
@@ -20,15 +22,16 @@ export async function createScanner(
 
   tx.moveCall({
     package:
-      "0xed9da80fa010776753cad40d41035de1bd9d22a1beb88d8ea39e2909196ec262",
+      "0x4c0460de0b079c8e31bc85f36cf8c1b2a38b1a9a67d0367b60a76c6e3cf60ea4",
     module: "scanner",
     function: "mint_to_sender",
     arguments: [
+      tx.pure.string(name),
       tx.pure.string(description),
-      tx.pure.string("SCNR"),
       tx.pure.string("https://www.pomerene.net/yellow-black-small.png"),
       tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
       tx.pure.string(itemKeypair.getSecretKey()),
+      tx.pure.string(blobId),
     ],
   });
 
@@ -62,7 +65,7 @@ export async function fetchScannersByOwner(
 
       if (
         t?.type ===
-        "0xed9da80fa010776753cad40d41035de1bd9d22a1beb88d8ea39e2909196ec262::scanner::ScannerNFT"
+        "0x4c0460de0b079c8e31bc85f36cf8c1b2a38b1a9a67d0367b60a76c6e3cf60ea4::scanner::ScannerNFT"
       ) {
         return t.fields;
       }
@@ -91,7 +94,7 @@ export async function deleteScanner(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0xed9da80fa010776753cad40d41035de1bd9d22a1beb88d8ea39e2909196ec262",
+      "0x4c0460de0b079c8e31bc85f36cf8c1b2a38b1a9a67d0367b60a76c6e3cf60ea4",
     module: "scanner",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference

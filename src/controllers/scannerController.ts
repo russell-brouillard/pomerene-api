@@ -9,95 +9,17 @@ import {
   fetchScannersLocationsByOwner,
 } from "../services/sui/scannerService";
 
-/**
- * @swagger
- * /api/v1/scanner/create:
- *   post:
- *     summary: Create a new scanner
- *     description: Creates a new scanner entity for the authenticated user on the Solana blockchain.
- *     tags: [Scanner]
- *     security:
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - description
- *             properties:
- *               description:
- *                 type: string
- *                 description: The description of the scanner being created.
- *     responses:
- *       200:
- *         description: Scanner created successfully. Returns the scanner object.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 scanner:
- *                   type: object
- *                   properties:
- *                     owner:
- *                       type: string
- *                       description: Owner's wallet address.
- *                     mint:
- *                       type: string
- *                       description: Mint address of the scanner.
- *                     tokenAccount:
- *                       type: string
- *                       description: Token account address for the scanner.
- *                     scannerSecret:
- *                       type: string
- *                       description: Secret key for the item associated with the scanner.
- *                     description:
- *                       type: string
- *                       description: Description of the scanner.
- *       400:
- *         description: Missing required fields - typically indicates the user is not authenticated or missing description.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: Missing required fields
- *       500:
- *         description: Error creating the scanner.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   description: Detailed error message.
- * components:
- *   securitySchemes:
- *     BearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
- */
+
 export async function createScannerController(
   req: AuthRequest,
   res: Response
 ): Promise<void> {
   try {
-    const { description } = req.body;
+    const { name, description, blobId } = req.body;
+
+    console.log("Creating scanner with name:", name);
+    console.log("Creating scanner with description:", description);
+    console.log("Creating scanner with blobId:", blobId);
 
     if (!req.user) {
       throw new Error("Missing required fields");
@@ -105,7 +27,7 @@ export async function createScannerController(
 
     const payer = await getSuiKeypairForUser(req.user.uid);
 
-    const secret = await createScanner(payer, description);
+    const secret = await createScanner(payer, name, description, blobId);
 
     res.status(200).json({ success: true, secret });
   } catch (error: any) {
@@ -225,7 +147,6 @@ export async function deleteScannerController(
     res.status(500).json({ success: false, error: error.message });
   }
 }
-
 
 export async function handleFetchScannersLastLocation(
   req: AuthRequest,
