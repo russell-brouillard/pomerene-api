@@ -93,7 +93,7 @@ export async function createScanNFT(
   const tx = new Transaction();
   tx.moveCall({
     package:
-      "0x23a00f394d8b4a2413cc0f47f5ed1a676c9f0403e7030a775dce58b85c2d7053", // Replace with your package address
+      "0x21cbbd74d9cf2125ba06a914878fbc092a65c26e0ea737ffe00ee5aa7d04f961", // Replace with your package address
     module: "pomerene",
     function: "scan", // Assume this function exists to mint your NFT
     arguments: [
@@ -199,7 +199,7 @@ export async function fetchEventsByOwner(
 
       if (
         t?.type ===
-        "0x23a00f394d8b4a2413cc0f47f5ed1a676c9f0403e7030a775dce58b85c2d7053::pomerene::PomeNFT"
+        "0x21cbbd74d9cf2125ba06a914878fbc092a65c26e0ea737ffe00ee5aa7d04f961::pomerene::PomeNFT"
       ) {
         return t.fields;
       }
@@ -228,7 +228,7 @@ export async function deleteEvent(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x23a00f394d8b4a2413cc0f47f5ed1a676c9f0403e7030a775dce58b85c2d7053",
+      "0x21cbbd74d9cf2125ba06a914878fbc092a65c26e0ea737ffe00ee5aa7d04f961",
     module: "pomerene",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference

@@ -3,7 +3,7 @@ import {
   PaginatedObjectsResponse,
   SuiClient,
 } from "@mysten/sui/client";
-import { Ed25519Keypair, Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Transaction } from "@mysten/sui/transactions";
 import { decrypt, encrypt } from "./suiService";
 
@@ -28,7 +28,7 @@ export async function createItem(
 
   tx.moveCall({
     package:
-      "0x58c94c1e637c6aac85323f1b8ca170bd66127fe482f701a2f55339c11dadeff7",
+      "0xd688a3f211e89df51b1e88e3e2113051fb800111147f3917623b7060f27f8940",
     module: "item",
     function: "mint_to_sender",
     arguments: [
@@ -45,6 +45,8 @@ export async function createItem(
     signer,
     transaction: tx,
   });
+
+  console.log("Item created with secret key:", result);
 
   return itemKeypair.getSecretKey();
 }
@@ -69,7 +71,7 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
 
       if (
         t?.type ===
-        "0x58c94c1e637c6aac85323f1b8ca170bd66127fe482f701a2f55339c11dadeff7::item::ItemNFT"
+        "0xd688a3f211e89df51b1e88e3e2113051fb800111147f3917623b7060f27f8940::item::ItemNFT"
       ) {
         return t.fields;
       }
@@ -98,7 +100,7 @@ export async function deleteItem(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x58c94c1e637c6aac85323f1b8ca170bd66127fe482f701a2f55339c11dadeff7",
+      "0xd688a3f211e89df51b1e88e3e2113051fb800111147f3917623b7060f27f8940",
     module: "item",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
@@ -223,7 +225,7 @@ export async function fetchLocationsByItem(itemPublicKey: string) {
 
       if (
         t?.type ===
-        "0x58c94c1e637c6aac85323f1b8ca170bd66127fe482f701a2f55339c11dadeff7::pomerene::PomeNFT"
+        "0x21cbbd74d9cf2125ba06a914878fbc092a65c26e0ea737ffe00ee5aa7d04f961::pomerene::PomeNFT"
       ) {
         // Only return the message field
         return t.fields;
