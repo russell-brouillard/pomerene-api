@@ -26,6 +26,11 @@ export async function createItem(
     signer.getSecretKey()
   );
 
+  console.log("Creating item with name:", name);
+  console.log("Creating item with description:", description);
+  console.log("Creating item with blobId:", blobId);
+  console.log("Creating item with secret key:", itemSecretKey);
+
   tx.moveCall({
     package:
       "0xd688a3f211e89df51b1e88e3e2113051fb800111147f3917623b7060f27f8940",
