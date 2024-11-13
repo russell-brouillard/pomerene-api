@@ -9,17 +9,12 @@ import {
   fetchScannersLocationsByOwner,
 } from "../services/sui/scannerService";
 
-
 export async function createScannerController(
   req: AuthRequest,
   res: Response
 ): Promise<void> {
   try {
     const { name, description, blobId } = req.body;
-
-    console.log("Creating scanner with name:", name);
-    console.log("Creating scanner with description:", description);
-    console.log("Creating scanner with blobId:", blobId);
 
     if (!req.user) {
       throw new Error("Missing required fields");

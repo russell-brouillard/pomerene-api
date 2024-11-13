@@ -19,7 +19,6 @@ export async function createItemController(
     // Extract necessary data from request body
     const { name, description, blobId } = req.body;
 
-    console.log("blod", blobId);
     if (!req.user || !description || !name) {
       throw new Error("Missing required fields");
     }

@@ -3,7 +3,7 @@ import { Transaction } from "@mysten/sui/transactions";
 import { getSuiKeypairFromSecret } from "./suiService";
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { Ed25519Keypair, Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
-import { fromHex, toHex } from "@mysten/sui/utils";
+import { fromHex } from "@mysten/sui/utils";
 
 export async function createSuiScannerTransaction(
   scannerSecret: string,
@@ -93,11 +93,10 @@ export async function createScanNFT(
   const tx = new Transaction();
   tx.moveCall({
     package:
-      "0x21cbbd74d9cf2125ba06a914878fbc092a65c26e0ea737ffe00ee5aa7d04f961", // Replace with your package address
+      "0xa5609da45ec804a43803e48ae0cc6708aaeddc61f3e6640cea51d89cc76928c5", // Replace with your package address
     module: "pomerene",
     function: "scan", // Assume this function exists to mint your NFT
     arguments: [
-      tx.pure.string("SCAN"),
       tx.pure.string("https://www.pomerene.net/green-small.png"),
       tx.pure.address(scannerKeypair.getPublicKey().toSuiAddress()),
       tx.pure.address(itemKeypair.getPublicKey().toSuiAddress()),
@@ -206,7 +205,7 @@ export async function fetchEventsByOwner(
 
       if (
         item.data?.type ===
-        "0x21cbbd74d9cf2125ba06a914878fbc092a65c26e0ea737ffe00ee5aa7d04f961::pomerene::PomeNFT"
+        "0xa5609da45ec804a43803e48ae0cc6708aaeddc61f3e6640cea51d89cc76928c5::pomerene::PomeNFT"
       ) {
         const fields = (item.data?.content as any)?.fields;
 
@@ -237,7 +236,7 @@ export async function deleteEvent(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x21cbbd74d9cf2125ba06a914878fbc092a65c26e0ea737ffe00ee5aa7d04f961",
+      "0xa5609da45ec804a43803e48ae0cc6708aaeddc61f3e6640cea51d89cc76928c5",
     module: "pomerene",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
