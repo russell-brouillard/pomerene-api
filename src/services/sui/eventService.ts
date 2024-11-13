@@ -191,16 +191,26 @@ export async function fetchEventsByOwner(
     myObjects.data.map(async (obj) => {
       const item = await client.getObject({
         id: obj.data?.objectId!,
-        options: { showContent: true },
+        options: {
+          showContent: true,
+          showOwner: true,
+          showPreviousTransaction: true,
+          showType: true,
+          showDisplay: true,
+        },
       });
 
-      const t: any = item.data?.content;
+      const lastTransaction = await client.getTransactionBlock({
+        digest: item.data?.previousTransaction!,
+      });
 
       if (
-        t?.type ===
+        item.data?.type ===
         "0x21cbbd74d9cf2125ba06a914878fbc092a65c26e0ea737ffe00ee5aa7d04f961::pomerene::PomeNFT"
       ) {
-        return t.fields;
+        const fields = (item.data?.content as any)?.fields;
+
+        return { ...fields, lastTransaction };
       }
       return null; // Explicitly return null for non-matching types
     })
