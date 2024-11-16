@@ -223,7 +223,7 @@ export async function fetchLocationsByItem(itemPublicKey: string) {
 
       if (
         t?.type ===
-        "0x21cbbd74d9cf2125ba06a914878fbc092a65c26e0ea737ffe00ee5aa7d04f961::pomerene::PomeNFT"
+        "0xa5609da45ec804a43803e48ae0cc6708aaeddc61f3e6640cea51d89cc76928c5::pomerene::PomeNFT"
       ) {
         // Only return the message field
         return t.fields;
