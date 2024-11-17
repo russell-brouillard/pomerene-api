@@ -186,8 +186,6 @@ export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
       owner: owner.getPublicKey().toSuiAddress(),
     });
 
-    console.log("My objects:", myObjects);
-
     // Process each owned object
     const scans = await Promise.all(
       myObjects.data.map(async (obj) => {
@@ -195,7 +193,6 @@ export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
           console.warn(`Object data is null or undefined for object`);
           return null;
         }
-        console.log("Object:", obj.data);
 
         // Fetch detailed object information
         const item = await client.getObject({
@@ -218,8 +215,6 @@ export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
         const lastTransaction = await client.getTransactionBlock({
           digest: item.data.previousTransaction!,
         });
-
-        console.log("Item:", item);
 
         const fields = (item.data.content as any).fields;
 
