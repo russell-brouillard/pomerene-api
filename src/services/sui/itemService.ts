@@ -62,7 +62,13 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
     myObjects.data.map(async (obj) => {
       const item = await client.getObject({
         id: obj.data?.objectId!,
-        options: { showContent: true },
+        options: {
+          showContent: true,
+          showOwner: true,
+          showPreviousTransaction: true,
+          showType: true,
+          showDisplay: true,
+        },
       });
 
       const t: any = item.data?.content;
@@ -71,7 +77,12 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
         t?.type ===
         "0xd688a3f211e89df51b1e88e3e2113051fb800111147f3917623b7060f27f8940::item::ItemNFT"
       ) {
-        return t.fields;
+        const lastTransaction = await client.getTransactionBlock({
+          digest: item.data!.previousTransaction!,
+        });
+
+        const fields = (item.data!.content as any).fields;
+        return { ...fields, timestampMs: lastTransaction.timestampMs };
       }
       return null; // Explicitly return null for non-matching types
     })
@@ -216,7 +227,13 @@ export async function fetchLocationsByItem(itemPublicKey: string) {
     scans.data.map(async (obj) => {
       const item = await client.getObject({
         id: obj.data?.objectId!,
-        options: { showContent: true },
+        options: {
+          showContent: true,
+          showOwner: true,
+          showPreviousTransaction: true,
+          showType: true,
+          showDisplay: true,
+        },
       });
 
       const t: any = item.data?.content;
@@ -225,7 +242,12 @@ export async function fetchLocationsByItem(itemPublicKey: string) {
         t?.type ===
         "0xa5609da45ec804a43803e48ae0cc6708aaeddc61f3e6640cea51d89cc76928c5::pomerene::PomeNFT"
       ) {
-        // Only return the message field
+        const lastTransaction = await client.getTransactionBlock({
+          digest: item.data!.previousTransaction!,
+        });
+
+        t.fields.timestampMs = lastTransaction.timestampMs;
+
         return t.fields;
       }
       return null;
