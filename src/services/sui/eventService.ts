@@ -1,7 +1,7 @@
 import { MultiSigPublicKey } from "@mysten/sui/multisig";
 import { Transaction } from "@mysten/sui/transactions";
 import { getSuiKeypairFromSecret } from "./suiService";
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
+import { getFullnodeUrl, ObjectRead, SuiClient } from "@mysten/sui/client";
 import { Ed25519Keypair, Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
 import { fromHex } from "@mysten/sui/utils";
 
@@ -175,50 +175,138 @@ export async function validateGPSDataFromNFT(nftId: string): Promise<any> {
   }
 }
 
-export async function fetchEventsByOwner(
-  owner: Ed25519Keypair
-): Promise<any[]> {
+export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
   const client = new SuiClient({
     url: getFullnodeUrl("devnet"),
   });
 
-  const myObjects = await client.getOwnedObjects({
-    owner: owner.getPublicKey().toSuiAddress(),
-  });
+  try {
+    // Fetch objects owned by the owner
+    const myObjects = await client.getOwnedObjects({
+      owner: owner.getPublicKey().toSuiAddress(),
+    });
 
-  const test = await Promise.all(
-    myObjects.data.map(async (obj) => {
-      const item = await client.getObject({
-        id: obj.data?.objectId!,
-        options: {
-          showContent: true,
-          showOwner: true,
-          showPreviousTransaction: true,
-          showType: true,
-          showDisplay: true,
-        },
-      });
+    console.log("My objects:", myObjects);
 
-      const lastTransaction = await client.getTransactionBlock({
-        digest: item.data?.previousTransaction!,
-      });
+    // Process each owned object
+    const scans = await Promise.all(
+      myObjects.data.map(async (obj) => {
+        if (!obj.data) {
+          console.warn(`Object data is null or undefined for object`);
+          return null;
+        }
+        console.log("Object:", obj.data);
 
-      if (
-        item.data?.type ===
-        "0xa5609da45ec804a43803e48ae0cc6708aaeddc61f3e6640cea51d89cc76928c5::pomerene::PomeNFT"
-      ) {
-        const fields = (item.data?.content as any)?.fields;
+        // Fetch detailed object information
+        const item = await client.getObject({
+          id: obj.data.objectId,
+          options: {
+            showContent: true,
+            showOwner: true,
+            showPreviousTransaction: true,
+            showType: true,
+            showDisplay: true,
+          },
+        });
 
-        return { ...fields, lastTransaction };
-      }
-      return null; // Explicitly return null for non-matching types
-    })
-  );
+        if (!item.data) {
+          console.warn(`Object data is null or undefined for object`);
+          return null;
+        }
 
-  // Filter out null or undefined entries
-  const valid = test.filter(Boolean);
+        // Fetch the last transaction related to the object
+        const lastTransaction = await client.getTransactionBlock({
+          digest: item.data.previousTransaction!,
+        });
 
-  return valid;
+        console.log("Item:", item);
+
+        const fields = (item.data.content as any).fields;
+
+        // Check if the object is a PomeNFT
+        if (
+          item.data.type ===
+          "0xa5609da45ec804a43803e48ae0cc6708aaeddc61f3e6640cea51d89cc76928c5::pomerene::PomeNFT"
+        ) {
+          return { ...fields, lastTransaction };
+        }
+
+        // Check if the object is an ItemNFT
+        if (
+          item.data.type ===
+          "0xd688a3f211e89df51b1e88e3e2113051fb800111147f3917623b7060f27f8940::item::ItemNFT"
+        ) {
+          // Fetch objects owned by the item's address
+          const itemsScansResponse = await client.getOwnedObjects({
+            owner: fields.itemAddress,
+          });
+
+          // Process each scan owned by the item
+          const itemScans = await Promise.all(
+            itemsScansResponse.data.map(async (itemObj) => {
+              if (!itemObj.data) {
+                console.warn(`Object data is null or undefined for object`);
+                return null;
+              }
+              try {
+                const scanItem = await client.getObject({
+                  id: itemObj.data.objectId,
+                  options: {
+                    showContent: true,
+                    showOwner: true,
+                    showPreviousTransaction: true,
+                    showType: true,
+                    showDisplay: true,
+                  },
+                });
+
+                if (!scanItem.data) {
+                  console.warn(`Object data is null or undefined for object`);
+                  return null;
+                }
+
+                const scanFields = (scanItem.data.content as any).fields;
+
+                // Check if the scan item is a PomeNFT
+                if (
+                  scanItem.data.type ===
+                  "0xa5609da45ec804a43803e48ae0cc6708aaeddc61f3e6640cea51d89cc76928c5::pomerene::PomeNFT"
+                ) {
+                  return { ...scanFields, lastTransaction };
+                }
+
+                // If not a PomeNFT, ignore
+                return null;
+              } catch (error) {
+                console.error(
+                  `Error fetching scan object ${itemObj.data.objectId}:`,
+                  error
+                );
+                return null;
+              }
+            })
+          );
+
+          // Filter out any null results from the scans
+          const validItemScans = itemScans.filter((scan) => scan !== null);
+          return validItemScans;
+        }
+
+        // If the object type doesn't match, ignore it
+        return null;
+      })
+    );
+
+    // Flatten the scans array and filter out any null or undefined entries
+    const validScans = scans
+      .flat()
+      .filter((scan) => scan !== null && scan !== undefined);
+
+    return validScans;
+  } catch (error) {
+    console.error("Error fetching events by owner:", error);
+    return [];
+  }
 }
 
 export async function deleteEvent(
