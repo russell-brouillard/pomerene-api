@@ -1,7 +1,7 @@
 import { MultiSigPublicKey } from "@mysten/sui/multisig";
 import { Transaction } from "@mysten/sui/transactions";
 import { getSuiKeypairFromSecret } from "./suiService";
-import { getFullnodeUrl, ObjectRead, SuiClient } from "@mysten/sui/client";
+import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { Ed25519Keypair, Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
 import { fromHex } from "@mysten/sui/utils";
 
@@ -86,14 +86,17 @@ export async function createScanNFT(
   client: SuiClient,
   payerKeypair: Ed25519Keypair
 ): Promise<string> {
+
+  
   const scannerKeypair = getSuiKeypairFromSecret(scannerSecret);
   const itemKeypair = getSuiKeypairFromSecret(itemSecret);
+
 
   // Mint an NFT and embed the message and signatures
   const tx = new Transaction();
   tx.moveCall({
     package:
-      "0x4d60bb3f761d1cb14c06c52eeb910e1d0e49a8c8d3da3f7281c0d34efc658673", // Replace with your package address
+      "0xd9efa6f0d2a5e0ff9a12e13f3ee685ea18178f442f57419b25fc90ffdafb0b91", // Replace with your package address
     module: "pomerene",
     function: "scan", // Assume this function exists to mint your NFT
     arguments: [
@@ -221,7 +224,7 @@ export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
         // Check if the object is a PomeNFT
         if (
           item.data.type ===
-          "0x4d60bb3f761d1cb14c06c52eeb910e1d0e49a8c8d3da3f7281c0d34efc658673::pomerene::PomeNFT"
+          "0xd9efa6f0d2a5e0ff9a12e13f3ee685ea18178f442f57419b25fc90ffdafb0b91::pomerene::PomeNFT"
         ) {
           return { ...fields, lastTransaction };
         }
@@ -229,7 +232,7 @@ export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
         // Check if the object is an ItemNFT
         if (
           item.data.type ===
-          "0x4d60bb3f761d1cb14c06c52eeb910e1d0e49a8c8d3da3f7281c0d34efc658673::item::ItemNFT"
+          "0xd9efa6f0d2a5e0ff9a12e13f3ee685ea18178f442f57419b25fc90ffdafb0b91::item::ItemNFT"
         ) {
           // Fetch objects owned by the item's address
           const itemsScansResponse = await client.getOwnedObjects({
@@ -265,7 +268,7 @@ export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
                 // Check if the scan item is a PomeNFT
                 if (
                   scanItem.data.type ===
-                  "0x4d60bb3f761d1cb14c06c52eeb910e1d0e49a8c8d3da3f7281c0d34efc658673::pomerene::PomeNFT"
+                  "0xd9efa6f0d2a5e0ff9a12e13f3ee685ea18178f442f57419b25fc90ffdafb0b91::pomerene::PomeNFT"
                 ) {
                   return { ...scanFields, lastTransaction };
                 }
@@ -319,7 +322,7 @@ export async function deleteEvent(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x4d60bb3f761d1cb14c06c52eeb910e1d0e49a8c8d3da3f7281c0d34efc658673",
+      "0xd9efa6f0d2a5e0ff9a12e13f3ee685ea18178f442f57419b25fc90ffdafb0b91",
     module: "pomerene",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
