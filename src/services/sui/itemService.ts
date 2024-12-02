@@ -7,12 +7,47 @@ import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Transaction } from "@mysten/sui/transactions";
 import { decrypt, encrypt } from "./suiService";
 
+export async function createItemObject(
+  signer: Ed25519Keypair,
+  name: string,
+  description: string,
+  blobId: string
+): Promise<any> {
+  const client = new SuiClient({
+    url: getFullnodeUrl("devnet"),
+  });
+
+  const tx = new Transaction();
+
+  tx.moveCall({
+    package:
+      "0x5a1b1fe3945e2d4ded0ea376c93bdcce1d02fe56f2525bc6fb305d9e00b8c765",
+    module: "test",
+    function: "add_child",
+    arguments: [
+      tx.object(
+        "0x2a01cc95f06fb67ab370b394722dfa43e148cd85a8befd5b60a6bb3974592cba"
+      ),
+      tx.object(
+        "0x14525b57737a750c9bfa385977c92ef72c9416f91f0fdd8b7fb7817c6bc3f723"
+      ),
+    ],
+  });
+
+  const result = await client.signAndExecuteTransaction({
+    signer,
+    transaction: tx,
+  });
+
+  return result;
+}
+
 export async function createItem(
   signer: Ed25519Keypair,
   name: string,
   description: string,
   blobId: string
-): Promise<string> {
+): Promise<any> {
   const client = new SuiClient({
     url: getFullnodeUrl("devnet"),
   });
@@ -28,7 +63,7 @@ export async function createItem(
 
   tx.moveCall({
     package:
-      "0xd9efa6f0d2a5e0ff9a12e13f3ee685ea18178f442f57419b25fc90ffdafb0b91",
+      "0x5a1b1fe3945e2d4ded0ea376c93bdcce1d02fe56f2525bc6fb305d9e00b8c765",
     module: "item",
     function: "mint_to_sender",
     arguments: [
@@ -75,7 +110,7 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
 
       if (
         t?.type ===
-        "0xd9efa6f0d2a5e0ff9a12e13f3ee685ea18178f442f57419b25fc90ffdafb0b91::item::ItemNFT"
+        "0x5a1b1fe3945e2d4ded0ea376c93bdcce1d02fe56f2525bc6fb305d9e00b8c765::item::ItemNFT"
       ) {
         const lastTransaction = await client.getTransactionBlock({
           digest: item.data!.previousTransaction!,
@@ -109,7 +144,7 @@ export async function deleteItem(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0xd9efa6f0d2a5e0ff9a12e13f3ee685ea18178f442f57419b25fc90ffdafb0b91",
+      "0x5a1b1fe3945e2d4ded0ea376c93bdcce1d02fe56f2525bc6fb305d9e00b8c765",
     module: "item",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
@@ -240,7 +275,7 @@ export async function fetchLocationsByItem(itemPublicKey: string) {
 
       if (
         t?.type ===
-        "0xd9efa6f0d2a5e0ff9a12e13f3ee685ea18178f442f57419b25fc90ffdafb0b91::pomerene::PomeNFT"
+        "0x5a1b1fe3945e2d4ded0ea376c93bdcce1d02fe56f2525bc6fb305d9e00b8c765::pomerene::PomeNFT"
       ) {
         const lastTransaction = await client.getTransactionBlock({
           digest: item.data!.previousTransaction!,
