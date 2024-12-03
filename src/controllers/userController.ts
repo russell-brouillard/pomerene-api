@@ -64,40 +64,6 @@ export const getSuiMoneyController = async (
   }
 };
 
-/**
- * @swagger
- * /api/v1/user/create:
- *   post:
- *     summary: Creates a new user and generates a Solana keypair.
- *     tags: [User]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 description: Email address for the new user.
- *               password:
- *                 type: string
- *                 description: Password for the new user.
- *     responses:
- *       201:
- *         description: User and Solana keypair created successfully.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/CreateUserAndStoreSolanaKeypairResult'
- *       400:
- *         description: Email and password are required.
- *       500:
- *         description: Failed to create user and Solana keypair.
- */
 export const createUserWithSolanaKeypair = async (
   req: Request,
   res: Response
@@ -120,138 +86,6 @@ export const createUserWithSolanaKeypair = async (
   }
 };
 
-/**
- * @swagger
- * /api/v1/user/signin:
- *   post:
- *     summary: Authenticates a user and returns user information.
- *     tags: [User]
- *     requestBody:
- *       required: true
- *       content:
- *         application/x-www-form-urlencoded:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *                 description: Email address of the user.
- *               password:
- *                 type: string
- *                 description: Password of the user.
- *     responses:
- *       200:
- *         description: Authentication successful. Returns user information.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 user:
- *                   type: object
- *                   properties:
- *                     uid:
- *                       type: string
- *                       description: The unique identifier of the authenticated user.
- *                     email:
- *                       type: string
- *                       description: The email address of the authenticated user.
- *                     emailVerified:
- *                       type: boolean
- *                       description: Indicates whether the email of the authenticated user is verified.
- *                     displayName:
- *                       type: string
- *                       description: The display name of the authenticated user.
- *                     isAnonymous:
- *                       type: boolean
- *                       description: Indicates whether the authenticated user is anonymous.
- *                     providerData:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           providerId:
- *                             type: string
- *                             description: The provider ID of the user.
- *                           uid:
- *                             type: string
- *                             description: The user ID of the provider.
- *                           displayName:
- *                             type: string
- *                             description: The display name of the user.
- *                           email:
- *                             type: string
- *                             description: The email address of the user.
- *                           phoneNumber:
- *                             type: string
- *                             description: The phone number of the user.
- *                           photoURL:
- *                             type: string
- *                             description: The photo URL of the user.
- *                     stsTokenManager:
- *                       type: object
- *                       properties:
- *                         refreshToken:
- *                           type: string
- *                           description: The refresh token of the authenticated user.
- *                         accessToken:
- *                           type: string
- *                           description: The access token of the authenticated user.
- *                         expirationTime:
- *                           type: number
- *                           description: The expiration time of the tokens.
- *                     createdAt:
- *                       type: string
- *                       description: The creation time of the authenticated user.
- *                     lastLoginAt:
- *                       type: string
- *                       description: The last login time of the authenticated user.
- *                     apiKey:
- *                       type: string
- *                       description: The API key of the authenticated user.
- *                     appName:
- *                       type: string
- *                       description: The name of the app associated with the authenticated user.
- *                 providerId:
- *                   type: string
- *                   description: The provider ID of the authentication operation.
- *                 _tokenResponse:
- *                   type: object
- *                   properties:
- *                     kind:
- *                       type: string
- *                       description: The kind of the token response.
- *                     localId:
- *                       type: string
- *                       description: The local ID of the token response.
- *                     email:
- *                       type: string
- *                       description: The email address of the token response.
- *                     displayName:
- *                       type: string
- *                       description: The display name of the token response.
- *                     idToken:
- *                       type: string
- *                       description: The ID token of the token response.
- *                     registered:
- *                       type: boolean
- *                       description: Indicates whether the token response is registered.
- *                     refreshToken:
- *                       type: string
- *                       description: The refresh token of the token response.
- *                     expiresIn:
- *                       type: string
- *                       description: The expiration time of the token response.
- *                 operationType:
- *                   type: string
- *                   description: The type of the authentication operation.
- *       400:
- *         description: Email and password are required.
- *       401:
- *         description: Authentication failed. Invalid email or password.
- *       500:
- *         description: Internal server error.
- */
 export async function getUserJWTController(
   req: Request,
   res: Response
@@ -281,27 +115,6 @@ export async function getUserJWTController(
   }
 }
 
-/**
- * @swagger
- * /api/v1/user/{uid}:
- *   get:
- *     summary: Get user by UID
- *     tags: [User]
- *     parameters:
- *       - in: path
- *         name: uid
- *         required: true
- *         description: The UID of the user to retrieve
- *         schema:
- *           type: string
- *     responses:
- *       '200':
- *         description: User details retrieved successfully
- *       '404':
- *         description: User not found
- *       '500':
- *         description: Internal server error
- */
 export async function getUserByUIDController(req: Request, res: Response) {
   const { uid } = req.params;
   try {
@@ -316,27 +129,6 @@ export async function getUserByUIDController(req: Request, res: Response) {
   }
 }
 
-/**
- * @swagger
- * /api/v1/user/email/{email}:
- *   get:
- *     summary: Get user by email
- *     tags: [User]
- *     parameters:
- *       - in: path
- *         name: email
- *         required: true
- *         description: The email of the user to retrieve
- *         schema:
- *           type: string
- *     responses:
- *       '200':
- *         description: User details retrieved successfully
- *       '404':
- *         description: User not found
- *       '500':
- *         description: Internal server error
- */
 export async function getUserByEmailController(req: Request, res: Response) {
   const email = req.body.email as string;
 
@@ -352,18 +144,6 @@ export async function getUserByEmailController(req: Request, res: Response) {
   }
 }
 
-/**
- * @swagger
- * /api/v1/user:
- *   get:
- *     summary: Get all users
- *     tags: [User]
- *     responses:
- *       '200':
- *         description: Users retrieved successfully
- *       '500':
- *         description: Internal server error
- */
 export async function getAllUsersController(req: Request, res: Response) {
   try {
     const users = await getAllUsers();
@@ -374,32 +154,6 @@ export async function getAllUsersController(req: Request, res: Response) {
   }
 }
 
-/**
- * @swagger
- * /api/v1/user/balance:
- *   get:
- *     summary: Retrieves the Solana balance for the authenticated user.
- *     tags: [User]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Solana balance successfully retrieved.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 balance:
- *                   type: number
- *                   description: The Solana balance of the authenticated user in SOL.
- *       401:
- *         description: User is not authenticated.
- *       404:
- *         description: User or Solana public key not found.
- *       500:
- *         description: Failed to retrieve Solana balance.
- */
 export const getSuiBalance = async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).send("User is not authenticated");
@@ -416,42 +170,6 @@ export const getSuiBalance = async (req: AuthRequest, res: Response) => {
   }
 };
 
-/**
- * @swagger
- * /api/v1/user/airdrop:
- *   post:
- *     summary: Airdrops SOL to the authenticated user's public key.
- *     tags: [User]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               publicKey:
- *                 type: string
- *                 description: The public key of the user to receive the airdrop.
- *     responses:
- *       200:
- *         description: SOL successfully airdropped.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   description: True if the airdrop was successful.
- *       401:
- *         description: User is not authenticated.
- *       404:
- *         description: Public key not provided.
- *       500:
- *         description: Failed to airdrop SOL.
- */
 export const airdropSuiController = async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).send("User is not authenticated");
