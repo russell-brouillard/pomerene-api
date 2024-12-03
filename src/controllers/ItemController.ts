@@ -167,3 +167,59 @@ export async function fetchGPSByItemController(
     res.status(500).json({ success: false, error: error.message });
   }
 }
+
+export async function bulkUploadController(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw new Error("User not authenticated.");
+    }
+
+    const items = req.body.items; // Expecting an array of items with name and description
+
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new Error("Invalid payload: 'items' must be a non-empty array.");
+    }
+
+    console.log("items ", items);
+
+    const payer = await getSuiKeypairForUser(req.user.uid);
+
+    const createdItems = [];
+    const errors = [];
+
+    for (const [index, item] of items.entries()) {
+      const { name, description, blobId } = item;
+
+      // Validate item fields
+      if (!name || !description) {
+        errors.push({
+          index,
+          error: "Missing required fields: 'name' or 'description'.",
+        });
+        continue;
+      }
+
+      try {
+        // Call createItem function
+        const createdItem = await createItem(payer, name, description, '');
+        createdItems.push(createdItem);
+      } catch (err: any) {
+        console.error(`Error creating item at index ${index}:`, err.message);
+        errors.push({ index, error: err.message });
+      }
+    }
+
+    // Send response
+    res.status(200).json({
+      success: errors.length === 0,
+      createdItems,
+      errors,
+    });
+  } catch (error: any) {
+    console.error("Error in bulk upload:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}

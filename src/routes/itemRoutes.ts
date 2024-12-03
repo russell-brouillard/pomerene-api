@@ -1,6 +1,7 @@
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware";
 import {
+  bulkUploadController,
   createItemController,
   deleteItemController,
   fetchGPSByItemController,
@@ -9,7 +10,6 @@ import {
   handleFetchItemsForUser,
   handleFetchItemsLastLocation,
 } from "../controllers/ItemController";
-import { get } from "http";
 
 const router = express.Router();
 
@@ -17,12 +17,13 @@ const router = express.Router();
 router.post("/create", authMiddleware, createItemController);
 router.delete("/:itemObjectId", authMiddleware, deleteItemController);
 router.get("/user", authMiddleware, handleFetchItemsForUser);
-// router.get("/explore", handleFetchItems);
 
 router.get("/qr/:itemObjectId", authMiddleware, getQrCodeController);
 
 router.get("/map", authMiddleware, handleFetchItemsLastLocation);
 router.get("/map/:itemPublicKey", authMiddleware, fetchGPSByItemController);
 router.get("/:itemPublicKey", authMiddleware, fetchLocationsByItemController);
+
+router.post("/bulk-upload", authMiddleware, bulkUploadController);
 
 export default router;
