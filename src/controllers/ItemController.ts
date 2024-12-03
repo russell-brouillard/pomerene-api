@@ -174,24 +174,32 @@ export async function bulkUploadController(
 ): Promise<void> {
   try {
     if (!req.user) {
-      throw new Error("User not authenticated.");
+      res
+        .status(401)
+        .json({ success: false, error: "User not authenticated." });
+      return;
     }
 
-    const items = req.body.items; // Expecting an array of items with name and description
+    const items = req.body.items;
 
     if (!Array.isArray(items) || items.length === 0) {
-      throw new Error("Invalid payload: 'items' must be a non-empty array.");
+      res.status(400).json({
+        success: false,
+        error: "Invalid payload: 'items' must be a non-empty array.",
+      });
+      return;
     }
 
-    console.log("items ", items);
+    console.log("Received items:", items);
 
     const payer = await getSuiKeypairForUser(req.user.uid);
 
     const createdItems = [];
     const errors = [];
 
-    for (const [index, item] of items.entries()) {
-      const { name, description, blobId } = item;
+    for (let index = 0; index < items.length; index++) {
+      const item = items[index];
+      const { name, description } = item;
 
       // Validate item fields
       if (!name || !description) {
@@ -202,24 +210,48 @@ export async function bulkUploadController(
         continue;
       }
 
-      try {
-        // Call createItem function
-        const createdItem = await createItem(payer, name, description, '');
-        createdItems.push(createdItem);
-      } catch (err: any) {
-        console.error(`Error creating item at index ${index}:`, err.message);
-        errors.push({ index, error: err.message });
+      const maxRetries = 3;
+      const initialDelay = 1000; // 1 second
+
+      let attempt = 0;
+      let success = false;
+
+      while (attempt < maxRetries && !success) {
+        try {
+          attempt++;
+          const createdItemAddress = await createItem(
+            payer,
+            name,
+            description,
+            ""
+          );
+          createdItems.push({ index, createdItem: createdItemAddress });
+          success = true;
+        } catch (err: any) {
+          console.error(
+            `Error creating item at index ${index}, attempt ${attempt}:`,
+            err.message || err
+          );
+          if (attempt >= maxRetries) {
+            errors.push({ index, error: err.message || err });
+          } else {
+            const delay = initialDelay * Math.pow(2, attempt - 1);
+            console.warn(`Retrying in ${delay}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+          }
+        }
       }
     }
 
-    // Send response
+    const overallSuccess = errors.length === 0;
+
     res.status(200).json({
-      success: errors.length === 0,
+      success: overallSuccess,
       createdItems,
       errors,
     });
   } catch (error: any) {
-    console.error("Error in bulk upload:", error.message);
-    res.status(500).json({ success: false, error: error.message });
+    console.error("Error in bulk upload:", error.message || error);
+    res.status(500).json({ success: false, error: error.message || error });
   }
 }

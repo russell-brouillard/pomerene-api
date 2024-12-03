@@ -22,7 +22,7 @@ export async function createScanner(
 
   tx.moveCall({
     package:
-      "0x21c02e9e141304cab170342e265e99da162d035a3b6df0a8ba4023b779a76601",
+      "0x854e66589a1cb09ccbf9c639169b3af110144cfb919088b9710564065fae8629",
     module: "scanner",
     function: "mint_to_sender",
     arguments: [
@@ -65,7 +65,7 @@ export async function fetchScannersByOwner(
 
       if (
         t?.type ===
-        "0x21c02e9e141304cab170342e265e99da162d035a3b6df0a8ba4023b779a76601::scanner::ScannerNFT"
+        "0x854e66589a1cb09ccbf9c639169b3af110144cfb919088b9710564065fae8629::scanner::ScannerNFT"
       ) {
         return t.fields;
       }
@@ -94,7 +94,7 @@ export async function deleteScanner(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x21c02e9e141304cab170342e265e99da162d035a3b6df0a8ba4023b779a76601",
+      "0x854e66589a1cb09ccbf9c639169b3af110144cfb919088b9710564065fae8629",
     module: "scanner",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
