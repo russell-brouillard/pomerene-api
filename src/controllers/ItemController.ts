@@ -141,7 +141,7 @@ export async function fetchLocationsByItemController(
 
     const locations = await fetchLocationsByItem(itemPublicKey); // Using publicKey from the user object
 
-    res.status(200).json(locations);
+    res.status(200).json({locations});
   } catch (error: any) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });
@@ -210,8 +210,8 @@ export async function bulkUploadController(
         continue;
       }
 
-      const maxRetries = 3;
-      const initialDelay = 1000; // 1 second
+      const maxRetries = 1;
+      const initialDelay = 3000; // 1 second
 
       let attempt = 0;
       let success = false;
