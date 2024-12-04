@@ -198,3 +198,48 @@ export async function fetchScannersLocationsByOwner(
 
   return pairedData;
 }
+
+
+export async function fetchscanEventsByScanner(scannerPublicKey: string) {
+  const client = new SuiClient({
+    url: getFullnodeUrl("devnet"),
+  });
+
+  const scans = await client.getOwnedObjects({
+    owner: scannerPublicKey,
+  });
+
+  const scanEvents = await Promise.all(
+    scans.data.map(async (obj) => {
+      const item = await client.getObject({
+        id: obj.data?.objectId!,
+        options: {
+          showContent: true,
+          showOwner: true,
+          showPreviousTransaction: true,
+          showType: true,
+          showDisplay: true,
+        },
+      });
+
+      const t: any = item.data?.content;
+
+      if (
+        t?.type ===
+        "0x854e66589a1cb09ccbf9c639169b3af110144cfb919088b9710564065fae8629::pomerene::PomeNFT"
+      ) {
+        const lastTransaction = await client.getTransactionBlock({
+          digest: item.data!.previousTransaction!,
+        });
+
+        t.fields.timestampMs = lastTransaction.timestampMs;
+
+        return t.fields;
+      }
+      return null;
+    })
+  );
+
+  // Filter out null values and return clean array of messages
+  return scanEvents;
+}
