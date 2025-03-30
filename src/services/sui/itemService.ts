@@ -49,7 +49,7 @@ export async function createItem(
   blobId: string
 ): Promise<any> {
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   const itemKeypair = new Ed25519Keypair();
@@ -86,7 +86,7 @@ export async function createItem(
 
 export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   const myObjects = await client.getOwnedObjects({
@@ -139,7 +139,7 @@ export async function deleteItem(
 ): Promise<string> {
   // Initialize the Sui client pointing to the mainnet
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   // Create a new transaction
@@ -184,7 +184,7 @@ export async function fetchItemsLocationsByOwner(
   const items = await fetchItemsByOwner(owner);
 
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   // Fetch scans for each item
@@ -255,7 +255,7 @@ export async function fetchItemsLocationsByOwner(
 
 export async function fetchLocationsByItem(itemPublicKey: string) {
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   const scans = await client.getOwnedObjects({
@@ -306,7 +306,7 @@ export async function fetchGPSByItem(itemPublicKey: string) {
 
 export async function getQrCode(itemPublicKey: string, owner: Ed25519Keypair) {
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   const item: any = await client.getObject({

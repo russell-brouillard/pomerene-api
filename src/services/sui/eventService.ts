@@ -180,7 +180,7 @@ export async function validateGPSDataFromNFT(nftId: string): Promise<any> {
 
 export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   try {
@@ -313,7 +313,7 @@ export async function deleteEvent(
 ): Promise<string> {
   // Initialize the Sui client pointing to the mainnet
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   // Create a new transaction

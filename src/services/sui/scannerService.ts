@@ -13,7 +13,7 @@ export async function createScanner(
   blobId: string
 ): Promise<string> {
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   const itemKeypair = new Ed25519Keypair();
@@ -47,7 +47,7 @@ export async function fetchScannersByOwner(
   owner: Ed25519Keypair
 ): Promise<any[]> {
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   const myObjects = await client.getOwnedObjects({
@@ -85,7 +85,7 @@ export async function deleteScanner(
 ): Promise<string> {
   // Initialize the Sui client pointing to the mainnet
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   // Create a new transaction
@@ -130,7 +130,7 @@ export async function fetchScannersLocationsByOwner(
   const scanners = await fetchScannersByOwner(owner);
 
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   // Fetch scans for each item
@@ -202,7 +202,7 @@ export async function fetchScannersLocationsByOwner(
 
 export async function fetchscanEventsByScanner(scannerPublicKey: string) {
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   const scans = await client.getOwnedObjects({
