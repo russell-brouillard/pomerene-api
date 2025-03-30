@@ -14,7 +14,7 @@ export async function createItemObject(
   blobId: string
 ): Promise<any> {
   const client = new SuiClient({
-    url: getFullnodeUrl("mainnet"),
+    url: "https://fullnode.mainnet.sui.io:443",
   });
 
   const tx = new Transaction();
@@ -91,15 +91,12 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
 
   const myObjects = await client.getOwnedObjects({
     owner: owner.getPublicKey().toSuiAddress(),
-
   });
 
   console.log(myObjects.data.length);
 
   const test = await Promise.all(
     myObjects.data.map(async (obj) => {
-
-      
       const item = await client.getObject({
         id: obj.data?.objectId!,
         options: {
@@ -113,14 +110,10 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
 
       console.log(item.data?.type);
 
-     
-
       if (
         item.data?.type ===
         "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817::item::ItemNFT"
       ) {
-
-
         const lastTransaction = await client.getTransactionBlock({
           digest: item.data?.previousTransaction!,
         });
