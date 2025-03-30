@@ -34,10 +34,10 @@ export function getNewSuiSecretKeyString(): string {
 
 // Function to get Sui money for an address
 export async function getSuiMoney(recipient: string): Promise<any> {
-  return await requestSuiFromFaucetV1({
-    host: getFaucetHost("mainnet"),
-    recipient,
-  });
+  // return await requestSuiFromFaucetV1({
+  //   host: getFaucetHost("mainnet"),
+  //   recipient,
+  // });
 }
 
 export async function getBalance(address: string): Promise<number> {

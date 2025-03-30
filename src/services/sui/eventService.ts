@@ -11,8 +11,7 @@ export async function createSuiScannerTransaction(
   payer: Ed25519Keypair,
   message: string
 ) {
-  const rpcUrl = getFullnodeUrl("mainnet");
-  const client = new SuiClient({ url: rpcUrl });
+  const client = new SuiClient({ url: "https://fullnode.mainnet.sui.io:443" });
 
   const combinedSignature = await signGPSData(
     scannerSecret,
@@ -86,11 +85,8 @@ export async function createScanNFT(
   client: SuiClient,
   payerKeypair: Ed25519Keypair
 ): Promise<string> {
-
-  
   const scannerKeypair = getSuiKeypairFromSecret(scannerSecret);
   const itemKeypair = getSuiKeypairFromSecret(itemSecret);
-
 
   // Mint an NFT and embed the message and signatures
   const tx = new Transaction();
@@ -132,8 +128,7 @@ export async function createScanNFT(
 }
 
 export async function validateGPSDataFromNFT(nftId: string): Promise<any> {
-  const rpcUrl = getFullnodeUrl("mainnet");
-  const client = new SuiClient({ url: rpcUrl });
+  const client = new SuiClient({ url: "https://fullnode.mainnet.sui.io:443" });
 
   const nftDetails: any = await client.getObject({
     id: nftId,
