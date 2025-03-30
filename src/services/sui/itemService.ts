@@ -14,7 +14,7 @@ export async function createItemObject(
   blobId: string
 ): Promise<any> {
   const client = new SuiClient({
-    url: getFullnodeUrl("devnet"),
+    url: getFullnodeUrl("mainnet"),
   });
 
   const tx = new Transaction();
@@ -49,7 +49,7 @@ export async function createItem(
   blobId: string
 ): Promise<any> {
   const client = new SuiClient({
-    url: getFullnodeUrl("devnet"),
+    url: getFullnodeUrl("mainnet"),
   });
 
   const itemKeypair = new Ed25519Keypair();
@@ -86,7 +86,7 @@ export async function createItem(
 
 export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
   const client = new SuiClient({
-    url: getFullnodeUrl("devnet"),
+    url: getFullnodeUrl("mainnet"),
   });
 
   const myObjects = await client.getOwnedObjects({
@@ -144,9 +144,9 @@ export async function deleteItem(
   signer: Ed25519Keypair,
   itemObjectId: string
 ): Promise<string> {
-  // Initialize the Sui client pointing to the devnet
+  // Initialize the Sui client pointing to the mainnet
   const client = new SuiClient({
-    url: getFullnodeUrl("devnet"),
+    url: getFullnodeUrl("mainnet"),
   });
 
   // Create a new transaction
@@ -191,7 +191,7 @@ export async function fetchItemsLocationsByOwner(
   const items = await fetchItemsByOwner(owner);
 
   const client = new SuiClient({
-    url: getFullnodeUrl("devnet"),
+    url: getFullnodeUrl("mainnet"),
   });
 
   // Fetch scans for each item
@@ -262,7 +262,7 @@ export async function fetchItemsLocationsByOwner(
 
 export async function fetchLocationsByItem(itemPublicKey: string) {
   const client = new SuiClient({
-    url: getFullnodeUrl("devnet"),
+    url: getFullnodeUrl("mainnet"),
   });
 
   const scans = await client.getOwnedObjects({
@@ -313,7 +313,7 @@ export async function fetchGPSByItem(itemPublicKey: string) {
 
 export async function getQrCode(itemPublicKey: string, owner: Ed25519Keypair) {
   const client = new SuiClient({
-    url: getFullnodeUrl("devnet"),
+    url: getFullnodeUrl("mainnet"),
   });
 
   const item: any = await client.getObject({

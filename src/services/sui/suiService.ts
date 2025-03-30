@@ -35,14 +35,14 @@ export function getNewSuiSecretKeyString(): string {
 // Function to get Sui money for an address
 export async function getSuiMoney(recipient: string): Promise<any> {
   return await requestSuiFromFaucetV1({
-    host: getFaucetHost("devnet"),
+    host: getFaucetHost("mainnet"),
     recipient,
   });
 }
 
 export async function getBalance(address: string): Promise<number> {
   // create a new SuiClient object pointing to the network you want to use
-  const suiClient = new SuiClient({ url: getFullnodeUrl("devnet") });
+  const suiClient = new SuiClient({ url: getFullnodeUrl("mainnet") });
 
   // store the JSON representation for the SUI the address owns before using faucet
   const sui = await suiClient.getBalance({

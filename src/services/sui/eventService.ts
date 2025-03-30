@@ -11,7 +11,7 @@ export async function createSuiScannerTransaction(
   payer: Ed25519Keypair,
   message: string
 ) {
-  const rpcUrl = getFullnodeUrl("devnet");
+  const rpcUrl = getFullnodeUrl("mainnet");
   const client = new SuiClient({ url: rpcUrl });
 
   const combinedSignature = await signGPSData(
@@ -132,7 +132,7 @@ export async function createScanNFT(
 }
 
 export async function validateGPSDataFromNFT(nftId: string): Promise<any> {
-  const rpcUrl = getFullnodeUrl("devnet");
+  const rpcUrl = getFullnodeUrl("mainnet");
   const client = new SuiClient({ url: rpcUrl });
 
   const nftDetails: any = await client.getObject({
@@ -180,7 +180,7 @@ export async function validateGPSDataFromNFT(nftId: string): Promise<any> {
 
 export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
   const client = new SuiClient({
-    url: getFullnodeUrl("devnet"),
+    url: getFullnodeUrl("mainnet"),
   });
 
   try {
@@ -311,9 +311,9 @@ export async function deleteEvent(
   signer: Ed25519Keypair,
   eventObjectId: string
 ): Promise<string> {
-  // Initialize the Sui client pointing to the devnet
+  // Initialize the Sui client pointing to the mainnet
   const client = new SuiClient({
-    url: getFullnodeUrl("devnet"),
+    url: getFullnodeUrl("mainnet"),
   });
 
   // Create a new transaction
