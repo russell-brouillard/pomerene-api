@@ -22,7 +22,7 @@ export async function createScanner(
 
   tx.moveCall({
     package:
-      "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c",
+      "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817",
     module: "scanner",
     function: "mint_to_sender",
     arguments: [
@@ -65,7 +65,7 @@ export async function fetchScannersByOwner(
 
       if (
         t?.type ===
-        "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c::scanner::ScannerNFT"
+        "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817::scanner::ScannerNFT"
       ) {
         return t.fields;
       }
@@ -94,7 +94,7 @@ export async function deleteScanner(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c",
+      "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817",
     module: "scanner",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
@@ -226,7 +226,7 @@ export async function fetchscanEventsByScanner(scannerPublicKey: string) {
 
       if (
         t?.type ===
-        "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c::pomerene::PomeNFT"
+        "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817::pomerene::PomeNFT"
       ) {
         const lastTransaction = await client.getTransactionBlock({
           digest: item.data!.previousTransaction!,

@@ -96,7 +96,7 @@ export async function createScanNFT(
   const tx = new Transaction();
   tx.moveCall({
     package:
-      "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c", // Replace with your package address
+      "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817", // Replace with your package address
     module: "pomerene",
     function: "scan", // Assume this function exists to mint your NFT
     arguments: [
@@ -224,7 +224,7 @@ export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
         // Check if the object is a PomeNFT
         if (
           item.data.type ===
-          "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c::pomerene::PomeNFT"
+          "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817::pomerene::PomeNFT"
         ) {
           return { ...fields, lastTransaction };
         }
@@ -232,7 +232,7 @@ export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
         // Check if the object is an ItemNFT
         if (
           item.data.type ===
-          "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c::item::ItemNFT"
+          "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817::item::ItemNFT"
         ) {
           // Fetch objects owned by the item's address
           const itemsScansResponse = await client.getOwnedObjects({
@@ -268,7 +268,7 @@ export async function fetchEventsByOwner(owner: Ed25519Keypair): Promise<any> {
                 // Check if the scan item is a PomeNFT
                 if (
                   scanItem.data.type ===
-                  "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c::pomerene::PomeNFT"
+                  "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817::pomerene::PomeNFT"
                 ) {
                   return { ...scanFields, lastTransaction };
                 }
@@ -322,7 +322,7 @@ export async function deleteEvent(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c",
+      "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817",
     module: "pomerene",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference

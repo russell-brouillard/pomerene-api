@@ -21,7 +21,7 @@ export async function createItemObject(
 
   tx.moveCall({
     package:
-      "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c",
+      "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817",
     module: "test",
     function: "add_child",
     arguments: [
@@ -63,7 +63,7 @@ export async function createItem(
 
   tx.moveCall({
     package:
-      "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c",
+      "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817",
     module: "item",
     function: "mint_to_sender",
     arguments: [
@@ -117,7 +117,7 @@ export async function fetchItemsByOwner(owner: Ed25519Keypair): Promise<any[]> {
 
       if (
         item.data?.type ===
-        "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c::item::ItemNFT"
+        "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817::item::ItemNFT"
       ) {
 
 
@@ -155,7 +155,7 @@ export async function deleteItem(
   // Add the burn Move call to the transaction
   tx.moveCall({
     package:
-      "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c",
+      "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817",
     module: "item",
     function: "burn",
     // The burn function expects the ItemNFT object, which we pass as a reference
@@ -286,7 +286,7 @@ export async function fetchLocationsByItem(itemPublicKey: string) {
 
       if (
         t?.type ===
-        "0x6af8009ae6ada685032be9606a77145b9e983ec335a681e9ee7f7b79a9ddcb8c::pomerene::PomeNFT"
+        "0x4a58713ecf8ca4652267adf82311c4f15cc1fa51f38cfaf88fa76c075dff9817::pomerene::PomeNFT"
       ) {
         const lastTransaction = await client.getTransactionBlock({
           digest: item.data!.previousTransaction!,
